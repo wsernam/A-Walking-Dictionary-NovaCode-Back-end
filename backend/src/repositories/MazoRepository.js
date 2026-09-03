@@ -14,13 +14,12 @@ export const MazoRepository = {
       estado,
       fecha_apertura,
       fecha_cierre,
-      fecha_creacion,
     } = datos;
     const { rows } = await pool.query(
       `INSERT INTO mazo (curso_id, nombre_lectura, autor, semana, variante_regional_predeterminada, estado, fecha_apertura, fecha_cierre, fecha_creacion)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
        RETURNING *`,
-      [curso_id, nombre_lectura, autor, semana, variante_regional_predeterminada, estado, fecha_apertura, fecha_cierre, fecha_creacion]
+      [curso_id, nombre_lectura, autor, semana, variante_regional_predeterminada, estado, fecha_apertura, fecha_cierre]
     );
     return new Mazo(rows[0]);
   },

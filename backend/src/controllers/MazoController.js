@@ -27,8 +27,12 @@ export const MazoController = {
         });
       }
 
+      // Se descarta explícitamente cualquier fecha_creacion que venga del body:
+      // el backend siempre asigna la fecha real de inserción, nunca la del cliente.
+      const { fecha_creacion, ...datosMazo } = req.body;
+
       // CA-1.1.1: el mazo siempre se crea en estado "abierto"
-      const mazo = await MazoRepository.crear({ ...req.body, estado: 'abierto' });
+      const mazo = await MazoRepository.crear({ ...datosMazo, estado: 'abierto' });
       res.status(201).json(mazo);
     } catch (error) {
       res.status(500).json({ error: error.message });
