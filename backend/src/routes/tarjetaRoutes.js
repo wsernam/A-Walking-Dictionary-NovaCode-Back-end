@@ -9,11 +9,22 @@ const router = Router();
 router.post('/', TarjetaController.crear);
 
 router.get('/', TarjetaController.listar);
+
+router.get('/pending-review', TarjetaController.listarPendientes);
+
 router.get('/:id', TarjetaController.obtenerPorId);
 
 // TODO: agregar validationMiddleware aquí cuando esté implementado
 router.put('/:id', TarjetaController.actualizar);
 
+router.put('/:id/revision', TarjetaController.editarRevision);
+
+router.patch('/:id/approve', TarjetaController.aprobar);
+
 router.delete('/:id', TarjetaController.eliminar);
+
+
+
+
 
 export default router;
