@@ -7,6 +7,41 @@ import { AporteRepository } from '../repositories/AporteRepository.js';
 export const AporteController = {
   async crear(req, res) {
     try {
+      const { traduccion_aportada, ejemplo_aportado, tipo_aporte } = req.body;
+
+      // traduccion_aportada y tipo_aporte son varchar NOT NULL en el DER.
+      // definicion_aportada es "text" (sin límite definido en el DER), queda fuera de este alcance.
+      const camposFaltantes = [];
+      if (!traduccion_aportada) camposFaltantes.push('traduccion_aportada');
+      if (!tipo_aporte) camposFaltantes.push('tipo_aporte');
+      if (camposFaltantes.length > 0) {
+        return res.status(400).json({
+          error: `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`,
+        });
+      }
+
+      // Longitud máxima según el DER: traduccion_aportada varchar(255), tipo_aporte varchar(40),
+      // ejemplo_aportado varchar(150) (nullable).
+      const erroresLongitud = [];
+      if (traduccion_aportada.length > 255) {
+        erroresLongitud.push(
+          `El campo traduccion_aportada no puede superar 255 caracteres (tiene ${traduccion_aportada.length} caracteres).`
+        );
+      }
+      if (tipo_aporte.length > 40) {
+        erroresLongitud.push(
+          `El campo tipo_aporte no puede superar 40 caracteres (tiene ${tipo_aporte.length} caracteres).`
+        );
+      }
+      if (ejemplo_aportado && ejemplo_aportado.length > 150) {
+        erroresLongitud.push(
+          `El campo ejemplo_aportado no puede superar 150 caracteres (tiene ${ejemplo_aportado.length} caracteres).`
+        );
+      }
+      if (erroresLongitud.length > 0) {
+        return res.status(400).json({ error: erroresLongitud.join(' ') });
+      }
+
       const aporte = await AporteRepository.crear(req.body);
       res.status(201).json(aporte);
     } catch (error) {

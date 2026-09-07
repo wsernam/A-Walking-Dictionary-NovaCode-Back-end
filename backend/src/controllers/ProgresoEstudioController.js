@@ -7,6 +7,17 @@ import { ProgresoEstudioRepository } from '../repositories/ProgresoEstudioReposi
 export const ProgresoEstudioController = {
   async crear(req, res) {
     try {
+      const { ultima_valoracion } = req.body;
+
+      // ultima_valoracion es el único varchar de "progreso_estudio" y es nullable en el DER
+      // (factor_facilidad es decimal, intervalo_dias/repeticiones son int), por eso no se exige
+      // como obligatorio, solo se limita su longitud si viene.
+      if (ultima_valoracion && ultima_valoracion.length > 30) {
+        return res.status(400).json({
+          error: `El campo ultima_valoracion no puede superar 30 caracteres (tiene ${ultima_valoracion.length} caracteres).`,
+        });
+      }
+
       const progreso = await ProgresoEstudioRepository.crear(req.body);
       res.status(201).json(progreso);
     } catch (error) {

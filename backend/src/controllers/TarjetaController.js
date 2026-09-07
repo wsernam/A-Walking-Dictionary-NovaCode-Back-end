@@ -13,21 +13,24 @@ export const TarjetaController = {
    * Registra una palabra nueva propuesta por un estudiante (HU-1.2) y aplica la detección de
    * duplicados (HU-1.3). Según el resultado, crea una tarjeta nueva, o solo un aporte adicional
    * (coautoría o acepción) sobre una tarjeta ya existente en el mazo.
-   * @param {import('express').Request} req - req.body debe traer: mazo_id, palabra, traduccion,
-   * definicion (obligatorios), ejemplo (opcional, máx. 150 caracteres) e inscripcion_id
-   * (quién hace el aporte).
+   * Ruta anidada: POST /api/v1/decks/:id/cards — el id del mazo (deck) viene de req.params.id,
+   * no del body.
+   * @param {import('express').Request} req - req.params.id es el id_mazo (deck); req.body debe
+   * traer: palabra, traduccion, definicion (obligatorios), ejemplo (opcional, máx. 150 caracteres)
+   * e inscripcion_id (quién hace el aporte).
    * @param {import('express').Response} res - 201 con { resultado, tarjeta, aporte } donde
    * resultado es 'creada' | 'coautoria' | 'acepcion_nueva'; 400 si faltan campos o el ejemplo
    * es muy largo; 404 si el mazo no existe; 409 si el mazo está cerrado; 500 ante error inesperado.
    */
   async crear(req, res) {
     try {
-      const { mazo_id, palabra, traduccion, definicion, ejemplo, inscripcion_id } = req.body;
+      const { palabra, traduccion, definicion, ejemplo, inscripcion_id } = req.body;
 
-      // a) el mazo debe existir y estar "abierto" (CA-1.2.3)
-      const mazoId = Number(mazo_id);
+      // a) el mazo debe existir y estar "abierto" (CA-1.2.3). El id del mazo viene de la URL
+      // (ruta anidada /decks/:id/cards), no del body.
+      const mazoId = Number(req.params.id);
       if (Number.isNaN(mazoId)) {
-        return res.status(400).json({ error: 'mazo_id inválido' });
+        return res.status(400).json({ error: 'El id del mazo en la URL no es válido' });
       }
       const mazo = await MazoRepository.obtenerPorId(mazoId);
       if (!mazo) {
@@ -52,6 +55,24 @@ export const TarjetaController = {
       }
       if (!inscripcion_id) {
         return res.status(400).json({ error: 'inscripcion_id es obligatorio' });
+      }
+
+      // Longitud máxima según el DER: palabra varchar(150), traduccion varchar(255).
+      // "definicion" es text (sin límite en el DER) y "estado" lo fuerza el controlador
+      // más abajo, así que ninguna de las dos se valida aquí.
+      const erroresLongitud = [];
+      if (palabra.length > 150) {
+        erroresLongitud.push(
+          `El campo palabra no puede superar 150 caracteres (tiene ${palabra.length} caracteres).`
+        );
+      }
+      if (traduccion.length > 255) {
+        erroresLongitud.push(
+          `El campo traduccion no puede superar 255 caracteres (tiene ${traduccion.length} caracteres).`
+        );
+      }
+      if (erroresLongitud.length > 0) {
+        return res.status(400).json({ error: erroresLongitud.join(' ') });
       }
 
       const fechaAporte = new Date();
@@ -100,6 +121,48 @@ export const TarjetaController = {
 
       // g) "resultado" le indica al frontend qué aviso mostrar (CA-1.3.4)
       return res.status(201).json({ resultado: resolucion.tipo, tarjeta: tarjetaExistente, aporte });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  /**
+   * Revisa si una palabra ya existe en un mazo, SIN crear ni modificar nada — es la
+   * verificación previa que el frontend llama antes de que el estudiante confirme el
+   * formulario, para mostrarle el aviso de coautoría/acepción nueva (CA-1.3.4).
+   * La creación real sigue ocurriendo en crear() (POST /api/v1/decks/:id/cards), que vuelve
+   * a correr esta misma comprobación en el servidor (nunca confía en que el frontend ya haya
+   * llamado a este endpoint).
+   * @param {import('express').Request} req - req.body debe traer: mazo_id, palabra
+   * (obligatorios), definicion y ejemplo (para poder distinguir coautoría de acepción nueva).
+   * @param {import('express').Response} res - 200 con { duplicado, resultado, tarjeta? } donde
+   * resultado es 'creada' | 'coautoria' | 'acepcion_nueva'; 400 si faltan mazo_id o palabra;
+   * 500 ante error inesperado.
+   */
+  async checkDuplicate(req, res) {
+    try {
+      const { mazo_id, palabra, definicion, ejemplo } = req.body;
+
+      const mazoId = Number(mazo_id);
+      if (Number.isNaN(mazoId)) {
+        return res.status(400).json({ error: 'mazo_id inválido' });
+      }
+      if (!palabra) {
+        return res.status(400).json({ error: 'El campo palabra es obligatorio' });
+      }
+
+      const tarjetaExistente = await DeduplicacionService.buscarDuplicado(mazoId, palabra);
+
+      if (!tarjetaExistente) {
+        return res.status(200).json({ duplicado: false, resultado: 'creada' });
+      }
+
+      const resolucion = DeduplicacionService.resolverAporte(tarjetaExistente, definicion, ejemplo ?? null);
+      return res.status(200).json({
+        duplicado: true,
+        resultado: resolucion.tipo, // 'coautoria' | 'acepcion_nueva'
+        tarjeta: tarjetaExistente,
+      });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

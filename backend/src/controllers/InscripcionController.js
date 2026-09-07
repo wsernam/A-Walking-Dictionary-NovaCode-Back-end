@@ -7,6 +7,21 @@ import { InscripcionRepository } from '../repositories/InscripcionRepository.js'
 export const InscripcionController = {
   async crear(req, res) {
     try {
+      const { estado } = req.body;
+
+      // estado es el único varchar de "inscripcion" y es NOT NULL en el DER
+      // (curso_id, estudiante_id son int; fecha_inscripcion es date).
+      if (!estado) {
+        return res.status(400).json({ error: 'El campo estado es obligatorio' });
+      }
+
+      // Longitud máxima según el DER: estado varchar(30).
+      if (estado.length > 30) {
+        return res.status(400).json({
+          error: `El campo estado no puede superar 30 caracteres (tiene ${estado.length} caracteres).`,
+        });
+      }
+
       const inscripcion = await InscripcionRepository.crear(req.body);
       res.status(201).json(inscripcion);
     } catch (error) {
