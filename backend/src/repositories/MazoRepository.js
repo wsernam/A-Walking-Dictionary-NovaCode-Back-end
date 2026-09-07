@@ -1,4 +1,16 @@
 // Repositorio de Mazo: acceso a datos para la tabla "mazo" del DER oficial.
+//
+// PENDIENTE DE CONFIRMAR CON EL EQUIPO: se propuso agregar "id_docente" a la tabla "mazo",
+// pero parece redundante ya que mazo.curso_id -> curso.docente_id da esa misma información
+// (solo requeriría un JOIN a "curso"). No se agrega ninguna columna ni query nueva aquí hasta
+// que se confirme. Si se confirma que NO se necesita, borrar este comentario.
+//
+// Si se confirma que SÍ se necesita: a diferencia del modelo (Mazo.js), aquí NO basta con
+// quitar un "//" — el SQL de crear()/actualizar() también hay que editarlo a mano:
+//   1. Descomentar "id_docente," en el destructuring de crear() y actualizar() (abajo).
+//   2. Agregar "id_docente" a la lista de columnas del INSERT/UPDATE.
+//   3. Agregar un nuevo placeholder $N (y correr los que le siguen) en VALUES/SET.
+//   4. Agregar "id_docente" en la misma posición dentro del arreglo de valores.
 
 import { pool } from '../config/db.js';
 import { Mazo } from '../models/Mazo.js';
@@ -7,6 +19,7 @@ export const MazoRepository = {
   async crear(datos) {
     const {
       curso_id,
+      // id_docente, // PENDIENTE DE CONFIRMAR (ver comentario arriba) — no basta con descomentar esto, ver los 4 pasos del comentario de arriba
       nombre_lectura,
       autor,
       semana,
@@ -37,6 +50,7 @@ export const MazoRepository = {
   async actualizar(id_mazo, datos) {
     const {
       curso_id,
+      // id_docente, // PENDIENTE DE CONFIRMAR (ver comentario arriba) — no basta con descomentar esto, ver los 4 pasos del comentario de arriba
       nombre_lectura,
       autor,
       semana,

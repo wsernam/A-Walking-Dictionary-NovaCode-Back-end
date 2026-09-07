@@ -13,18 +13,49 @@ export const MazoController = {
    * @param {import('express').Response} res - 201 con el mazo creado, 400 si faltan campos
    * obligatorios, 500 ante error inesperado.
    */
+  // PENDIENTE DE CONFIRMAR CON EL EQUIPO: cuando se implemente auth (docente autenticado),
+  // aquí habría que validar que el docente que crea el mazo sea dueño del curso (curso_id).
+  // Se propuso guardar "id_docente" directo en mazo para esa validación, pero podría ser
+  // redundante: mazo.curso_id -> curso.docente_id ya da esa información sin duplicarla.
+  // No se implementa nada de esto todavía (ni el campo ni la validación) hasta confirmar.
+  // Si se confirma que NO se necesita id_docente, borrar este comentario.
   async crear(req, res) {
     try {
-      const { nombre_lectura, semana } = req.body;
+      const { nombre_lectura, semana, autor, variante_regional_predeterminada } = req.body;
 
-      // CA-1.1.2: nombre de la lectura y semana son obligatorios
+      // CA-1.1.2: nombre de la lectura y semana son obligatorios.
+      // autor también es NOT NULL en el DER y el cliente debe enviarlo.
       const camposFaltantes = [];
       if (!nombre_lectura) camposFaltantes.push('nombre_lectura');
       if (semana === undefined || semana === null || semana === '') camposFaltantes.push('semana');
+      if (!autor) camposFaltantes.push('autor');
       if (camposFaltantes.length > 0) {
         return res.status(400).json({
           error: `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`,
         });
+      }
+
+      // Longitud máxima según el DER: nombre_lectura varchar(200), autor varchar(150),
+      // variante_regional_predeterminada varchar(100). "estado" no se valida aquí porque
+      // el controlador lo fuerza a 'abierto' más abajo, no lo recibe del cliente.
+      const erroresLongitud = [];
+      if (nombre_lectura.length > 200) {
+        erroresLongitud.push(
+          `El campo nombre_lectura no puede superar 200 caracteres (tiene ${nombre_lectura.length} caracteres).`
+        );
+      }
+      if (autor.length > 150) {
+        erroresLongitud.push(
+          `El campo autor no puede superar 150 caracteres (tiene ${autor.length} caracteres).`
+        );
+      }
+      if (variante_regional_predeterminada && variante_regional_predeterminada.length > 100) {
+        erroresLongitud.push(
+          `El campo variante_regional_predeterminada no puede superar 100 caracteres (tiene ${variante_regional_predeterminada.length} caracteres).`
+        );
+      }
+      if (erroresLongitud.length > 0) {
+        return res.status(400).json({ error: erroresLongitud.join(' ') });
       }
 
       // Se descarta explícitamente cualquier fecha_creacion que venga del body:

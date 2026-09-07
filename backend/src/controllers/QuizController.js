@@ -7,6 +7,34 @@ import { QuizRepository } from '../repositories/QuizRepository.js';
 export const QuizController = {
   async crear(req, res) {
     try {
+      const { titulo, estado } = req.body;
+
+      // titulo y estado son varchar NOT NULL en el DER.
+      const camposFaltantes = [];
+      if (!titulo) camposFaltantes.push('titulo');
+      if (!estado) camposFaltantes.push('estado');
+      if (camposFaltantes.length > 0) {
+        return res.status(400).json({
+          error: `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`,
+        });
+      }
+
+      // Longitud máxima según el DER: titulo varchar(200), estado varchar(30).
+      const erroresLongitud = [];
+      if (titulo.length > 200) {
+        erroresLongitud.push(
+          `El campo titulo no puede superar 200 caracteres (tiene ${titulo.length} caracteres).`
+        );
+      }
+      if (estado.length > 30) {
+        erroresLongitud.push(
+          `El campo estado no puede superar 30 caracteres (tiene ${estado.length} caracteres).`
+        );
+      }
+      if (erroresLongitud.length > 0) {
+        return res.status(400).json({ error: erroresLongitud.join(' ') });
+      }
+
       const quiz = await QuizRepository.crear(req.body);
       res.status(201).json(quiz);
     } catch (error) {

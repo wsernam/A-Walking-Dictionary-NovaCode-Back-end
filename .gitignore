@@ -1,0 +1,22 @@
+# .gitignore
+# Va en la raíz del repo de INFRAESTRUCTURA
+
+# Variables de entorno — NUNCA se sube, contiene contraseñas y secretos
+.env
+
+# Datos de PostgreSQL si en algún momento se montan como carpeta local
+# (no aplica mientras usemos el volumen nombrado postgres_data de Docker,
+# pero se deja por seguridad si alguien cambia la configuración)
+pgdata/
+postgres-data/
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de editor
+.vscode/
+.idea/
+
+# Logs
+*.log

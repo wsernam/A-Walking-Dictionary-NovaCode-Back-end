@@ -7,6 +7,34 @@ import { EtiquetaContextoRepository } from '../repositories/EtiquetaContextoRepo
 export const EtiquetaContextoController = {
   async crear(req, res) {
     try {
+      const { tipo, valor } = req.body;
+
+      // tipo y valor son varchar NOT NULL en el DER.
+      const camposFaltantes = [];
+      if (!tipo) camposFaltantes.push('tipo');
+      if (!valor) camposFaltantes.push('valor');
+      if (camposFaltantes.length > 0) {
+        return res.status(400).json({
+          error: `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`,
+        });
+      }
+
+      // Longitud máxima según el DER: tipo varchar(40), valor varchar(150).
+      const erroresLongitud = [];
+      if (tipo.length > 40) {
+        erroresLongitud.push(
+          `El campo tipo no puede superar 40 caracteres (tiene ${tipo.length} caracteres).`
+        );
+      }
+      if (valor.length > 150) {
+        erroresLongitud.push(
+          `El campo valor no puede superar 150 caracteres (tiene ${valor.length} caracteres).`
+        );
+      }
+      if (erroresLongitud.length > 0) {
+        return res.status(400).json({ error: erroresLongitud.join(' ') });
+      }
+
       const etiqueta = await EtiquetaContextoRepository.crear(req.body);
       res.status(201).json(etiqueta);
     } catch (error) {

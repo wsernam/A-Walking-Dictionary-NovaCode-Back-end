@@ -1,11 +1,12 @@
-// Agrupa y expone los 13 routers de recursos (uno por entidad del DER) bajo un único router raíz.
+// Agrupa y expone los routers de recursos genéricos que aún no forman parte de ningún flujo
+// de negocio activo (Mazo y Tarjeta ya NO están aquí: su creación vive en deckRoutes.js/
+// cardRoutes.js, montados directamente en app.js). Este archivo mismo tampoco se importa desde
+// app.js por ahora; queda como referencia para cuando se decida exponer estas 11 entidades.
 
 import { Router } from 'express';
 import usuarioRoutes from './usuarioRoutes.js';
 import cursoRoutes from './cursoRoutes.js';
 import inscripcionRoutes from './inscripcionRoutes.js';
-import mazoRoutes from './mazoRoutes.js';
-import tarjetaRoutes from './tarjetaRoutes.js';
 import aporteRoutes from './aporteRoutes.js';
 import etiquetaContextoRoutes from './etiquetaContextoRoutes.js';
 import progresoEstudioRoutes from './progresoEstudioRoutes.js';
@@ -20,8 +21,6 @@ const router = Router();
 router.use('/usuarios', usuarioRoutes);
 router.use('/cursos', cursoRoutes);
 router.use('/inscripciones', inscripcionRoutes);
-router.use('/mazos', mazoRoutes);
-router.use('/tarjetas', tarjetaRoutes);
 router.use('/aportes', aporteRoutes);
 router.use('/etiquetas-contexto', etiquetaContextoRoutes);
 router.use('/progresos-estudio', progresoEstudioRoutes);

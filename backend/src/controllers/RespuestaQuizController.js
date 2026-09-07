@@ -7,6 +7,17 @@ import { RespuestaQuizRepository } from '../repositories/RespuestaQuizRepository
 export const RespuestaQuizController = {
   async crear(req, res) {
     try {
+      const { respuesta_estudiante } = req.body;
+
+      // respuesta_estudiante es el único varchar de "respuesta_quiz" y es nullable en el DER
+      // (es_correcta es boolean, puntaje_obtenido es decimal), por eso no se exige como
+      // obligatorio, solo se limita su longitud si viene.
+      if (respuesta_estudiante && respuesta_estudiante.length > 255) {
+        return res.status(400).json({
+          error: `El campo respuesta_estudiante no puede superar 255 caracteres (tiene ${respuesta_estudiante.length} caracteres).`,
+        });
+      }
+
       const respuesta = await RespuestaQuizRepository.crear(req.body);
       res.status(201).json(respuesta);
     } catch (error) {
