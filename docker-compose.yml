@@ -19,9 +19,13 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      # Postgres ejecuta TODOS los archivos de docker-entrypoint-initdb.d/ en orden alfabético,
+      # solo la primera vez que se crea el volumen (si el volumen ya existe, no se vuelven a
+      # correr — hay que "docker compose down -v" para forzar que se ejecuten de nuevo).
+      - ./init.sql:/docker-entrypoint-initdb.d/1-init.sql
+      - ./seed.sql:/docker-entrypoint-initdb.d/2-seed.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 5

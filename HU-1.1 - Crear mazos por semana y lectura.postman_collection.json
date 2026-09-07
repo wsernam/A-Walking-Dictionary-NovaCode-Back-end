@@ -1,0 +1,575 @@
+{
+  "info": {
+    "_postman_id": "060233a8-0f95-4c10-b811-77722a8bd135",
+    "name": "HU-1.1 - Crear mazos por semana y lectura",
+    "description": "Pruebas alineadas EXACTAMENTE con las 'Especificaciones técnicas' del documento oficial:\n- HU-1.1: POST /api/v1/decks\n- HU-002: POST /api/v1/decks/{deck_id}/cards\n- HU-003: POST /api/v1/cards/check-duplicate\n\nNota: el documento original usa 'desk/desks' (typo) en HU-1.1 y HU-002, pero 'decks' (correcto) en HU-009. Se usa 'decks' aquí por consistencia, ya que el propio documento usa 'deck_id' como nombre de parámetro incluso en las rutas mal escritas.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "44403206"
+  },
+  "item": [
+    {
+      "name": "HU-1.1 / CA-1.1.1 - Crear deck exitoso",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 201 - deck creado', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('El deck se crea en estado \"abierto\" (CA-1.1.1)', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.estado).to.eql('abierto');",
+              "});",
+              "",
+              "pm.test('fecha_creacion fue asignada automáticamente por el backend', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.fecha_creacion).to.not.be.undefined;",
+              "});",
+              "",
+              "if (pm.response.code === 201) {",
+              "    const jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('deck_id', jsonData.id_mazo);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"curso_id\": 1,\n  \"nombre_lectura\": \"Charlie and the Chocolate Factory\",\n  \"autor\": \"Roald Dahl\",\n  \"semana\": 3,\n  \"variante_regional_predeterminada\": \"Britanico\",\n  \"fecha_apertura\": \"2026-09-08\",\n  \"fecha_cierre\": \"2026-09-14\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/decks",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "decks"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "HU-1.1 / CA-1.1.2 - Falta nombre_lectura y semana (debe fallar)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 400', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test('El mensaje incluye ambos campos faltantes', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.include('nombre_lectura');",
+              "    pm.expect(jsonData.error).to.include('semana');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"curso_id\": 1,\n  \"autor\": \"Roald Dahl\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/decks",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "decks"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Listar todos los decks",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/decks",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "decks"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Obtener el deck creado por ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/decks/{{deck_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "decks",
+            "{{deck_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "HU-002 / CA-1.2.1 - Registrar palabra en el deck",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 201 - tarjeta creada', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('La tarjeta nace en estado pendiente_revision', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.estado || (jsonData.tarjeta && jsonData.tarjeta.estado)).to.eql('pendiente_revision');",
+              "});",
+              "",
+              "pm.test('resultado indica que fue creada (CA-1.3.4)', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.resultado).to.eql('creada');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"palabra\": \"cooking\",\n  \"traduccion\": \"cocinar\",\n  \"definicion\": \"preparar alimentos aplicando calor\",\n  \"ejemplo\": \"She loves cooking Italian food.\",\n  \"inscripcion_id\": 1\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/decks/{{deck_id}}/cards",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "decks",
+            "{{deck_id}}",
+            "cards"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "HU-002 / CA-1.2.2 - Falta palabra/traduccion/definicion (debe fallar)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 400', function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"inscripcion_id\": 1\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/decks/{{deck_id}}/cards",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "decks",
+            "{{deck_id}}",
+            "cards"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "HU-003 / CA-1.3.1 - Repetir palabra con MISMA definición (coautoría)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('resultado = coautoria (CA-1.3.1)', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.resultado).to.eql('coautoria');",
+              "});",
+              "",
+              "pm.test('Insensibilidad a mayúsculas funcionó (CA-1.3.3): \"Cooking\" coincidió con \"cooking\"', function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"palabra\": \"Cooking\",\n  \"traduccion\": \"cocinar\",\n  \"definicion\": \"preparar alimentos aplicando calor\",\n  \"ejemplo\": \"She loves cooking Italian food.\",\n  \"inscripcion_id\": 2\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/decks/{{deck_id}}/cards",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "decks",
+            "{{deck_id}}",
+            "cards"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "HU-003 / CA-1.3.2 - Repetir palabra con OTRA definición (acepción nueva)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('resultado = acepcion_nueva (CA-1.3.2)', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.resultado).to.eql('acepcion_nueva');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"palabra\": \"COOKING\",\n  \"traduccion\": \"cocina (sustantivo)\",\n  \"definicion\": \"el arte o la práctica de preparar comida\",\n  \"ejemplo\": \"Cooking is her passion.\",\n  \"inscripcion_id\": 3\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/decks/{{deck_id}}/cards",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "decks",
+            "{{deck_id}}",
+            "cards"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "HU-003 / CA-1.3.4 - check-duplicate (palabra que YA existe)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200 - no crea nada, solo consulta', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('duplicado = true', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.duplicado).to.eql(true);",
+              "});",
+              "",
+              "pm.test('resultado = coautoria (misma definición)', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.resultado).to.eql('coautoria');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mazo_id\": {{deck_id}},\n  \"palabra\": \"cooking\",\n  \"definicion\": \"preparar alimentos aplicando calor\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/cards/check-duplicate",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "cards",
+            "check-duplicate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "HU-003 - check-duplicate (palabra que NO existe)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('duplicado = false', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.duplicado).to.eql(false);",
+              "});",
+              "",
+              "pm.test('resultado = creada', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.resultado).to.eql('creada');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mazo_id\": {{deck_id}},\n  \"palabra\": \"unicorn\",\n  \"definicion\": \"un animal mitológico\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/cards/check-duplicate",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "cards",
+            "check-duplicate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "HU-1.1 / CA-1.1.3 - Cambiar estado del deck a Cerrado",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('El estado quedó en cerrado (CA-1.1.3)', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.estado).to.eql('cerrado');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": \"cerrado\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/decks/{{deck_id}}/estado",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "decks",
+            "{{deck_id}}",
+            "estado"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CA-1.2.3 - Deck cerrado rechaza nueva tarjeta",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 409 - deck cerrado rechaza el aporte (CA-1.2.3)', function () {",
+              "    pm.response.to.have.status(409);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"palabra\": \"chuffed\",\n  \"traduccion\": \"contento\",\n  \"definicion\": \"muy satisfecho\",\n  \"inscripcion_id\": 1\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/decks/{{deck_id}}/cards",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "decks",
+            "{{deck_id}}",
+            "cards"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Eliminar el deck de prueba (limpieza)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200 o 204', function () {",
+              "    pm.expect([200, 204]).to.include(pm.response.code);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/decks/{{deck_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "decks",
+            "{{deck_id}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api/v1"
+    },
+    {
+      "key": "deck_id",
+      "value": ""
+    }
+  ]
+}
