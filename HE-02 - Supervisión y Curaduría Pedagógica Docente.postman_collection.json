@@ -1,0 +1,591 @@
+{
+  "info": {
+    "_postman_id": "b2e0c7a4-he02-4d51-9c22-5a1f0e3b7c88",
+    "name": "HE-02 - Supervisión y Curaduría Pedagógica Docente",
+    "description": "Pruebas alineadas EXACTAMENTE con los criterios de aceptación de HE-02.\n\nEndpoints:\n- CA-2.1.1: GET   /api/v1/decks/{id}/cards?estado=pendiente_revision\n- CA-2.1.2: PATCH /api/v1/cards/{id}/approve      (accion: aprobar)\n- CA-2.1.3: PATCH /api/v1/cards/{id}/approve      (accion: rechazar) + GET /api/v1/notifications\n- CA-2.2.1: PUT   /api/v1/cards/{id}/context\n- CA-2.2.2: PATCH /api/v1/decks/{id}/context\n- CA-2.2.3: GET   /api/v1/cards/{id}                (incluye etiquetas_contexto)\n- CA-2.3.1: GET   /api/v1/teacher/analytics/deck/{id}\n- CA-2.3.2: GET   /api/v1/teacher/analytics/deck/{id}?filtro=sin_aportes\n\nREQUISITOS PREVIOS:\n1. init.sql + seed.sql (curso_id=1, inscripcion_id=1 -> estudiante_id=2).\n2. migrations/002_he02_correcciones_der.sql aplicada (motivo_rechazo, indice unico etiqueta_contexto, tabla notificacion).\n\nEl orden importa: primero se crean deck + 2 tarjetas 'pendiente_revision'.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "SETUP / Crear deck de prueba",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "if (pm.response.code === 201) { pm.collectionVariables.set('deck_id', pm.response.json().id_mazo); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"curso_id\": 1,\n  \"nombre_lectura\": \"Things Fall Apart\",\n  \"autor\": \"Chinua Achebe\",\n  \"semana\": 4,\n  \"fecha_apertura\": \"2026-09-08\",\n  \"fecha_cierre\": \"2026-09-14\"\n}"
+        },
+        "url": { "raw": "{{base_url}}/decks", "host": ["{{base_url}}"], "path": ["decks"] }
+      }
+    },
+    {
+      "name": "SETUP / Estudiante aporta tarjeta 1 (pendiente_revision)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "const j = pm.response.json();",
+              "pm.test('nace pendiente_revision', function () { pm.expect(j.tarjeta.estado).to.eql('pendiente_revision'); });",
+              "if (pm.response.code === 201) { pm.collectionVariables.set('card_id_1', j.tarjeta.id_tarjeta); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"palabra\": \"compound\",\n  \"traduccion\": \"recinto familiar\",\n  \"definicion\": \"grupo de viviendas de una familia rodeadas por un muro\",\n  \"ejemplo\": \"Okonkwo's compound was large.\",\n  \"inscripcion_id\": 1\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/decks/{{deck_id}}/cards",
+          "host": ["{{base_url}}"],
+          "path": ["decks", "{{deck_id}}", "cards"]
+        }
+      }
+    },
+    {
+      "name": "SETUP / Estudiante aporta tarjeta 2 (pendiente_revision)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "if (pm.response.code === 201) { pm.collectionVariables.set('card_id_2', pm.response.json().tarjeta.id_tarjeta); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"palabra\": \"kola\",\n  \"traduccion\": \"nuez de cola\",\n  \"definicion\": \"semilla que se ofrece a las visitas como senal de hospitalidad\",\n  \"inscripcion_id\": 1\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/decks/{{deck_id}}/cards",
+          "host": ["{{base_url}}"],
+          "path": ["decks", "{{deck_id}}", "cards"]
+        }
+      }
+    },
+    {
+      "name": "HU-2.1 / CA-2.1.1 - Panel de curaduria: listar tarjetas pendiente_revision del mazo",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const arr = pm.response.json();",
+              "pm.test('devuelve un arreglo con las 2 tarjetas creadas', function () {",
+              "    pm.expect(arr).to.be.an('array').with.length.of.at.least(2);",
+              "});",
+              "pm.test('TODAS estan en pendiente_revision (listado exclusivo)', function () {",
+              "    arr.forEach(t => pm.expect(t.estado).to.eql('pendiente_revision'));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/decks/{{deck_id}}/cards?estado=pendiente_revision",
+          "host": ["{{base_url}}"],
+          "path": ["decks", "{{deck_id}}", "cards"],
+          "query": [{ "key": "estado", "value": "pendiente_revision" }]
+        }
+      }
+    },
+    {
+      "name": "HU-2.1 / CA-2.1.2 - Docente corrige y APRUEBA la tarjeta 1",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const j = pm.response.json();",
+              "pm.test('estado -> revisado_docente (habilitada para quices)', function () {",
+              "    pm.expect(j.resultado).to.eql('revisado_docente');",
+              "    pm.expect(j.tarjeta.estado).to.eql('revisado_docente');",
+              "});",
+              "pm.test('la correccion de definicion se guardo', function () {",
+              "    pm.expect(j.tarjeta.definicion).to.include('muro perimetral');",
+              "});",
+              "pm.test('fecha_revision fue sellada', function () { pm.expect(j.tarjeta.fecha_revision).to.not.be.null; });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"accion\": \"aprobar\",\n  \"definicion\": \"conjunto de viviendas de una familia extensa delimitado por un muro perimetral\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/cards/{{card_id_1}}/approve",
+          "host": ["{{base_url}}"],
+          "path": ["cards", "{{card_id_1}}", "approve"]
+        }
+      }
+    },
+    {
+      "name": "HU-2.1 / CA-2.1.2 - Re-aprobar tarjeta ya revisada (debe fallar 409)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 409 - solo se revisa una tarjeta en pendiente_revision', function () { pm.response.to.have.status(409); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"accion\": \"aprobar\"\n}" },
+        "url": {
+          "raw": "{{base_url}}/cards/{{card_id_1}}/approve",
+          "host": ["{{base_url}}"],
+          "path": ["cards", "{{card_id_1}}", "approve"]
+        }
+      }
+    },
+    {
+      "name": "HU-2.1 / CA-2.1.3 - Rechazar SIN observacion (debe fallar 400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400 - observacion obligatoria al rechazar', function () {",
+              "    pm.response.to.have.status(400);",
+              "    pm.expect(pm.response.json().error).to.include('observacion');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"accion\": \"rechazar\"\n}" },
+        "url": {
+          "raw": "{{base_url}}/cards/{{card_id_2}}/approve",
+          "host": ["{{base_url}}"],
+          "path": ["cards", "{{card_id_2}}", "approve"]
+        }
+      }
+    },
+    {
+      "name": "HU-2.1 / CA-2.1.3 - Docente RECHAZA la tarjeta 2 con observacion",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const j = pm.response.json();",
+              "pm.test('estado -> rechazada', function () {",
+              "    pm.expect(j.resultado).to.eql('rechazada');",
+              "    pm.expect(j.tarjeta.estado).to.eql('rechazada');",
+              "});",
+              "pm.test('la observacion QUEDO GUARDADA en tarjeta.motivo_rechazo', function () {",
+              "    pm.expect(j.tarjeta.motivo_rechazo).to.eql('La definicion mezcla dos acepciones; separa el uso ritual del botanico.');",
+              "});",
+              "pm.test('se genero notificacion para el estudiante aportante', function () {",
+              "    pm.expect(j.notificacion).to.be.an('object');",
+              "    pm.expect(j.notificacion.tipo).to.eql('tarjeta_rechazada');",
+              "    pm.expect(j.notificacion.leida).to.eql(false);",
+              "});",
+              "if (j.notificacion) { pm.collectionVariables.set('aportante_id', j.notificacion.usuario_id); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"accion\": \"rechazar\",\n  \"observacion\": \"La definicion mezcla dos acepciones; separa el uso ritual del botanico.\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/cards/{{card_id_2}}/approve",
+          "host": ["{{base_url}}"],
+          "path": ["cards", "{{card_id_2}}", "approve"]
+        }
+      }
+    },
+    {
+      "name": "HU-2.1 / CA-2.1.3 - El estudiante aportante VE la notificacion",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const arr = pm.response.json();",
+              "pm.test('hay al menos una notificacion de tarjeta_rechazada', function () {",
+              "    const n = arr.find(x => x.tipo === 'tarjeta_rechazada');",
+              "    pm.expect(n, 'notificacion de rechazo').to.be.an('object');",
+              "    pm.expect(n.mensaje).to.include('kola');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/notifications?usuario_id={{aportante_id}}&no_leidas=true",
+          "host": ["{{base_url}}"],
+          "path": ["notifications"],
+          "query": [
+            { "key": "usuario_id", "value": "{{aportante_id}}" },
+            { "key": "no_leidas", "value": "true" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "HU-2.1 - accion invalida (debe fallar 400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('Status 400', function () { pm.response.to.have.status(400); });"]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"accion\": \"archivar\"\n}" },
+        "url": {
+          "raw": "{{base_url}}/cards/{{card_id_1}}/approve",
+          "host": ["{{base_url}}"],
+          "path": ["cards", "{{card_id_1}}", "approve"]
+        }
+      }
+    },
+    {
+      "name": "HU-2.2 / CA-2.2.1 - Asignar registro + variante dialectal a la tarjeta 1",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const j = pm.response.json();",
+              "pm.test('quedan 2 etiquetas vinculadas a la tarjeta', function () { pm.expect(j.etiquetas).to.have.lengthOf(2); });",
+              "pm.test('tipos registro y variante_dialectal presentes', function () {",
+              "    pm.expect(j.etiquetas.map(e => e.tipo).sort()).to.eql(['registro', 'variante_dialectal']);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"registro\": \"Formal\",\n  \"variante_dialectal\": \"Ingles Nigeriano\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/cards/{{card_id_1}}/context",
+          "host": ["{{base_url}}"],
+          "path": ["cards", "{{card_id_1}}", "context"]
+        }
+      }
+    },
+    {
+      "name": "HU-2.2 / CA-2.2.1 - PUT reemplaza (no acumula) el registro",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const j = pm.response.json();",
+              "pm.test('sigue habiendo 2 etiquetas (registro reemplazado, no duplicado)', function () { pm.expect(j.etiquetas).to.have.lengthOf(2); });",
+              "pm.test('el registro nuevo es Informal', function () {",
+              "    pm.expect(j.etiquetas.find(e => e.tipo === 'registro').valor).to.eql('Informal');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"registro\": \"Informal\"\n}" },
+        "url": {
+          "raw": "{{base_url}}/cards/{{card_id_1}}/context",
+          "host": ["{{base_url}}"],
+          "path": ["cards", "{{card_id_1}}", "context"]
+        }
+      }
+    },
+    {
+      "name": "HU-2.2 / CA-2.2.2 - Docente fija la variante regional a nivel del mazo",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const j = pm.response.json();",
+              "pm.test('el mazo guardo su variante predeterminada', function () {",
+              "    pm.expect(j.mazo.variante_regional_predeterminada).to.eql('Ingles Ghanes');",
+              "});",
+              "pm.test('al menos 1 tarjeta heredo la variante (las curadas a mano se respetan)', function () {",
+              "    pm.expect(j.tarjetas_actualizadas).to.be.a('number').that.is.at.least(1);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"variante_dialectal\": \"Ingles Ghanes\"\n}" },
+        "url": {
+          "raw": "{{base_url}}/decks/{{deck_id}}/context",
+          "host": ["{{base_url}}"],
+          "path": ["decks", "{{deck_id}}", "context"]
+        }
+      }
+    },
+    {
+      "name": "HU-2.2 / CA-2.2.3 - El estudiante abre el detalle de la palabra y ve las etiquetas",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const j = pm.response.json();",
+              "pm.test('el detalle trae etiquetas_contexto', function () {",
+              "    pm.expect(j.etiquetas_contexto).to.be.an('array').with.lengthOf(2);",
+              "});",
+              "pm.test('la variante curada a mano (Ingles Nigeriano) NO fue pisada por la del mazo', function () {",
+              "    pm.expect(j.etiquetas_contexto.find(e => e.tipo === 'variante_dialectal').valor).to.eql('Ingles Nigeriano');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/cards/{{card_id_1}}",
+          "host": ["{{base_url}}"],
+          "path": ["cards", "{{card_id_1}}"]
+        }
+      }
+    },
+    {
+      "name": "HU-2.2 - PUT sin ningun campo (debe fallar 400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('Status 400', function () { pm.response.to.have.status(400); });"]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{}" },
+        "url": {
+          "raw": "{{base_url}}/cards/{{card_id_1}}/context",
+          "host": ["{{base_url}}"],
+          "path": ["cards", "{{card_id_1}}", "context"]
+        }
+      }
+    },
+    {
+      "name": "HU-2.2 - PUT sobre tarjeta inexistente (debe fallar 404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('Status 404', function () { pm.response.to.have.status(404); });"]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"registro\": \"Slang\"\n}" },
+        "url": {
+          "raw": "{{base_url}}/cards/99999999/context",
+          "host": ["{{base_url}}"],
+          "path": ["cards", "99999999", "context"]
+        }
+      }
+    },
+    {
+      "name": "HU-2.3 / CA-2.3.1 - Resumen de participacion del mazo",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const j = pm.response.json();",
+              "pm.test('trae la tabla de participacion (una fila por estudiante inscrito)', function () {",
+              "    pm.expect(j.participacion).to.be.an('array').that.is.not.empty;",
+              "    pm.expect(j.participacion[0]).to.have.all.keys('usuario_id','nombre_completo','inscripcion_id','aportes_totales','palabras_creadas','coautorias','acepciones_nuevas','estado_revision','sin_aportes');",
+              "});",
+              "pm.test('resumen_revision del mazo presente', function () {",
+              "    pm.expect(j.resumen_revision).to.have.all.keys('pendiente_revision','revisado_docente','rechazada');",
+              "});",
+              "pm.test('CA-2.3.3: el conteo del aportante (inscripcion 1) refleja las 2 tarjetas creadas', function () {",
+              "    const fila = j.participacion.find(f => f.inscripcion_id === 1);",
+              "    pm.expect(fila.palabras_creadas).to.be.at.least(2);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/teacher/analytics/deck/{{deck_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["teacher", "analytics", "deck", "{{deck_id}}"]
+        }
+      }
+    },
+    {
+      "name": "HU-2.3 / CA-2.3.2 - Filtro 'sin_aportes'",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const j = pm.response.json();",
+              "pm.test('filtro_aplicado = sin_aportes', function () { pm.expect(j.filtro_aplicado).to.eql('sin_aportes'); });",
+              "pm.test('todas las filas devueltas tienen sin_aportes = true', function () {",
+              "    j.participacion.forEach(f => pm.expect(f.sin_aportes).to.be.true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/teacher/analytics/deck/{{deck_id}}?filtro=sin_aportes",
+          "host": ["{{base_url}}"],
+          "path": ["teacher", "analytics", "deck", "{{deck_id}}"],
+          "query": [{ "key": "filtro", "value": "sin_aportes" }]
+        }
+      }
+    },
+    {
+      "name": "HU-2.3 - Mazo inexistente (debe fallar 404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('Status 404', function () { pm.response.to.have.status(404); });"]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/teacher/analytics/deck/99999999",
+          "host": ["{{base_url}}"],
+          "path": ["teacher", "analytics", "deck", "99999999"]
+        }
+      }
+    },
+    {
+      "name": "CLEANUP / Eliminar deck de prueba (best-effort)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// El deck tiene tarjetas/aportes/etiquetas/notificaciones que lo referencian por FK,",
+              "// asi que el DELETE puede devolver 500. Limpieza best-effort: cada corrida crea un deck nuevo.",
+              "pm.test('DELETE ejecutado (200/204 = borrado, 409/500 = FK, todos aceptables aqui)', function () {",
+              "    pm.expect([200, 204, 409, 500]).to.include(pm.response.code);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/decks/{{deck_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["decks", "{{deck_id}}"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000/api/v1" },
+    { "key": "deck_id", "value": "" },
+    { "key": "card_id_1", "value": "" },
+    { "key": "card_id_2", "value": "" },
+    { "key": "aportante_id", "value": "" }
+  ]
+}

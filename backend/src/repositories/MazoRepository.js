@@ -75,4 +75,15 @@ export const MazoRepository = {
     const { rowCount } = await pool.query('DELETE FROM mazo WHERE id_mazo = $1', [id_mazo]);
     return rowCount > 0;
   },
+
+  // HU-2.2 (CA-2.2.2): fija la variante regional predeterminada del mazo (solo esa columna).
+  async actualizarVariantePredeterminada(id_mazo, variante) {
+    const { rows } = await pool.query(
+      `UPDATE mazo SET variante_regional_predeterminada = $2
+       WHERE id_mazo = $1
+       RETURNING *`,
+      [id_mazo, variante]
+    );
+    return rows[0] ? new Mazo(rows[0]) : null;
+  },
 };

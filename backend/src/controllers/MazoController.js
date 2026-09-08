@@ -3,6 +3,8 @@
 // adicional en services/, se insertará entre el controlador y el repositorio sin cambiar esta firma.
 
 import { MazoRepository } from '../repositories/MazoRepository.js';
+import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
+import { EtiquetaContextoRepository } from '../repositories/EtiquetaContextoRepository.js';
 
 export const MazoController = {
   /**
@@ -154,6 +156,56 @@ export const MazoController = {
       }
       const mazoActualizado = await MazoRepository.actualizar(id, { ...mazoActual, estado });
       res.status(200).json(mazoActualizado);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  /**
+   * HU-2.2 (CA-2.2.2) — La docente configura la variante regional a nivel del mazo; al guardar,
+   * todas las tarjetas del mazo que NO tengan ya una variante dialectal propia la heredan como
+   * valor predeterminado (las curadas individualmente en CA-2.2.1 se respetan).
+   * Ruta: PATCH /api/v1/decks/:id/context.
+   * @param {import('express').Request} req - req.params.id = id_mazo; req.body.variante_dialectal
+   * (obligatorio).
+   * @param {import('express').Response} res - 200 con { mazo, tarjetas_actualizadas }; 400 si
+   * falta/está vacío variante_dialectal o supera varchar(100); 404 si el mazo no existe; 500
+   * ante error inesperado.
+   */
+  async asignarContextoPredeterminado(req, res) {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ error: 'id inválido' });
+      }
+
+      const { variante_dialectal } = req.body;
+      if (!variante_dialectal || !String(variante_dialectal).trim()) {
+        return res.status(400).json({ error: 'El campo variante_dialectal es obligatorio' });
+      }
+      // mazo.variante_regional_predeterminada es varchar(100) en el DER.
+      if (String(variante_dialectal).length > 100) {
+        return res.status(400).json({
+          error: `variante_dialectal no puede superar 100 caracteres (tiene ${String(variante_dialectal).length}).`,
+        });
+      }
+
+      const mazo = await MazoRepository.obtenerPorId(id);
+      if (!mazo) {
+        return res.status(404).json({ error: 'Mazo no encontrado' });
+      }
+
+      const valor = String(variante_dialectal).trim();
+      const mazoActualizado = await MazoRepository.actualizarVariantePredeterminada(id, valor);
+
+      // Propaga a las tarjetas del mazo que no tienen aún una etiqueta 'variante_dialectal'.
+      const idsSinVariante = await TarjetaRepository.idsSinEtiquetaDeTipo(id, 'variante_dialectal');
+      const tarjetasActualizadas = await EtiquetaContextoRepository.asignarPredeterminadaPorTarjetas(
+        idsSinVariante,
+        { tipo: 'variante_dialectal', valor, fecha_asignacion: new Date() }
+      );
+
+      res.status(200).json({ mazo: mazoActualizado, tarjetas_actualizadas: tarjetasActualizadas });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

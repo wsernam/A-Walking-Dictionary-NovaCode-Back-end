@@ -1,9 +1,70 @@
 # Changelog - Estructura Backend
 
 ## Fecha
-2026-08-31 (última actualización — ver historial de sesiones más abajo)
+2026-09-07 (última actualización — ver historial de sesiones más abajo)
 
-## Cambios aplicados en esta sesión (2026-08-31) — Cobertura completa para Curso e Inscripcion
+## Cambios aplicados en esta sesión (2026-09-07) — HE-02: Supervisión y Curaduría Pedagógica Docente
+
+Se implementó el backend **completo** de la Épica HE-02 (HU-2.1, HU-2.2, HU-2.3), cubriendo
+**todos** los criterios de aceptación. **Solo backend**: este repo no contiene la app React, el
+entregable de frontend queda fuera de alcance. Tablas con los nombres del DER oficial / `init.sql`
+(singular: `tarjeta`, `etiqueta_contexto`, `aporte`), no los del enunciado (`tarjetas`, etc.).
+
+### ⚠️ Depende de la migración 002 (corrección al DER — PROPUESTA, pendiente de Slack)
+`migrations/002_he02_correcciones_der.sql` — ver `HE-02_PROPUESTA_correccion_DER.md` (doc para Slack).
+No se fusionó en `init.sql`. Agrega:
+1. `tarjeta.motivo_rechazo TEXT` — guarda la observación del rechazo (CA-2.1.3).
+2. Índice único `etiqueta_contexto (tarjeta_id, tipo)` — una etiqueta por tipo, habilita UPSERT (CA-2.2.1 / CA-2.2.2).
+3. Tabla `notificacion` — el estudiante aportante recibe el aviso de rechazo (CA-2.1.3).
+
+Sin la migración, los endpoints de HE-02 devuelven 500.
+
+### Endpoints nuevos (montados en `app.js`)
+| Método | Ruta | CA | Notas |
+|---|---|---|---|
+| GET | `/api/v1/decks/:id/cards?estado=` | CA-2.1.1 | Panel de curaduría: tarjetas del mazo, filtro opcional por estado. |
+| PATCH | `/api/v1/cards/:id/approve` | CA-2.1.2 / CA-2.1.3 | Body `{ accion:"aprobar"\|"rechazar", palabra?, traduccion?, definicion?, ejemplo?, observacion? }`. Aprobar → `revisado_docente` + correcciones + `fecha_revision`. Rechazar → `rechazada` + `motivo_rechazo` + `notificacion` al aportante. 409 si no está en `pendiente_revision`. |
+| PUT | `/api/v1/cards/:id/context` | CA-2.2.1 | Body `{ registro?, variante_dialectal? }`. UPSERT por tipo (`registro` / `variante_dialectal`). |
+| PATCH | `/api/v1/decks/:id/context` | CA-2.2.2 | Body `{ variante_dialectal }`. Fija `mazo.variante_regional_predeterminada` y la propaga a las tarjetas del mazo que **no** tengan ya una variante propia (respeta la curaduría individual). |
+| GET | `/api/v1/cards/:id` | CA-2.2.3 | Detalle de tarjeta + `etiquetas_contexto` (vista del estudiante). |
+| GET | `/api/v1/teacher/analytics/deck/:id` | CA-2.3.1 / CA-2.3.2 | `COUNT` sobre `aporte` agrupado por `usuario` (join `aporte→inscripcion→usuario`), 1 fila por estudiante inscrito (LEFT JOIN, incluye los de 0 aportes). `?filtro=sin_aportes` → solo pendientes. |
+| GET | `/api/v1/notifications?usuario_id=` | CA-2.1.3 | Notificaciones del estudiante (lado receptor). |
+| PATCH | `/api/v1/notifications/:id/read` | CA-2.1.3 | Marca leída. |
+
+### Archivos creados
+- `migrations/002_he02_correcciones_der.sql` — corrección al DER (propuesta).
+- `HE-02_PROPUESTA_correccion_DER.md` (raíz) — doc para Slack con los 3 cambios en DBML.
+- `backend/src/models/Notificacion.js`, `backend/src/repositories/NotificacionRepository.js`, `backend/src/controllers/NotificacionController.js`, `backend/src/routes/notificationRoutes.js`.
+- `backend/src/controllers/AnalyticsController.js` — `analiticasPorMazo` (HU-2.3).
+- `backend/src/routes/teacherRoutes.js` — montado en `/api/v1/teacher`.
+- `HE-02 - Supervisión y Curaduría Pedagógica Docente.postman_collection.json` (raíz) — 21 requests, asserts 1:1 con los CA.
+
+### Archivos modificados
+- `backend/src/services/CuraduriaService.js` — stub → lógica de HU-2.1 (`construirTarjetaRevisada`, `mensajeRechazo`, constantes). Puro, sin BD.
+- `backend/src/controllers/TarjetaController.js` — `aprobar` (persiste `motivo_rechazo` + crea `notificacion` al rechazar), `asignarContexto` (UPSERT), `listarPorMazo` (CA-2.1.1), `obtenerPorId` ahora incluye `etiquetas_contexto` (CA-2.2.3).
+- `backend/src/controllers/MazoController.js` — `asignarContextoPredeterminado` (CA-2.2.2).
+- `backend/src/models/Tarjeta.js` — campo `motivo_rechazo`.
+- `backend/src/repositories/TarjetaRepository.js` — `motivo_rechazo` en `crear`/`actualizar`; métodos `listarPorMazo`, `idsSinEtiquetaDeTipo`, `resumenEstadosPorMazo`.
+- `backend/src/repositories/AporteRepository.js` — `analiticasPorMazo`, `obtenerAportanteCreador`.
+- `backend/src/repositories/EtiquetaContextoRepository.js` — `listarPorTarjeta`, `eliminarPorTarjetaYTipo`, `upsert`, `asignarPredeterminadaPorTarjetas`.
+- `backend/src/repositories/MazoRepository.js` — `actualizarVariantePredeterminada`.
+- `backend/src/routes/cardRoutes.js`, `deckRoutes.js`, `app.js` — rutas nuevas.
+
+### Verificación
+- `npm install` + `node -e "import('./src/app.js')"` OK (grafo completo de dependencias carga).
+- `npx eslint src/` limpio.
+- Test unitario de `CuraduriaService` (lógica pura) 3/3 OK.
+- **Pendiente**: correr la colección de Postman contra una BD con la migración 002 aplicada (no hay Docker en el entorno de esta sesión).
+
+### Supuestos aún abiertos (menores)
+- **Nombres de tabla**: enunciado (`tarjetas`/`etiquetas_contexto`/`aporta`) vs. DER (`tarjeta`/`etiqueta_contexto`/`aporte`). Se usó el DER.
+- **CA-2.2.2 — "valor predeterminado"**: se interpretó como *rellenar huecos* (solo tarjetas sin variante propia), no *sobrescribir todas*. Confirmar.
+- **CA-2.3.1 — métricas**: "palabras aportadas" = `tipo_aporte='creada'`; "coautorías" = `tipo_aporte='coautoria'`; "estado de revisión" = conteo de aportes del estudiante por estado de su tarjeta + `resumen_revision` a nivel de mazo.
+- **CA-2.3.3 — "tiempo real"**: recálculo en cada `GET`, sin push por WebSocket/SSE.
+- **Sin auth / rol Docente**: `authMiddleware.js` sigue aplazado; ninguna ruta del proyecto valida token/rol. Pendiente general.
+- **`fecha_revision` en el rechazo**: se sella también al rechazar. Confirmar si debe quedar `NULL`.
+
+## Cambios aplicados en la sesión 2026-08-31 — Cobertura completa para Curso e Inscripcion
 
 Las tablas `curso` e `inscripcion` existen en el DER oficial (DBML) pero habían quedado fuera del
 diagrama de paquetes original, así que no tenían ninguna capa implementada. Se agregó su cobertura
