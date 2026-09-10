@@ -43,14 +43,16 @@ CREATE TABLE inscripcion (
     CONSTRAINT fk_inscripcion_estudiante FOREIGN KEY (estudiante_id) REFERENCES usuario(id_usuario),
     CONSTRAINT uq_inscripcion_curso_estudiante UNIQUE (curso_id, estudiante_id)
 );
---pendiente a confirmar docente_id hay redundancia con curso_id, se puede obtener vía curso.docente_id
 -- =========================================================
--- 4. MAZO (depende de curso; el docente se obtiene vía curso.docente_id)
+-- 4. MAZO (depende de curso y de usuario/docente)
+-- docente_id es redundante con curso.docente_id (mazo.curso_id -> curso.docente_id ya da el
+-- mismo dato), pero el equipo confirmó mantenerlo duplicado aquí por conveniencia de consulta.
+-- Decisión confirmada, ya no es un pendiente.
 -- =========================================================
 CREATE TABLE mazo (
     id_mazo SERIAL PRIMARY KEY,
     curso_id INT NOT NULL,
-    --docente_id INT NOT NULL,
+    docente_id INT NOT NULL,
     nombre_lectura VARCHAR(200) NOT NULL,
     autor VARCHAR(150) NOT NULL,
     semana INT NOT NULL,
@@ -59,8 +61,8 @@ CREATE TABLE mazo (
     fecha_apertura DATE NOT NULL,
     fecha_cierre DATE NOT NULL,
     fecha_creacion TIMESTAMP NOT NULL DEFAULT NOW(),
-    CONSTRAINT fk_mazo_curso FOREIGN KEY (curso_id) REFERENCES curso(id_curso)
-    --CONSTRAINT fk_mazo_docente FOREIGN KEY (docente_id) REFERENCES usuario(id_usuario)
+    CONSTRAINT fk_mazo_curso FOREIGN KEY (curso_id) REFERENCES curso(id_curso),
+    CONSTRAINT fk_mazo_docente FOREIGN KEY (docente_id) REFERENCES usuario(id_usuario)
 );
 
 -- =========================================================

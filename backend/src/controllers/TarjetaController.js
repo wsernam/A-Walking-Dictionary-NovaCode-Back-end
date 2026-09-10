@@ -1,7 +1,12 @@
-// Controlador REST de Tarjeta: recibe la petición HTTP, aplica las reglas de HU-1.2 y HU-1.3
-// (mazo abierto, campos obligatorios, deduplicación) y llama a los repositorios correspondientes.
-// Cuando exista lógica de negocio adicional en services/ para otras HU, se insertará sin cambiar
-// esta firma.
+/**
+ * @file TarjetaController.js
+ * @brief Controlador REST de Tarjeta: recibe la petición HTTP, aplica las reglas de HU-1.2 y
+ * HU-1.3 (mazo abierto, campos obligatorios, deduplicación) y llama a los repositorios
+ * correspondientes.
+ *
+ * Cuando exista lógica de negocio adicional en src/services/ para otras HU, se insertará sin
+ * cambiar la firma de estas funciones.
+ */
 
 import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
 import { MazoRepository } from '../repositories/MazoRepository.js';
@@ -10,14 +15,26 @@ import { DeduplicacionService } from '../services/DeduplicacionService.js';
 
 export const TarjetaController = {
   /**
-   * Registra una palabra nueva propuesta por un estudiante (HU-1.2) y aplica la detección de
-   * duplicados (HU-1.3). Según el resultado, crea una tarjeta nueva, o solo un aporte adicional
-   * (coautoría o acepción) sobre una tarjeta ya existente en el mazo.
-   * Ruta anidada: POST /api/v1/decks/:id/cards — el id del mazo (deck) viene de req.params.id,
-   * no del body.
+   * @brief Registra una palabra nueva propuesta por un estudiante (HU-1.2) y aplica la
+   * detección de duplicados (HU-1.3).
+   *
+   * Según el resultado, crea una tarjeta nueva, o solo un aporte adicional (coautoría o
+   * acepción) sobre una tarjeta ya existente en el mazo. Ruta anidada:
+   * POST /api/v1/decks/:id/cards — el id del mazo (deck) viene de req.params.id, no del body.
+   *
+   * Flujo:
+   *   a) Verifica que el mazo exista y esté "abierto" (CA-1.2.3).
+   *   b) Valida palabra/traduccion/definicion obligatorios y longitudes máximas (CA-1.2.2).
+   *   c) Busca duplicado en el mazo vía DeduplicacionService.buscarDuplicado (HU-1.3).
+   *   d) Si no hay duplicado: crea tarjeta "pendiente_revision" + aporte tipo 'creada' (CA-1.2.1).
+   *   e/f) Si hay duplicado: NO crea tarjeta nueva (el índice único mazo_id+palabra del DER lo
+   *        impide) — registra un aporte adicional sobre la tarjeta existente, tipo 'coautoria'
+   *        (CA-1.3.1) o 'acepcion_nueva' (CA-1.3.2), según DeduplicacionService.resolverAporte.
+   *   g) Responde con "resultado" para que el frontend muestre el aviso correspondiente (CA-1.3.4).
+   *
    * @param {import('express').Request} req - req.params.id es el id_mazo (deck); req.body debe
-   * traer: palabra, traduccion, definicion (obligatorios), ejemplo (opcional, máx. 150 caracteres)
-   * e inscripcion_id (quién hace el aporte).
+   * traer: palabra, traduccion, definicion (obligatorios), ejemplo (opcional, máx. 150
+   * caracteres) e inscripcion_id (quién hace el aporte).
    * @param {import('express').Response} res - 201 con { resultado, tarjeta, aporte } donde
    * resultado es 'creada' | 'coautoria' | 'acepcion_nueva'; 400 si faltan campos o el ejemplo
    * es muy largo; 404 si el mazo no existe; 409 si el mazo está cerrado; 500 ante error inesperado.
@@ -127,12 +144,14 @@ export const TarjetaController = {
   },
 
   /**
-   * Revisa si una palabra ya existe en un mazo, SIN crear ni modificar nada — es la
-   * verificación previa que el frontend llama antes de que el estudiante confirme el
-   * formulario, para mostrarle el aviso de coautoría/acepción nueva (CA-1.3.4).
-   * La creación real sigue ocurriendo en crear() (POST /api/v1/decks/:id/cards), que vuelve
-   * a correr esta misma comprobación en el servidor (nunca confía en que el frontend ya haya
-   * llamado a este endpoint).
+   * @brief Revisa si una palabra ya existe en un mazo, SIN crear ni modificar nada.
+   *
+   * Es la verificación previa que el frontend llama antes de que el estudiante confirme el
+   * formulario, para mostrarle el aviso de coautoría/acepción nueva (CA-1.3.4). La creación
+   * real sigue ocurriendo en crear() (POST /api/v1/decks/:id/cards), que vuelve a correr esta
+   * misma comprobación en el servidor (nunca confía en que el frontend ya haya llamado a este
+   * endpoint).
+   *
    * @param {import('express').Request} req - req.body debe traer: mazo_id, palabra
    * (obligatorios), definicion y ejemplo (para poder distinguir coautoría de acepción nueva).
    * @param {import('express').Response} res - 200 con { duplicado, resultado, tarjeta? } donde
@@ -169,7 +188,7 @@ export const TarjetaController = {
   },
 
   /**
-   * Obtiene una tarjeta por su id_tarjeta.
+   * @brief Obtiene una tarjeta por su id_tarjeta.
    * @param {import('express').Request} req - req.params.id es el id_tarjeta a buscar.
    * @param {import('express').Response} res - 200 con la tarjeta, 400 si el id no es numérico,
    * 404 si no existe, 500 ante error inesperado.
@@ -191,7 +210,7 @@ export const TarjetaController = {
   },
 
   /**
-   * Lista todas las tarjetas existentes, sin filtros.
+   * @brief Lista todas las tarjetas existentes, sin filtros.
    * @param {import('express').Request} req - No se usa (sin filtros ni paginación implementados).
    * @param {import('express').Response} res - 200 con el arreglo de tarjetas, 500 ante error inesperado.
    */
@@ -205,8 +224,10 @@ export const TarjetaController = {
   },
 
   /**
-   * Actualiza todos los campos de una tarjeta existente (reemplazo completo vía PUT). No aplica
-   * ninguna regla de HU-1.2/HU-1.3 (esas solo rigen la creación); es la edición genérica.
+   * @brief Actualiza todos los campos de una tarjeta existente (reemplazo completo vía PUT).
+   *
+   * No aplica ninguna regla de HU-1.2/HU-1.3 (esas solo rigen la creación); es la edición genérica.
+   *
    * @param {import('express').Request} req - req.params.id es el id_tarjeta; req.body trae las
    * columnas nuevas de "tarjeta" (mazo_id, palabra, traduccion, definicion, ejemplo, estado, etc.).
    * @param {import('express').Response} res - 200 con la tarjeta actualizada, 400 si el id no es
@@ -229,7 +250,7 @@ export const TarjetaController = {
   },
 
   /**
-   * Elimina una tarjeta por su id_tarjeta.
+   * @brief Elimina una tarjeta por su id_tarjeta.
    * @param {import('express').Request} req - req.params.id es el id_tarjeta a eliminar.
    * @param {import('express').Response} res - 200 con { eliminado: true }, 400 si el id no es
    * numérico, 404 si no existía, 500 ante error inesperado.

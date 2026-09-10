@@ -1,34 +1,46 @@
-// Controlador REST de Mazo: recibe la petición HTTP, aplica las validaciones de HU-1.1
-// y llama directamente al repositorio (MazoRepository). Cuando exista lógica de negocio
-// adicional en services/, se insertará entre el controlador y el repositorio sin cambiar esta firma.
+/**
+ * @file MazoController.js
+ * @brief Controlador REST de Mazo: recibe la petición HTTP, aplica las validaciones de HU-1.1
+ * y llama directamente al repositorio (MazoRepository).
+ *
+ * Cuando exista lógica de negocio adicional en src/services/, se insertará entre el
+ * controlador y el repositorio sin cambiar la firma de estas funciones.
+ */
 
 import { MazoRepository } from '../repositories/MazoRepository.js';
 
 export const MazoController = {
   /**
-   * Crea un mazo nuevo. Valida que nombre_lectura y semana no estén vacíos (CA-1.1.2)
-   * y fuerza el estado inicial a "abierto" sin importar lo que venga en el body (CA-1.1.1).
-   * @param {import('express').Request} req - req.body debe traer al menos nombre_lectura y semana
-   * (y el resto de columnas de "mazo" que exija la base de datos, ej. curso_id).
+   * @brief Crea un mazo nuevo.
+   *
+   * Valida que nombre_lectura, semana, autor y docente_id no estén vacíos (CA-1.1.2 + campo
+   * confirmado por el equipo), valida longitud máxima de los campos varchar según el DER, y
+   * fuerza el estado inicial a "abierto" sin importar lo que venga en el body (CA-1.1.1).
+   * Descarta cualquier fecha_creacion que venga del cliente (la asigna el repositorio con NOW()).
+   *
+   * @note docente_id es redundante con curso.docente_id (mazo.curso_id -> curso.docente_id ya
+   * da esa información), pero el equipo confirmó mantenerlo duplicado en "mazo". Como todavía
+   * no hay auth (docente autenticado), el cliente debe enviarlo explícitamente en el body —
+   * cuando se implemente auth, se podría derivar de la sesión en vez de recibirlo así, y ahí
+   * también se validaría que el docente autenticado sea dueño del curso.
+   *
+   * @param {import('express').Request} req - req.body debe traer al menos nombre_lectura,
+   * semana, autor y docente_id (y el resto de columnas de "mazo" que exija la base de datos,
+   * ej. curso_id).
    * @param {import('express').Response} res - 201 con el mazo creado, 400 si faltan campos
-   * obligatorios, 500 ante error inesperado.
+   * obligatorios o alguno supera su longitud máxima, 500 ante error inesperado.
    */
-  // PENDIENTE DE CONFIRMAR CON EL EQUIPO: cuando se implemente auth (docente autenticado),
-  // aquí habría que validar que el docente que crea el mazo sea dueño del curso (curso_id).
-  // Se propuso guardar "id_docente" directo en mazo para esa validación, pero podría ser
-  // redundante: mazo.curso_id -> curso.docente_id ya da esa información sin duplicarla.
-  // No se implementa nada de esto todavía (ni el campo ni la validación) hasta confirmar.
-  // Si se confirma que NO se necesita id_docente, borrar este comentario.
   async crear(req, res) {
     try {
-      const { nombre_lectura, semana, autor, variante_regional_predeterminada } = req.body;
+      const { nombre_lectura, semana, autor, variante_regional_predeterminada, docente_id } = req.body;
 
       // CA-1.1.2: nombre de la lectura y semana son obligatorios.
-      // autor también es NOT NULL en el DER y el cliente debe enviarlo.
+      // autor y docente_id también son NOT NULL en el DER y el cliente debe enviarlos.
       const camposFaltantes = [];
       if (!nombre_lectura) camposFaltantes.push('nombre_lectura');
       if (semana === undefined || semana === null || semana === '') camposFaltantes.push('semana');
       if (!autor) camposFaltantes.push('autor');
+      if (docente_id === undefined || docente_id === null || docente_id === '') camposFaltantes.push('docente_id');
       if (camposFaltantes.length > 0) {
         return res.status(400).json({
           error: `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`,
@@ -71,7 +83,7 @@ export const MazoController = {
   },
 
   /**
-   * Obtiene un mazo por su id_mazo.
+   * @brief Obtiene un mazo por su id_mazo.
    * @param {import('express').Request} req - req.params.id es el id_mazo a buscar.
    * @param {import('express').Response} res - 200 con el mazo, 400 si el id no es numérico,
    * 404 si no existe, 500 ante error inesperado.
@@ -93,7 +105,7 @@ export const MazoController = {
   },
 
   /**
-   * Lista todos los mazos existentes, sin filtros.
+   * @brief Lista todos los mazos existentes, sin filtros.
    * @param {import('express').Request} req - No se usa (sin filtros ni paginación implementados).
    * @param {import('express').Response} res - 200 con el arreglo de mazos, 500 ante error inesperado.
    */
@@ -107,7 +119,7 @@ export const MazoController = {
   },
 
   /**
-   * Actualiza todos los campos de un mazo existente (reemplazo completo vía PUT).
+   * @brief Actualiza todos los campos de un mazo existente (reemplazo completo vía PUT).
    * @param {import('express').Request} req - req.params.id es el id_mazo; req.body trae las
    * columnas nuevas de "mazo" (curso_id, nombre_lectura, autor, semana, etc.).
    * @param {import('express').Response} res - 200 con el mazo actualizado, 400 si el id no es
@@ -130,9 +142,11 @@ export const MazoController = {
   },
 
   /**
-   * Cambia únicamente el campo "estado" de un mazo (ej. de "abierto" a "cerrado"). CA-1.1.3:
-   * cerrar el mazo inhabilita la recepción de nuevos aportes (esa verificación vive en
-   * TarjetaController.crear, no aquí).
+   * @brief Cambia únicamente el campo "estado" de un mazo (ej. de "abierto" a "cerrado").
+   *
+   * CA-1.1.3: cerrar el mazo inhabilita la recepción de nuevos aportes; esa verificación vive
+   * en TarjetaController.crear, no aquí.
+   *
    * @param {import('express').Request} req - req.params.id es el id_mazo; req.body.estado es
    * el nuevo valor del estado.
    * @param {import('express').Response} res - 200 con el mazo actualizado, 400 si el id no es
@@ -160,10 +174,11 @@ export const MazoController = {
   },
 
   /**
-   * Elimina un mazo por su id_mazo.
+   * @brief Elimina un mazo por su id_mazo.
    * @param {import('express').Request} req - req.params.id es el id_mazo a eliminar.
    * @param {import('express').Response} res - 200 con { eliminado: true }, 400 si el id no es
-   * numérico, 404 si no existía, 500 ante error inesperado.
+   * numérico, 404 si no existía, 500 ante error inesperado (ej. si el mazo todavía tiene
+   * tarjetas asociadas, por la foreign key).
    */
   async eliminar(req, res) {
     try {

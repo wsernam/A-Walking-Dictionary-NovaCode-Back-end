@@ -47,7 +47,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"curso_id\": 1,\n  \"nombre_lectura\": \"Charlie and the Chocolate Factory\",\n  \"autor\": \"Roald Dahl\",\n  \"semana\": 3,\n  \"variante_regional_predeterminada\": \"Britanico\",\n  \"fecha_apertura\": \"2026-09-08\",\n  \"fecha_cierre\": \"2026-09-14\"\n}"
+          "raw": "{\n  \"curso_id\": 1,\n  \"docente_id\": 1,\n  \"nombre_lectura\": \"Charlie and the Chocolate Factory\",\n  \"autor\": \"Roald Dahl\",\n  \"semana\": 3,\n  \"variante_regional_predeterminada\": \"Britanico\",\n  \"fecha_apertura\": \"2026-09-08\",\n  \"fecha_cierre\": \"2026-09-14\"\n}"
         },
         "url": {
           "raw": "{{base_url}}/decks",

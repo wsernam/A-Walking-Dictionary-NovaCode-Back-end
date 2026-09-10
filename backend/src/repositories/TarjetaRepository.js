@@ -1,10 +1,20 @@
-// Repositorio de Tarjeta: acceso a datos para la tabla "tarjeta" del DER oficial.
-// (mazo_id, palabra) es único según el DER.
+/**
+ * @file TarjetaRepository.js
+ * @brief Repositorio de Tarjeta: acceso a datos para la tabla "tarjeta" del DER oficial.
+ * @note (mazo_id, palabra) es único según el DER — obtenerPorMazoYPalabra() se apoya en ese
+ * índice para la detección de duplicados de HU-1.3.
+ */
 
 import { pool } from '../config/db.js';
 import { Tarjeta } from '../models/Tarjeta.js';
 
 export const TarjetaRepository = {
+  /**
+   * @brief Inserta una tarjeta nueva en la base de datos.
+   * @param {Object} datos - Campos de "tarjeta" (mazo_id, palabra, traduccion, definicion,
+   * ejemplo, estado, fecha_creacion, fecha_revision).
+   * @return {Promise<Tarjeta>} La tarjeta recién creada, con su id_tarjeta asignado.
+   */
   async crear(datos) {
     const { mazo_id, palabra, traduccion, definicion, ejemplo, estado, fecha_creacion, fecha_revision } = datos;
     const { rows } = await pool.query(
@@ -16,11 +26,25 @@ export const TarjetaRepository = {
     return new Tarjeta(rows[0]);
   },
 
+  /**
+   * @brief Busca una tarjeta por su id_tarjeta.
+   * @param {number} id_tarjeta - Id de la tarjeta a buscar.
+   * @return {Promise<Tarjeta|null>} La tarjeta encontrada, o null si no existe.
+   */
   async obtenerPorId(id_tarjeta) {
     const { rows } = await pool.query('SELECT * FROM tarjeta WHERE id_tarjeta = $1', [id_tarjeta]);
     return rows[0] ? new Tarjeta(rows[0]) : null;
   },
 
+  /**
+   * @brief Busca una tarjeta por mazo + palabra exacta. Usado por
+   * DeduplicacionService.buscarDuplicado() para HU-1.3; la palabra debe llegar ya normalizada
+   * (trim + minúsculas) para que la comparación sea insensible a mayúsculas (CA-1.3.3).
+   * @param {number} mazo_id - Id del mazo donde buscar.
+   * @param {string} palabra - Palabra normalizada a buscar.
+   * @return {Promise<Tarjeta|null>} La tarjeta encontrada, o null si esa palabra no existe
+   * todavía en ese mazo.
+   */
   async obtenerPorMazoYPalabra(mazo_id, palabra) {
     const { rows } = await pool.query(
       'SELECT * FROM tarjeta WHERE mazo_id = $1 AND palabra = $2',
@@ -29,11 +53,21 @@ export const TarjetaRepository = {
     return rows[0] ? new Tarjeta(rows[0]) : null;
   },
 
+  /**
+   * @brief Lista todas las tarjetas, sin filtros.
+   * @return {Promise<Tarjeta[]>} Arreglo con todas las tarjetas existentes.
+   */
   async listar() {
     const { rows } = await pool.query('SELECT * FROM tarjeta');
     return rows.map((row) => new Tarjeta(row));
   },
 
+  /**
+   * @brief Reemplaza todos los campos de una tarjeta existente (UPDATE completo).
+   * @param {number} id_tarjeta - Id de la tarjeta a actualizar.
+   * @param {Object} datos - Nuevos valores de todas las columnas de "tarjeta".
+   * @return {Promise<Tarjeta|null>} La tarjeta actualizada, o null si el id no existe.
+   */
   async actualizar(id_tarjeta, datos) {
     const { mazo_id, palabra, traduccion, definicion, ejemplo, estado, fecha_creacion, fecha_revision } = datos;
     const { rows } = await pool.query(
@@ -47,6 +81,11 @@ export const TarjetaRepository = {
     return rows[0] ? new Tarjeta(rows[0]) : null;
   },
 
+  /**
+   * @brief Elimina una tarjeta por su id_tarjeta.
+   * @param {number} id_tarjeta - Id de la tarjeta a eliminar.
+   * @return {Promise<boolean>} true si se eliminó una fila, false si el id no existía.
+   */
   async eliminar(id_tarjeta) {
     const { rowCount } = await pool.query('DELETE FROM tarjeta WHERE id_tarjeta = $1', [id_tarjeta]);
     return rowCount > 0;
