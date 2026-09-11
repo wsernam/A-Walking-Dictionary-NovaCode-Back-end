@@ -1,0 +1,20 @@
+# backend/Dockerfile
+# Este archivo vive en la RAÍZ del repo de BACKEND (junto a package.json)
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copiamos solo los archivos de dependencias primero (aprovecha la caché de Docker:
+# si no cambian, no se reinstalan paquetes en cada build)
+COPY package*.json ./
+
+RUN npm install
+
+# Copiamos el resto del código
+COPY . .
+
+EXPOSE 5000
+
+# Modo desarrollo: usa nodemon para recargar en caliente cuando cambia el código
+CMD ["npm", "run", "dev"]

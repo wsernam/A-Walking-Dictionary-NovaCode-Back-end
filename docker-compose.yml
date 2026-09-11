@@ -1,0 +1,82 @@
+# docker-compose.yml
+# Este archivo vive en la RAÍZ del repo de INFRAESTRUCTURA.
+#
+# ESTADO ACTUAL: solo backend + postgres están activos.
+# El servicio "frontend" queda comentado abajo, listo para activarse
+# apenas el equipo confirme si usan Vite o Create React App.
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: walking_dictionary_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Postgres ejecuta TODOS los archivos de docker-entrypoint-initdb.d/ en orden alfabético,
+      # solo la primera vez que se crea el volumen (si el volumen ya existe, no se vuelven a
+      # correr — hay que "docker compose down -v" para forzar que se ejecuten de nuevo).
+      - ./init.sql:/docker-entrypoint-initdb.d/1-init.sql
+      - ./seed.sql:/docker-entrypoint-initdb.d/2-seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: walking_dictionary_backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      PORT: 5000
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      # Monta el código local dentro del contenedor: editas en tu editor,
+      # el contenedor lo ve al instante (hot reload), sin reconstruir la imagen
+      - ./backend:/app
+      # Evita que node_modules del host (si existe) pise el instalado en el contenedor
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------
+  # FRONTEND — descomentar cuando esté confirmado Vite o CRA.
+  # El Dockerfile del frontend cambia según cuál usen:
+  #   - Vite: CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
+  #   - CRA:  CMD ["npm", "start"]
+  # ---------------------------------------------------------------
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: walking_dictionary_frontend
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     VITE_API_URL: http://localhost:5000
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #   depends_on:
+  #     - backend
+
+volumes:
+  postgres_data:
