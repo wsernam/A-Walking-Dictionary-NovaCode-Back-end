@@ -12,7 +12,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:5000/api/v1/tarjetas/abc",
+          "raw": "http://localhost:5000/api/v1/cards/abc",
           "protocol": "http",
           "host": [
             "localhost"
@@ -21,7 +21,7 @@
           "path": [
             "api",
             "v1",
-            "tarjetas",
+            "cards",
             "abc"
           ]
         }
@@ -86,7 +86,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:5000/api/v1/tarjetas/pending-review",
+          "raw": "http://localhost:5000/api/v1/cards/pending-review",
           "protocol": "http",
           "host": [
             "localhost"
@@ -95,7 +95,7 @@
           "path": [
             "api",
             "v1",
-            "tarjetas",
+            "cards",
             "pending-review"
           ]
         }
@@ -117,7 +117,7 @@
           }
         },
         "url": {
-          "raw": "http://localhost:5000/api/v1/tarjetas/2/revision",
+          "raw": "http://localhost:5000/api/v1/cards/2/revision",
           "protocol": "http",
           "host": [
             "localhost"
@@ -126,7 +126,7 @@
           "path": [
             "api",
             "v1",
-            "tarjetas",
+            "cards",
             "2",
             "revision"
           ]
@@ -140,7 +140,7 @@
         "method": "PATCH",
         "header": [],
         "url": {
-          "raw": "http://localhost:5000/api/v1/tarjetas/1/approve",
+          "raw": "http://localhost:5000/api/v1/cards/1/approve",
           "protocol": "http",
           "host": [
             "localhost"
@@ -149,7 +149,7 @@
           "path": [
             "api",
             "v1",
-            "tarjetas",
+            "cards",
             "1",
             "approve"
           ]
@@ -195,7 +195,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:5000/api/v1/tarjetas/2",
+          "raw": "http://localhost:5000/api/v1/cards/2",
           "protocol": "http",
           "host": [
             "localhost"
@@ -204,7 +204,7 @@
           "path": [
             "api",
             "v1",
-            "tarjetas",
+            "cards",
             "2"
           ]
         }
@@ -218,7 +218,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"registro\": \"informal\",\r\n    \"variante_regional\": \"American English\",\r\n    \"contexto_cultural\": \"Uso cotidiano entre amigos\"\r\n}",
+          "raw": "{\r\n  \"registro\": \"formal\",\r\n  \"variante_regional\": \"británico\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -226,7 +226,7 @@
           }
         },
         "url": {
-          "raw": "http://localhost:5000/api/v1/tarjetas/1/context",
+          "raw": "http://localhost:5000/api/v1/cards/1/context",
           "protocol": "http",
           "host": [
             "localhost"
@@ -235,7 +235,7 @@
           "path": [
             "api",
             "v1",
-            "tarjetas",
+            "cards",
             "1",
             "context"
           ]
@@ -250,7 +250,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"registro\": \"profesional\",\r\n    \"variante_regional\": \"American English\",\r\n    \"contexto_cultural\": \"Prueba inválida\"\r\n}",
+          "raw": "{\r\n    \"registro\": \"profesional\",\r\n    \"variante_regional\": \"American English\"\r\n    \r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -258,7 +258,7 @@
           }
         },
         "url": {
-          "raw": "http://localhost:5000/api/v1/tarjetas/1/context",
+          "raw": "http://localhost:5000/api/v1/cards/1/context",
           "protocol": "http",
           "host": [
             "localhost"
@@ -267,7 +267,7 @@
           "path": [
             "api",
             "v1",
-            "tarjetas",
+            "cards",
             "1",
             "context"
           ]
@@ -290,7 +290,7 @@
           }
         },
         "url": {
-          "raw": "http://localhost:5000/api/v1/tarjetas/999/context",
+          "raw": "http://localhost:5000/api/v1/cards/999/context",
           "protocol": "http",
           "host": [
             "localhost"
@@ -299,8 +299,62 @@
           "path": [
             "api",
             "v1",
-            "tarjetas",
+            "cards",
             "999",
+            "context"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "obtenertarjeta por id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/v1/cards/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "cards",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "actualizar etiqueta contexto",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"registro\": \"informal\",\r\n  \"variante_regional\": \"británico\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/v1/cards/1/context",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "cards",
+            "1",
             "context"
           ]
         }

@@ -13,6 +13,6 @@ app.use('/api/v1', routes);
 
 // Rutas de mazos y tarjetas
 app.use('/api/v1/decks', deckRoutes);
-app.use('/api/v1/tarjetas', tarjetaRoutes);
+app.use('/api/v1/cards', tarjetaRoutes);
 
 export default app;
