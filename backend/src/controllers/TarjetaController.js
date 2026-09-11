@@ -13,6 +13,9 @@ import { MazoRepository } from '../repositories/MazoRepository.js';
 import { AporteRepository } from '../repositories/AporteRepository.js';
 import { DeduplicacionService } from '../services/DeduplicacionService.js';
 import { CuraduriaService } from '../services/CuraduriaService.js';
+import { ContextoService } from '../services/ContextoService.js';
+import { TarjetaService } from '../services/TarjetaService.js';
+
 
 export const TarjetaController = {
   /**
@@ -200,7 +203,7 @@ export const TarjetaController = {
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido' });
       }
-      const tarjeta = await TarjetaRepository.obtenerPorId(id);
+      const tarjeta = await TarjetaService.obtenerDetalleTarjeta(id);
       if (!tarjeta) {
         return res.status(404).json({ error: 'Tarjeta no encontrada' });
       }
@@ -369,7 +372,32 @@ export const TarjetaController = {
   },
 
 
+  async actualizarContexto(req, res) {
+  try {
+    const id = Number(req.params.id);
 
+    if (Number.isNaN(id)) {
+      return res.status(400).json({
+        error: 'id inválido',
+      });
+    }
+
+    const resultado = await ContextoService.actualizarContexto(
+      id,
+      req.body
+    );
+
+    res.status(200).json({
+      mensaje: 'Contexto actualizado correctamente',
+      etiquetas: resultado,
+    });
+
+  } catch (error) {
+    res.status(error.status || 500).json({
+      error: error.message,
+    });
+    }
+  }
 
 
 

@@ -7,10 +7,10 @@ export const EtiquetaContextoRepository = {
   async crear(datos) {
     const { tarjeta_id, tipo, valor, fecha_asignacion } = datos;
     const { rows } = await pool.query(
-      `INSERT INTO etiqueta_contexto (tarjeta_id, tipo, valor, fecha_asignacion)
-       VALUES ($1, $2, $3, $4)
-       RETURNING *`,
-      [tarjeta_id, tipo, valor, fecha_asignacion]
+          `INSERT INTO etiqueta_contexto (tarjeta_id, tipo, valor)
+          VALUES ($1, $2, $3)
+          RETURNING *`,
+      [tarjeta_id, tipo, valor]
     );
     return new EtiquetaContexto(rows[0]);
   },
@@ -41,4 +41,26 @@ export const EtiquetaContextoRepository = {
     const { rowCount } = await pool.query('DELETE FROM etiqueta_contexto WHERE id_etiqueta = $1', [id_etiqueta]);
     return rowCount > 0;
   },
+
+
+
+  async listarPorTarjeta(tarjeta_id) {
+  const { rows } = await pool.query(
+    'SELECT * FROM etiqueta_contexto WHERE tarjeta_id = $1',
+    [tarjeta_id]
+    );
+
+    return rows.map((row) => new EtiquetaContexto(row));
+  },
+
+  async eliminarPorTarjeta(tarjeta_id) {
+    const { rowCount } = await pool.query(
+      'DELETE FROM etiqueta_contexto WHERE tarjeta_id = $1',
+      [tarjeta_id]
+    );
+
+    return rowCount > 0;
+  },
+
+
 };
