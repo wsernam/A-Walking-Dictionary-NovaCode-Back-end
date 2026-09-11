@@ -16,8 +16,7 @@ export const ContextoService = {
     // Validar que llegue al menos una etiqueta de contexto
     if (
     !datos.registro &&
-    !datos.variante_regional &&
-    !datos.contexto_cultural
+    !datos.variante_regional 
     ) {
     const error = new Error(
         'Debe proporcionar al menos una etiqueta de contexto'
@@ -79,20 +78,31 @@ export const ContextoService = {
           tipo: 'variante_regional',
           valor: datos.variante_regional
         })
-      );
-    }
+            );
+          }
+
+      const variantesPermitidas = [
+        'inglés ghanés',
+        'jamaicano',
+        'nigeriano',
+        'británico'
+      ];
 
 
-    // Crear etiqueta cultural
-    if (datos.contexto_cultural) {
-      etiquetas.push(
-        await EtiquetaContextoRepository.crear({
-          tarjeta_id,
-          tipo: 'contexto_cultural',
-          valor: datos.contexto_cultural
-        })
+      if (
+      datos.variante_regional &&
+      !variantesPermitidas.includes(
+        datos.variante_regional.toLowerCase()
+      )
+      ) {
+      const error = new Error(
+        'Variante regional inválida'
       );
-    }
+
+      error.status = 400;
+      throw error;
+      }
+          
 
 
     return etiquetas;
