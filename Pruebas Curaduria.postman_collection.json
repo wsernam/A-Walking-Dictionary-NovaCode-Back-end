@@ -1,0 +1,311 @@
+{
+  "info": {
+    "_postman_id": "eb90bdd2-d6e3-4f11-92d6-931e27f1c35a",
+    "name": "Pruebas Curaduria",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "44402582"
+  },
+  "item": [
+    {
+      "name": "obtener tarjeta_idinvalido",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/v1/tarjetas/abc",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "tarjetas",
+            "abc"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "crear mazo",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"curso_id\": 1,\r\n  \"nombre_lectura\": \"The Importance of Learning Languages\",\r\n  \"autor\": \"John Smith\",\r\n  \"semana\": 1,\r\n  \"variante_regional_predeterminada\": \"American English\",\r\n  \"fecha_apertura\": \"2026-09-10\",\r\n  \"fecha_cierre\": \"2026-09-17\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/v1/decks",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "decks"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "crear tarjeta",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "crear inscripcion",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "filtrar tarjetas pendientes",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/v1/tarjetas/pending-review",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "tarjetas",
+            "pending-review"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "revsar tarjeta",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"definicion\": \"revision prueba.\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/v1/tarjetas/2/revision",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "tarjetas",
+            "2",
+            "revision"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "aprobar tarjeta",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/v1/tarjetas/1/approve",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "tarjetas",
+            "1",
+            "approve"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "crear trajeta 2",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"inscripcion_id\": 1,\r\n  \"palabra\": \"accurate\",\r\n  \"traduccion\": \"preciso\",\r\n  \"definicion\": \"Correct and free from errors.\",\r\n  \"ejemplo\": \"The student gave an accurate answer.\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/v1/decks/1/cards",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "decks",
+            "1",
+            "cards"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "tarjeta revisada,ediatda",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/v1/tarjetas/2",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "tarjetas",
+            "2"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "actualizar contexto",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"registro\": \"informal\",\r\n    \"variante_regional\": \"American English\",\r\n    \"contexto_cultural\": \"Uso cotidiano entre amigos\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/v1/tarjetas/1/context",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "tarjetas",
+            "1",
+            "context"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "registro de contecto invalido",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"registro\": \"profesional\",\r\n    \"variante_regional\": \"American English\",\r\n    \"contexto_cultural\": \"Prueba inválida\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/v1/tarjetas/1/context",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "tarjetas",
+            "1",
+            "context"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "contexto en tarjeta inexistente",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"registro\": \"formal\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/v1/tarjetas/999/context",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "tarjetas",
+            "999",
+            "context"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
