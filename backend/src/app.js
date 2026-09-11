@@ -34,7 +34,6 @@ import cardRoutes from './routes/cardRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import contributionRoutes from './routes/contributionRoutes.js';
 
-/** @brief Instancia principal de la aplicación Express. */
 const app = express();
 
 app.use(cors());

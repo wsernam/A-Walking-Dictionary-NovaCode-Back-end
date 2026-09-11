@@ -12,6 +12,7 @@ import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
 import { MazoRepository } from '../repositories/MazoRepository.js';
 import { AporteRepository } from '../repositories/AporteRepository.js';
 import { DeduplicacionService } from '../services/DeduplicacionService.js';
+import { CuraduriaService } from '../services/CuraduriaService.js';
 
 export const TarjetaController = {
   /**
@@ -249,6 +250,32 @@ export const TarjetaController = {
     }
   },
 
+  async editarRevision(req, res) {
+  try {
+    const id = Number(req.params.id);
+
+    if (Number.isNaN(id)) {
+      return res.status(400).json({
+        error: 'id inválido',
+      });
+    }
+
+    const tarjeta = await CuraduriaService.editarTarjeta(
+      id,
+      req.body
+    );
+
+    res.status(200).json({
+      mensaje: 'Tarjeta actualizada correctamente',
+      tarjeta,
+    });
+    } catch (error) {
+      res.status(error.status || 500).json({
+        error: error.message,
+      });
+    }
+  },
+
   /**
    * @brief Aprueba una tarjeta en revisión individual (flujo docente: editar, corregir y
    * aprobar). Cambia tarjeta.estado de 'pendiente_revision' a 'revisado_docente' y registra
@@ -305,4 +332,45 @@ export const TarjetaController = {
       res.status(500).json({ error: error.message });
     }
   },
+
+  async listarPendientes(req, res) {
+  try {
+    const tarjetas = await CuraduriaService.listarPendientes();
+
+    res.status(200).json(tarjetas);
+    } catch (error) {
+    res.status(error.status || 500).json({
+      error: error.message,
+    });
+    }
+  },
+
+  async aprobar(req, res) {
+  try {
+    const id = Number(req.params.id);
+
+    if (Number.isNaN(id)) {
+      return res.status(400).json({
+        error: 'id inválido',
+      });
+    }
+
+    const tarjeta = await CuraduriaService.aprobarTarjeta(id);
+
+    res.status(200).json({
+      mensaje: 'Tarjeta aprobada correctamente',
+      tarjeta,
+    });
+    } catch (error) {
+      res.status(error.status || 500).json({
+        error: error.message,
+      });
+    }
+  },
+
+
+
+
+
+
 };

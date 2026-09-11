@@ -68,6 +68,17 @@ export const TarjetaRepository = {
    * @param {Object} datos - Nuevos valores de todas las columnas de "tarjeta".
    * @return {Promise<Tarjeta|null>} La tarjeta actualizada, o null si el id no existe.
    */
+
+  async listarPorEstado(estado) {
+  const { rows } = await pool.query(
+    'SELECT * FROM tarjeta WHERE estado = $1 ORDER BY fecha_creacion ASC',
+    [estado]
+  );
+
+    return rows.map((row) => new Tarjeta(row));
+  },
+    
+  
   async actualizar(id_tarjeta, datos) {
     const { mazo_id, palabra, traduccion, definicion, ejemplo, estado, fecha_creacion, fecha_revision } = datos;
     const { rows } = await pool.query(
@@ -86,6 +97,19 @@ export const TarjetaRepository = {
    * @param {number} id_tarjeta - Id de la tarjeta a eliminar.
    * @return {Promise<boolean>} true si se eliminó una fila, false si el id no existía.
    */
+  async actualizarEstado(id_tarjeta, estado, fecha_revision) {
+  const { rows } = await pool.query(
+    `UPDATE tarjeta
+     SET estado = $2,
+         fecha_revision = $3
+     WHERE id_tarjeta = $1
+     RETURNING *`,
+    [id_tarjeta, estado, fecha_revision]
+  );
+
+    return rows[0] ? new Tarjeta(rows[0]) : null;
+  },
+
   async eliminar(id_tarjeta) {
     const { rowCount } = await pool.query('DELETE FROM tarjeta WHERE id_tarjeta = $1', [id_tarjeta]);
     return rowCount > 0;

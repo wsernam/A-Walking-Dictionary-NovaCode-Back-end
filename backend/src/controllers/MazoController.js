@@ -30,6 +30,12 @@ export const MazoController = {
    * @param {import('express').Response} res - 201 con el mazo creado, 400 si faltan campos
    * obligatorios o alguno supera su longitud máxima, 500 ante error inesperado.
    */
+  // PENDIENTE DE CONFIRMAR CON EL EQUIPO: cuando se implemente auth (docente autenticado),
+  // aquí habría que validar que el docente que crea el mazo sea dueño del curso (curso_id).
+  // Se propuso guardar "id_docente" directo en mazo para esa validación, pero podría ser
+  // redundante: mazo.curso_id -> curso.docente_id ya da esa información sin duplicarla.
+  // No se implementa nada de esto todavía (ni el campo ni la validación) hasta confirmar.
+  // Si se confirma que NO se necesita id_docente, borrar este comentario.
   async crear(req, res) {
     try {
       const { nombre_lectura, semana, autor, variante_regional_predeterminada, docente_id } = req.body;
