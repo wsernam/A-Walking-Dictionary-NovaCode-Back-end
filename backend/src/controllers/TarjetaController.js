@@ -250,6 +250,41 @@ export const TarjetaController = {
   },
 
   /**
+   * @brief Aprueba una tarjeta en revisión individual (flujo docente: editar, corregir y
+   * aprobar). Cambia tarjeta.estado de 'pendiente_revision' a 'revisado_docente' y registra
+   * fecha_revision con la fecha real de la aprobación.
+   *
+   * @note Este flujo NO tiene una acción de "rechazar" a propósito: cuando la docente revisa
+   * una tarjeta individual (la creada desde cero por un estudiante, aporte tipo_aporte='creada'),
+   * solo puede editarla (actualizar()) o aprobarla — nunca rechazarla. "Rechazar" solo existe
+   * para el flujo de coautoría/acepción nueva, ver AporteController.rechazar.
+   *
+   * @param {import('express').Request} req - req.params.id es el id_tarjeta a aprobar.
+   * @param {import('express').Response} res - 200 con la tarjeta aprobada, 400 si el id no es
+   * numérico, 404 si no existe, 500 ante error inesperado.
+   */
+  async aprobar(req, res) {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ error: 'id inválido' });
+      }
+      const tarjetaActual = await TarjetaRepository.obtenerPorId(id);
+      if (!tarjetaActual) {
+        return res.status(404).json({ error: 'Tarjeta no encontrada' });
+      }
+      const tarjetaAprobada = await TarjetaRepository.actualizar(id, {
+        ...tarjetaActual,
+        estado: 'revisado_docente',
+        fecha_revision: new Date(),
+      });
+      res.status(200).json(tarjetaAprobada);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  /**
    * @brief Elimina una tarjeta por su id_tarjeta.
    * @param {import('express').Request} req - req.params.id es el id_tarjeta a eliminar.
    * @param {import('express').Response} res - 200 con { eliminado: true }, 400 si el id no es
