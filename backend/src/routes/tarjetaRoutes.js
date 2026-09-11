@@ -21,8 +21,9 @@ router.put('/:id/revision', TarjetaController.editarRevision);
 
 router.patch('/:id/approve', TarjetaController.aprobar);
 
-router.delete('/:id', TarjetaController.eliminar);
+router.put('/:id/context', TarjetaController.actualizarContexto);
 
+router.delete('/:id', TarjetaController.eliminar);
 
 
 
