@@ -14,10 +14,11 @@ export const MazoController = {
   /**
    * @brief Crea un mazo nuevo.
    *
-   * Valida que nombre_lectura, semana, autor y docente_id no estén vacíos (CA-1.1.2 + campo
-   * confirmado por el equipo), valida longitud máxima de los campos varchar según el DER, y
-   * fuerza el estado inicial a "abierto" sin importar lo que venga en el body (CA-1.1.1).
-   * Descarta cualquier fecha_creacion que venga del cliente (la asigna el repositorio con NOW()).
+   * Valida que nombre_lectura, semana, autor, docente_id, fecha_apertura y fecha_cierre no
+   * estén vacíos (CA-1.1.2 + los demás campos NOT NULL del DER que el cliente debe enviar),
+   * valida longitud máxima de los campos varchar según el DER, y fuerza el estado inicial a
+   * "abierto" sin importar lo que venga en el body (CA-1.1.1). Descarta cualquier
+   * fecha_creacion que venga del cliente (la asigna el repositorio con NOW()).
    *
    * @note docente_id es redundante con curso.docente_id (mazo.curso_id -> curso.docente_id ya
    * da esa información), pero el equipo confirmó mantenerlo duplicado en "mazo". Como todavía
@@ -26,8 +27,8 @@ export const MazoController = {
    * también se validaría que el docente autenticado sea dueño del curso.
    *
    * @param {import('express').Request} req - req.body debe traer al menos nombre_lectura,
-   * semana, autor y docente_id (y el resto de columnas de "mazo" que exija la base de datos,
-   * ej. curso_id).
+   * semana, autor, docente_id, fecha_apertura y fecha_cierre (y el resto de columnas de "mazo"
+   * que exija la base de datos, ej. curso_id).
    * @param {import('express').Response} res - 201 con el mazo creado, 400 si faltan campos
    * obligatorios o alguno supera su longitud máxima, 500 ante error inesperado.
    */
@@ -39,15 +40,26 @@ export const MazoController = {
   // Si se confirma que NO se necesita id_docente, borrar este comentario.
   async crear(req, res) {
     try {
-      const { nombre_lectura, semana, autor, variante_regional_predeterminada, docente_id } = req.body;
+      const {
+        nombre_lectura,
+        semana,
+        autor,
+        variante_regional_predeterminada,
+        docente_id,
+        fecha_apertura,
+        fecha_cierre,
+      } = req.body;
 
       // CA-1.1.2: nombre de la lectura y semana son obligatorios.
-      // autor y docente_id también son NOT NULL en el DER y el cliente debe enviarlos.
+      // autor, docente_id, fecha_apertura y fecha_cierre también son NOT NULL en el DER
+      // (init.sql) y el cliente debe enviarlos, si no el INSERT fallaría con 500.
       const camposFaltantes = [];
       if (!nombre_lectura) camposFaltantes.push('nombre_lectura');
       if (semana === undefined || semana === null || semana === '') camposFaltantes.push('semana');
       if (!autor) camposFaltantes.push('autor');
       if (docente_id === undefined || docente_id === null || docente_id === '') camposFaltantes.push('docente_id');
+      if (!fecha_apertura) camposFaltantes.push('fecha_apertura');
+      if (!fecha_cierre) camposFaltantes.push('fecha_cierre');
       if (camposFaltantes.length > 0) {
         return res.status(400).json({
           error: `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`,
