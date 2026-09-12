@@ -8,6 +8,7 @@
  */
 
 import { MazoRepository } from '../repositories/MazoRepository.js';
+import { ContextoService } from '../services/ContextoService.js';
 
 export const MazoController = {
   /**
@@ -176,6 +177,38 @@ export const MazoController = {
       res.status(200).json(mazoActualizado);
     } catch (error) {
       res.status(500).json({ error: error.message });
+    }
+  },
+
+  /**
+   * @brief CA-2.2.2: actualiza la variante regional predeterminada del mazo y la propaga
+   * automáticamente a todas sus tarjetas (sobrescribiendo la etiqueta 'variante_regional' de
+   * cada una). Ver ContextoService.aplicarVarianteRegionalPorMazo para el detalle de la
+   * decisión de "sobrescribir siempre" vs. "solo si no tenía".
+   * @param {import('express').Request} req - req.params.id es el id_mazo; req.body.variante_regional
+   * es el nuevo valor por defecto (obligatorio, debe ser una variante permitida).
+   * @param {import('express').Response} res - 200 con { mazo, tarjetas_actualizadas }, 400 si
+   * falta variante_regional o no es válida, 404 si el mazo no existe, 500 ante error inesperado.
+   */
+  async actualizarVarianteRegional(req, res) {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ error: 'id inválido' });
+      }
+      const { variante_regional } = req.body;
+      if (!variante_regional) {
+        return res.status(400).json({ error: 'El campo variante_regional es obligatorio' });
+      }
+      const mazoExistente = await MazoRepository.obtenerPorId(id);
+      if (!mazoExistente) {
+        return res.status(404).json({ error: 'Mazo no encontrado' });
+      }
+      const tarjetasActualizadas = await ContextoService.aplicarVarianteRegionalPorMazo(id, variante_regional);
+      const mazo = await MazoRepository.actualizarVarianteRegional(id, variante_regional);
+      res.status(200).json({ mazo, tarjetas_actualizadas: tarjetasActualizadas });
+    } catch (error) {
+      res.status(error.status || 500).json({ error: error.message });
     }
   },
 

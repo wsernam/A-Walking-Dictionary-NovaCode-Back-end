@@ -62,5 +62,21 @@ export const EtiquetaContextoRepository = {
     return rowCount > 0;
   },
 
+  /**
+   * @brief Elimina solo las etiquetas de un tipo específico ('registro' o 'variante_regional')
+   * de una tarjeta, sin tocar las del otro tipo. Usado por la asignación masiva de variante
+   * regional por mazo (CA-2.2.2), para no borrar la etiqueta de "registro" que la docente ya
+   * haya asignado individualmente a esa tarjeta.
+   * @param {number} tarjeta_id - Id de la tarjeta.
+   * @param {string} tipo - 'registro' | 'variante_regional'.
+   * @return {Promise<boolean>} true si se eliminó al menos una fila.
+   */
+  async eliminarPorTarjetaYTipo(tarjeta_id, tipo) {
+    const { rowCount } = await pool.query(
+      'DELETE FROM etiqueta_contexto WHERE tarjeta_id = $1 AND tipo = $2',
+      [tarjeta_id, tipo]
+    );
 
+    return rowCount > 0;
+  },
 };

@@ -1,7 +1,10 @@
 // CuraduriaService.js
-// Pendiente: lógica de aprobación/edición de tarjetas por parte de la docente, cambio de estado pendiente_revision a revisado_docente
-// Historia de Usuario: HU-004
-// Endpoint relacionado: PATCH /api/v1/cards/{card_id}/approve
+// HU-2.1: revisión, edición y aprobación de tarjetas por parte de la docente.
+// A propósito NO hay rechazo aquí: en revisión individual la docente solo edita y aprueba
+// (regla del equipo). "Rechazar" solo existe en el flujo de coautoría, ver AporteController.
+// Historia de Usuario: HU-2.1 (HU-004 en la numeración de ramas del equipo)
+// Endpoints relacionados: GET /api/v1/cards/pending, PUT /api/v1/cards/:id,
+// PATCH /api/v1/cards/:id/approve
 // Almacenamiento: tabla tarjeta
 
 import { TarjetaRepository } from '../repositories/TarjetaRepository.js';

@@ -18,10 +18,11 @@ export class Tarjeta {
    * @param {string} config.traduccion - Traducción de la palabra (varchar 255).
    * @param {string} config.definicion - Definición de la palabra (text, sin límite en el DER).
    * @param {string} [config.ejemplo] - Frase de ejemplo (varchar 150, opcional).
-   * @param {string} config.estado - Estado de revisión ("pendiente_revision", etc., varchar 30).
+   * @param {string} config.estado - Estado de revisión ("pendiente_revision" | "revisado_docente",
+   * varchar 30). No existe estado "rechazada" — en revisión individual no hay rechazo.
    * @param {string} config.fecha_creacion - Marca de tiempo de creación.
    * @param {string|null} [config.fecha_revision] - Marca de tiempo de revisión docente (null
-   * hasta que se revise).
+   * hasta que se apruebe).
    */
   constructor({
     id_tarjeta,

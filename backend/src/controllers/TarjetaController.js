@@ -1,11 +1,12 @@
 /**
  * @file TarjetaController.js
- * @brief Controlador REST de Tarjeta: recibe la petición HTTP, aplica las reglas de HU-1.2 y
- * HU-1.3 (mazo abierto, campos obligatorios, deduplicación) y llama a los repositorios
+ * @brief Controlador REST de Tarjeta: recibe la petición HTTP, aplica las reglas de HU-1.2,
+ * HU-1.3 (mazo abierto, campos obligatorios, deduplicación) y HU-2.1/HU-2.2 (curaduría
+ * docente: editar, aprobar, etiquetar contexto), y llama a los repositorios/servicios
  * correspondientes.
  *
- * Cuando exista lógica de negocio adicional en src/services/ para otras HU, se insertará sin
- * cambiar la firma de estas funciones.
+ * @note En revisión individual (esta clase) NO existe rechazo, solo editar/aprobar. El
+ * rechazo vive únicamente en el flujo de coautoría, ver AporteController.rechazar.
  */
 
 import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
@@ -15,7 +16,6 @@ import { DeduplicacionService } from '../services/DeduplicacionService.js';
 import { CuraduriaService } from '../services/CuraduriaService.js';
 import { ContextoService } from '../services/ContextoService.js';
 import { TarjetaService } from '../services/TarjetaService.js';
-
 
 export const TarjetaController = {
   /**
@@ -192,10 +192,11 @@ export const TarjetaController = {
   },
 
   /**
-   * @brief Obtiene una tarjeta por su id_tarjeta.
+   * @brief Obtiene una tarjeta por su id_tarjeta, incluyendo sus etiquetas de contexto
+   * (CA-2.2.3: visualización de contexto por estudiante/docente).
    * @param {import('express').Request} req - req.params.id es el id_tarjeta a buscar.
-   * @param {import('express').Response} res - 200 con la tarjeta, 400 si el id no es numérico,
-   * 404 si no existe, 500 ante error inesperado.
+   * @param {import('express').Response} res - 200 con la tarjeta + etiquetas_contexto, 400 si
+   * el id no es numérico, 404 si no existe, 500 ante error inesperado.
    */
   async obtenerPorId(req, res) {
     try {
@@ -229,9 +230,9 @@ export const TarjetaController = {
 
   /**
    * @brief Actualiza todos los campos de una tarjeta existente (reemplazo completo vía PUT).
-   *
-   * No aplica ninguna regla de HU-1.2/HU-1.3 (esas solo rigen la creación); es la edición genérica.
-   *
+   * No aplica ninguna regla de HU-1.2/HU-1.3/HU-2.1 — es la edición genérica sin restricciones
+   * de estado. Para el flujo de curaduría docente (edición solo si "pendiente_revision"), ver
+   * editarRevision().
    * @param {import('express').Request} req - req.params.id es el id_tarjeta; req.body trae las
    * columnas nuevas de "tarjeta" (mazo_id, palabra, traduccion, definicion, ejemplo, estado, etc.).
    * @param {import('express').Response} res - 200 con la tarjeta actualizada, 400 si el id no es
@@ -253,45 +254,43 @@ export const TarjetaController = {
     }
   },
 
+  /**
+   * @brief CA-2.1.2 (paso "editar, corregir"): edita una tarjeta en revisión individual.
+   * A diferencia de actualizar(), exige que la tarjeta esté en estado 'pendiente_revision'
+   * (vía CuraduriaService.editarTarjeta) — no se puede editar una tarjeta ya aprobada o
+   * rechazada por esta vía.
+   * @param {import('express').Request} req - req.params.id es el id_tarjeta; req.body trae los
+   * campos a corregir (palabra, traduccion, definicion, ejemplo — los que no vengan conservan
+   * su valor actual).
+   * @param {import('express').Response} res - 200 con la tarjeta actualizada, 400 si el id no
+   * es numérico, 404 si no existe, 409 si la tarjeta no está pendiente de revisión, 500 ante
+   * error inesperado.
+   */
   async editarRevision(req, res) {
-  try {
-    const id = Number(req.params.id);
-
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        error: 'id inválido',
-      });
-    }
-
-    const tarjeta = await CuraduriaService.editarTarjeta(
-      id,
-      req.body
-    );
-
-    res.status(200).json({
-      mensaje: 'Tarjeta actualizada correctamente',
-      tarjeta,
-    });
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ error: 'id inválido' });
+      }
+      const tarjeta = await CuraduriaService.editarTarjeta(id, req.body);
+      res.status(200).json({ mensaje: 'Tarjeta actualizada correctamente', tarjeta });
     } catch (error) {
-      res.status(error.status || 500).json({
-        error: error.message,
-      });
+      res.status(error.status || 500).json({ error: error.message });
     }
   },
 
   /**
-   * @brief Aprueba una tarjeta en revisión individual (flujo docente: editar, corregir y
-   * aprobar). Cambia tarjeta.estado de 'pendiente_revision' a 'revisado_docente' y registra
-   * fecha_revision con la fecha real de la aprobación.
+   * @brief CA-2.1.2 (paso "aprobar"): aprueba una tarjeta en revisión individual.
+   * Cambia tarjeta.estado de 'pendiente_revision' a 'revisado_docente' y registra
+   * fecha_revision, vía CuraduriaService.aprobarTarjeta (que valida que esté pendiente).
    *
-   * @note Este flujo NO tiene una acción de "rechazar" a propósito: cuando la docente revisa
-   * una tarjeta individual (la creada desde cero por un estudiante, aporte tipo_aporte='creada'),
-   * solo puede editarla (actualizar()) o aprobarla — nunca rechazarla. "Rechazar" solo existe
-   * para el flujo de coautoría/acepción nueva, ver AporteController.rechazar.
+   * @note A propósito NO existe un método "rechazar" aquí: en revisión individual la docente
+   * solo edita (editarRevision()) o aprueba, nunca rechaza. "Rechazar" solo existe en el flujo
+   * de coautoría/acepción nueva, ver AporteController.rechazar.
    *
    * @param {import('express').Request} req - req.params.id es el id_tarjeta a aprobar.
    * @param {import('express').Response} res - 200 con la tarjeta aprobada, 400 si el id no es
-   * numérico, 404 si no existe, 500 ante error inesperado.
+   * numérico, 404 si no existe, 409 si no está pendiente de revisión, 500 ante error inesperado.
    */
   async aprobar(req, res) {
     try {
@@ -299,18 +298,46 @@ export const TarjetaController = {
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido' });
       }
-      const tarjetaActual = await TarjetaRepository.obtenerPorId(id);
-      if (!tarjetaActual) {
-        return res.status(404).json({ error: 'Tarjeta no encontrada' });
-      }
-      const tarjetaAprobada = await TarjetaRepository.actualizar(id, {
-        ...tarjetaActual,
-        estado: 'revisado_docente',
-        fecha_revision: new Date(),
-      });
-      res.status(200).json(tarjetaAprobada);
+      const tarjeta = await CuraduriaService.aprobarTarjeta(id);
+      res.status(200).json({ mensaje: 'Tarjeta aprobada correctamente', tarjeta });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(error.status || 500).json({ error: error.message });
+    }
+  },
+
+  /**
+   * @brief CA-2.1.1: lista las tarjetas en estado 'pendiente_revision' para el panel de
+   * curaduría de la docente.
+   * @param {import('express').Request} req - No usa parámetros.
+   * @param {import('express').Response} res - 200 con el arreglo de tarjetas pendientes, 500
+   * ante error inesperado.
+   */
+  async listarPendientes(req, res) {
+    try {
+      const tarjetas = await CuraduriaService.listarPendientes();
+      res.status(200).json(tarjetas);
+    } catch (error) {
+      res.status(error.status || 500).json({ error: error.message });
+    }
+  },
+
+  /**
+   * @brief CA-2.2.1: asigna registro y/o variante regional a una tarjeta individual.
+   * @param {import('express').Request} req - req.params.id es el id_tarjeta; req.body puede
+   * traer "registro" y/o "variante_regional".
+   * @param {import('express').Response} res - 200 con las etiquetas creadas, 400 si no viene
+   * ninguna etiqueta o el valor no es válido, 404 si la tarjeta no existe, 500 ante error inesperado.
+   */
+  async actualizarContexto(req, res) {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ error: 'id inválido' });
+      }
+      const resultado = await ContextoService.actualizarContexto(id, req.body);
+      res.status(200).json({ mensaje: 'Contexto actualizado correctamente', etiquetas: resultado });
+    } catch (error) {
+      res.status(error.status || 500).json({ error: error.message });
     }
   },
 
@@ -335,70 +362,4 @@ export const TarjetaController = {
       res.status(500).json({ error: error.message });
     }
   },
-
-  async listarPendientes(req, res) {
-  try {
-    const tarjetas = await CuraduriaService.listarPendientes();
-
-    res.status(200).json(tarjetas);
-    } catch (error) {
-    res.status(error.status || 500).json({
-      error: error.message,
-    });
-    }
-  },
-
-  async aprobar(req, res) {
-  try {
-    const id = Number(req.params.id);
-
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        error: 'id inválido',
-      });
-    }
-
-    const tarjeta = await CuraduriaService.aprobarTarjeta(id);
-
-    res.status(200).json({
-      mensaje: 'Tarjeta aprobada correctamente',
-      tarjeta,
-    });
-    } catch (error) {
-      res.status(error.status || 500).json({
-        error: error.message,
-      });
-    }
-  },
-
-
-  async actualizarContexto(req, res) {
-  try {
-    const id = Number(req.params.id);
-
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        error: 'id inválido',
-      });
-    }
-
-    const resultado = await ContextoService.actualizarContexto(
-      id,
-      req.body
-    );
-
-    res.status(200).json({
-      mensaje: 'Contexto actualizado correctamente',
-      etiquetas: resultado,
-    });
-
-  } catch (error) {
-    res.status(error.status || 500).json({
-      error: error.message,
-    });
-    }
-  }
-
-
-
 };

@@ -114,4 +114,16 @@ export const TarjetaRepository = {
     const { rowCount } = await pool.query('DELETE FROM tarjeta WHERE id_tarjeta = $1', [id_tarjeta]);
     return rowCount > 0;
   },
+
+  /**
+   * @brief Lista todas las tarjetas de un mazo específico. Usado por
+   * ContextoService.aplicarVarianteRegionalPorMazo (CA-2.2.2, asignación masiva de variante
+   * regional al guardar el mazo).
+   * @param {number} mazo_id - Id del mazo.
+   * @return {Promise<Tarjeta[]>} Arreglo con las tarjetas de ese mazo.
+   */
+  async listarPorMazo(mazo_id) {
+    const { rows } = await pool.query('SELECT * FROM tarjeta WHERE mazo_id = $1', [mazo_id]);
+    return rows.map((row) => new Tarjeta(row));
+  },
 };

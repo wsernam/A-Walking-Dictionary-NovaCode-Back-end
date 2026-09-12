@@ -38,6 +38,12 @@ router.get('/:id', MazoController.obtenerPorId);
 router.patch('/:id/estado', MazoController.actualizarEstado);
 
 /**
+ * @brief CA-2.2.2: actualiza la variante regional predeterminada del mazo y la propaga a
+ * todas sus tarjetas. PATCH /api/v1/decks/:id/default-variant
+ */
+router.patch('/:id/default-variant', MazoController.actualizarVarianteRegional);
+
+/**
  * @brief HU-1.2 / HU-1.3: registra una palabra nueva dentro de un mazo específico.
  * POST /api/v1/decks/:id/cards
  *

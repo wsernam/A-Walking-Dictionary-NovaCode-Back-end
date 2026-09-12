@@ -99,4 +99,22 @@ export const MazoRepository = {
     const { rowCount } = await pool.query('DELETE FROM mazo WHERE id_mazo = $1', [id_mazo]);
     return rowCount > 0;
   },
+
+  /**
+   * @brief Cambia únicamente variante_regional_predeterminada de un mazo. Usado por
+   * MazoController.actualizarVarianteRegional (CA-2.2.2).
+   * @param {number} id_mazo - Id del mazo.
+   * @param {string} variante_regional_predeterminada - Nuevo valor por defecto.
+   * @return {Promise<Mazo|null>} El mazo actualizado, o null si el id no existe.
+   */
+  async actualizarVarianteRegional(id_mazo, variante_regional_predeterminada) {
+    const { rows } = await pool.query(
+      `UPDATE mazo
+       SET variante_regional_predeterminada = $2
+       WHERE id_mazo = $1
+       RETURNING *`,
+      [id_mazo, variante_regional_predeterminada]
+    );
+    return rows[0] ? new Mazo(rows[0]) : null;
+  },
 };
