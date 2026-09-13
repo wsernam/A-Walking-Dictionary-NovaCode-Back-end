@@ -9,6 +9,7 @@
 
 import { MazoRepository } from '../repositories/MazoRepository.js';
 import { ContextoService } from '../services/ContextoService.js';
+import { ExportPDFService } from '../services/ExportPDFService.js';
 
 export const MazoController = {
   /**
@@ -219,6 +220,31 @@ export const MazoController = {
       const tarjetasActualizadas = await ContextoService.aplicarVarianteRegionalPorMazo(id, variante_regional);
       const mazo = await MazoRepository.actualizarVarianteRegional(id, variante_regional);
       res.status(200).json({ mazo, tarjetas_actualizadas: tarjetasActualizadas });
+    } catch (error) {
+      res.status(error.status || 500).json({ error: error.message });
+    }
+  },
+
+  /**
+   * @brief HU-3.3 (CA-3.3.1, CA-3.3.3): exporta el mazo (tarjetas revisado_docente) a PDF, listo
+   * para fotocopiar. GET /api/v1/decks/:id/export-pdf
+   * @param {import('express').Request} req - req.params.id es el id_mazo.
+   * @param {import('express').Response} res - 200 con el PDF como application/pdf, 400 si el id
+   * no es numérico, 404 si el mazo no existe, 500 ante error inesperado.
+   */
+  async exportarPdf(req, res) {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ error: 'id inválido' });
+      }
+      const pdfBytes = await ExportPDFService.generarPdfMazo(id);
+      res.status(200);
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="mazo-${id}.pdf"`,
+      });
+      res.send(Buffer.from(pdfBytes));
     } catch (error) {
       res.status(error.status || 500).json({ error: error.message });
     }

@@ -29,10 +29,19 @@
  *   - GET  /api/v1/courses
  *   - GET  /api/v1/courses/:id
  *
+ *   HE-03 (HU-3.1 generación de quiz, HU-3.2 envío de respuestas, HU-3.3 exportación a PDF):
+ *   - POST /api/v1/quizzes/generate              (CA-3.1.1, CA-3.1.2, CA-3.1.3)
+ *   - GET  /api/v1/quizzes                        (estado_efectivo calculado en cada consulta)
+ *   - GET  /api/v1/quizzes/:id                    (idem)
+ *   - POST /api/v1/quizzes/:id/submit             (CA-3.2.1, CA-3.2.2, CA-3.2.3)
+ *   - GET  /api/v1/quizzes/:id/export-pdf         (CA-3.3.2, endpoint adicional — el backlog
+ *     solo documenta export-pdf para mazos, no para quizzes; ver CHANGELOG_BACKEND.md)
+ *   - GET  /api/v1/decks/:id/export-pdf           (CA-3.3.1, CA-3.3.3)
+ *
  * @note El resto de controladores/rutas de las entidades genéricas (usuario, inscripcion,
- * etiqueta_contexto vía CRUD directo, progreso_estudio, quiz, quiz_mazo, pregunta_quiz,
- * resultado_quiz, respuesta_quiz, y actualizar/eliminar curso/aporte) ya existen en
- * src/controllers/ y src/repositories/, pero NO se montan aquí todavía.
+ * etiqueta_contexto vía CRUD directo, progreso_estudio, quiz_mazo, pregunta_quiz,
+ * respuesta_quiz, y actualizar/eliminar curso/aporte) ya existen en src/controllers/ y
+ * src/repositories/, pero NO se montan aquí todavía.
  */
 
 import express from 'express';
@@ -42,6 +51,7 @@ import cardRoutes from './routes/cardRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import contributionRoutes from './routes/contributionRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import quizRoutes from './routes/quizRoutes.js';
 
 /** @brief Instancia principal de la aplicación Express. */
 const app = express();
@@ -54,5 +64,6 @@ app.use('/api/v1/cards', cardRoutes);
 app.use('/api/v1/courses', courseRoutes);
 app.use('/api/v1/contributions', contributionRoutes);
 app.use('/api/v1/teacher/analytics', analyticsRoutes);
+app.use('/api/v1/quizzes', quizRoutes);
 
 export default app;

@@ -53,6 +53,11 @@ router.patch('/:id/default-variant', MazoController.actualizarVarianteRegional);
 router.post('/:id/cards', TarjetaController.crear);
 
 /**
+ * @brief HU-3.3 (CA-3.3.1, CA-3.3.3): exporta el mazo a PDF. GET /api/v1/decks/:id/export-pdf
+ */
+router.get('/:id/export-pdf', MazoController.exportarPdf);
+
+/**
  * @brief Elimina un mazo por su id_mazo. DELETE /api/v1/decks/:id
  * @note No viene de un CA específico; es consulta/limpieza de apoyo para pruebas. Falla con
  * 500 (violación de foreign key) si el mazo todavía tiene tarjetas asociadas.

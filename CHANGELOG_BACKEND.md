@@ -1,7 +1,73 @@
 # Changelog - Estructura Backend
 
 ## Fecha
-2026-08-31 (última actualización — ver historial de sesiones más abajo)
+2026-09-13 (última actualización — ver historial de sesiones más abajo)
+
+## Cambios aplicados en esta sesión (2026-09-13) — HE-03: quiz acumulativo, envío de respuestas y exportación a PDF
+
+Implementación de HU-3.1 (generar quiz), HU-3.2 (responder y calificar) y HU-3.3 (exportar a PDF).
+Las tablas `quiz`, `quiz_mazo`, `pregunta_quiz`, `resultado_quiz` y `respuesta_quiz` ya existían en
+el DER oficial (`init.sql`) y ya tenían CRUD genérico (modelo/repositorio/controlador/rutas) de una
+sesión anterior — **corrección al "Pendiente" de la sección de abajo**: esas 3 tablas SÍ tienen las
+4 capas desde antes de esta sesión, solo que sin lógica de negocio y sin montar en `app.js`. Esta
+sesión extendió esas capas existentes en vez de crear archivos nuevos, siguiendo el mismo patrón de
+"controlador genérico + service con la lógica de negocio" que ya usa `MazoController`/`ContextoService`.
+
+### Archivos modificados
+- `backend/src/repositories/TarjetaRepository.js` — nuevo método `listarAprobadasPorMazos(mazoIds)` (CA-3.1.1: pool exclusivo de tarjetas `revisado_docente` de los mazos elegidos).
+- `backend/src/repositories/PreguntaQuizRepository.js` — nuevo método `listarPorQuiz(quiz_id)`.
+- `backend/src/repositories/QuizMazoRepository.js` — nuevo método `listarPorQuiz(quiz_id)`.
+- `backend/src/repositories/RespuestaQuizRepository.js` — nuevo método `listarPorResultado(resultado_id)`.
+- `backend/src/services/QuizService.js` — antes vacío/stub; ahora implementa `generar()` (HU-3.1), `calcularEstadoEfectivo()`/`conEstadoEfectivo()` (CA-3.1.3, estado programado→abierto→cerrado calculado en cada consulta, sin cron) y `enviarRespuestas()` (HU-3.2, incluye CA-3.2.3 de bloqueo de reintento).
+- `backend/src/services/ExportPDFService.js` — antes vacío/stub; ahora implementa `generarPdfMazo()` y `generarPdfQuiz()` con `pdf-lib` (CA-3.3.1, CA-3.3.2, CA-3.3.3).
+- `backend/src/controllers/QuizController.js` — nuevos métodos `generar` (`POST /generate`) y `exportarPdf` (`GET /:id/export-pdf`); `obtenerPorId`/`listar` ahora devuelven `estado_efectivo`.
+- `backend/src/controllers/ResultadoQuizController.js` — nuevo método `submit` (`POST /api/v1/quizzes/:id/submit`).
+- `backend/src/controllers/MazoController.js` — nuevo método `exportarPdf` (`GET /api/v1/decks/:id/export-pdf`).
+- `backend/src/routes/quizRoutes.js` — se montaron `/generate`, `/:id/submit`, `/:id/export-pdf`.
+- `backend/src/routes/deckRoutes.js` — se montó `/:id/export-pdf`.
+- `backend/src/app.js` — **se montó `quizRoutes.js` en `/api/v1/quizzes`, que hasta ahora no estaba expuesto en absoluto** (existía el archivo de rutas, pero `app.js` nunca lo importaba).
+- `backend/package.json` — se agregó la dependencia `pdf-lib` (la pedía el backlog para HU-3.3 y no estaba instalada).
+
+### Decisiones / supuestos que no estaban documentados literalmente en el backlog (confirmados con la docente o marcados explícitamente en el código)
+- El endpoint de generación es `POST /api/v1/quizzes/generate` (confirmado; el código previo tenía un comentario con `POST /api/v1/quizzes`, de una nomenclatura vieja HU-007/HU-008, ya no vigente).
+- Se agregó `GET /api/v1/quizzes/:id/export-pdf` (confirmado como endpoint adicional; el backlog solo documenta `export-pdf` para mazos, no para quizzes, pero CA-3.3.2 lo pide explícitamente).
+- El estado `programado → abierto → cerrado` del quiz se calcula dinámicamente en cada `GET` comparando `fecha_apertura`/`fecha_cierre` con la fecha actual (confirmado; no hay infraestructura de cron en el proyecto, igual limitación que llevó a la decisión de CA-2.3.3 en HE-02).
+- `POST /generate` recibe `mazo_ids` (array explícito) en vez de resolver un "rango de semanas" automáticamente — no hay una regla documentada para esa traducción semana→mazos, así que se deja la selección al cliente.
+- `cantidad_preguntas` es opcional en `/generate`; si se envía, se toma una muestra aleatoria de ese tamaño del pool de tarjetas aprobadas (así se interpretó "Lógica: selección aleatoria de tarjetas" de HU-3.1); si no se envía, se usan todas las aprobadas del rango.
+- `semana_corte` (columna NOT NULL de `quiz`, no mencionada en las CA) se calcula como la semana más alta entre los mazos incluidos.
+- **`calificacion` usa escala 0.0–5.0** (convención académica colombiana estándar) — el backlog no especifica ninguna escala. **Supuesto pendiente de validar con la docente.**
+- El PDF de mazo (`GET /decks/:id/export-pdf`) exporta únicamente tarjetas `revisado_docente`, no todas — el backlog no lo aclara explícitamente, pero es consistente con que solo esas tarjetas se usan también para generar el quiz.
+
+### Hallazgo de infraestructura (no relacionado con HE-03, reportado, no corregido sin confirmar)
+- `docker-compose.yml` monta el código en `/app`, pero el `Dockerfile` del backend usa `WORKDIR /usr/src/app` y copia el código ahí en el build — el bind mount para hot-reload no estaba surtiendo efecto realmente (el contenedor corría el código de la última imagen construida, no el del host en vivo). No se tocó `docker-compose.yml` porque no fue parte de este pedido; queda para que el equipo decida si corrige la ruta del volumen.
+- No existe `backend/.env` ni `.env` en la raíz (están en `.gitignore`, como es correcto) — sin ese archivo, `docker compose` no tiene credenciales de Postgres/JWT. El usuario indicó que ya tiene el archivo y lo restaurará.
+
+### Smoke test end-to-end (contra la base de datos real, vía Docker)
+Se corrió el flujo completo una vez restaurado `.env`: crear mazo → registrar 4 tarjetas → aprobarlas
+→ `POST /generate` (4 preguntas con distractores sin repetir) → `POST /:id/submit` (calificó 2/4 →
+2.5, calculado correctamente) → segundo intento al mismo quiz devolvió 409 con el resumen previo
+(CA-3.2.3) → `GET /decks/:id/export-pdf` y `GET /quizzes/:id/export-pdf` devolvieron PDFs válidos
+(inspeccionados visualmente, maquetado correcto, hoja de respuestas en página separada).
+
+- **Limitación encontrada y documentada (no corregida, fuera de alcance de esta sesión)**: `pdf-lib`
+  con `StandardFonts.Helvetica` usa codificación WinAnsi (Windows-1252). Cubre español/inglés
+  normal (incluye ñ, tildes, ¿, ¡), pero si una tarjeta o pregunta llegara a tener un carácter fuera
+  de ese rango (emoji, alfabetos no latinos, o texto corrupto), la exportación a PDF responde 500.
+  Corregirlo requeriría incrustar una fuente TrueType propia (con `fontkit`), una dependencia nueva
+  no pedida — se deja como mejora futura, no implementada.
+
+### Colección Postman
+Se creó `Sprint 2 (HE3).postman_collection.json` (raíz del repo), con el mismo estilo que
+`Sprint 1 (HE1 y HE2).postman_collection.json`: carpetas "Setup", "HU-3.1", "HU-3.2", "HU-3.3",
+29 requests con `pm.test` cubriendo cada CA (incluye casos de error: campos faltantes, mazo/quiz
+inexistente, fechas invertidas, quiz aún no abierto, reintento bloqueado, PDF de recurso sin
+datos). Las fechas se calculan en un script de pre-request a nivel de colección (no hay fechas
+fijas hardcodeadas, así que no se vence con el tiempo). Se corrió con `npx newman run` contra el
+backend real: **29/29 requests, 58/58 assertions, 0 fallos**.
+
+### Pendiente
+- Falta el frontend de HE-03 (pantalla de configuración del quiz, interfaz con temporizador, botón de descarga de PDF) — no fue parte de este pedido.
+- Se creó data de prueba real en la base de datos del contenedor (2 mazos, 8 tarjetas, 5 quizzes, 2 resultados — la primera tanda del smoke test manual más la corrida de Newman) para las pruebas; se dejó intacta por si sirve de referencia — avisar si se prefiere limpiarla.
 
 ## Cambios aplicados en esta sesión (2026-08-31) — Cobertura completa para Curso e Inscripcion
 
