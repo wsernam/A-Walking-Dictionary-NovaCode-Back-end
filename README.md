@@ -9,7 +9,7 @@ Aplicación web de vocabulario contextualizado para el curso de Literatura Angl�
 - William Serna
 - Manuela Meneses
 
-**Docente:** Ph.D. MSc. César Jesús Pardo Calvache — Proyecto II, Segundo Semestre 2026.
+**Docente:** Siler Amador Donado — Proyecto II, Segundo Semestre 2026.
 
 ## Estructura del repositorio
 
