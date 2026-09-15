@@ -322,6 +322,24 @@ export const TarjetaController = {
   },
 
   /**
+   * @brief Lista las tarjetas en estado 'revisado_docente' (pestaña "Historial Aprobadas" del
+   * panel de curaduría). No corresponde a un CA explícito del backlog de HE-02 -- HU-2.1/
+   * CA-2.1.1 solo pide el filtrado de 'pendiente_revision' -- se agrega por pedido directo
+   * del equipo para destrabar esa pestaña del frontend, documentado en CLAUDE.md.
+   * @param {import('express').Request} req - No usa parámetros.
+   * @param {import('express').Response} res - 200 con el arreglo de tarjetas aprobadas, 500
+   * ante error inesperado.
+   */
+  async listarAprobadas(req, res) {
+    try {
+      const tarjetas = await CuraduriaService.listarAprobadas();
+      res.status(200).json(tarjetas);
+    } catch (error) {
+      res.status(error.status || 500).json({ error: error.message });
+    }
+  },
+
+  /**
    * @brief CA-2.2.1: asigna registro y/o variante regional a una tarjeta individual.
    * @param {import('express').Request} req - req.params.id es el id_tarjeta; req.body puede
    * traer "registro" y/o "variante_regional".

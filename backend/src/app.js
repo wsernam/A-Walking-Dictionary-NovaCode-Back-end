@@ -15,6 +15,7 @@
  *
  *   HE-02 (HU-2.1 revisión/curaduría, HU-2.2 contexto, HU-2.3 analíticas):
  *   - GET  /api/v1/cards/pending                       (CA-2.1.1)
+ *   - GET  /api/v1/cards/approved                       (sin CA explícito; agregado por pedido del equipo)
  *   - GET  /api/v1/cards/:id                            (incluye etiquetas de contexto)
  *   - PUT  /api/v1/cards/:id                            (CA-2.1.2, editar/corregir)
  *   - PATCH /api/v1/cards/:id/approve                   (CA-2.1.2, aprobar — SIN rechazo)

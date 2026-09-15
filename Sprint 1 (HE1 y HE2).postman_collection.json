@@ -768,6 +768,46 @@
           ]
         },
         {
+          "name": "Extra - Listar tarjetas aprobadas (revisado_docente, sin CA formal)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/cards/approved",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cards",
+                "approved"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Devuelve un arreglo', function () { pm.expect(pm.response.json()).to.be.an('array'); });",
+                  "pm.test('Incluye la tarjeta recien aprobada (revisado_docente)', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const ids = jsonData.map(t => t.id_tarjeta);",
+                  "    pm.expect(ids).to.include(pm.collectionVariables.get('he2_card_id'));",
+                  "});",
+                  "pm.test('Ninguna tarjeta devuelta esta pendiente_revision', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const estados = jsonData.map(t => t.estado);",
+                  "    pm.expect(estados).to.not.include('pendiente_revision');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
           "name": "CA-2.1.2 - Editar tarjeta ya aprobada (debe fallar 409)",
           "request": {
             "method": "PUT",

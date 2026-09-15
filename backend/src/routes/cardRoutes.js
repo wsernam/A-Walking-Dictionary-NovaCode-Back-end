@@ -3,8 +3,8 @@
  * @brief Rutas REST de HE-01 (tarjetas) y HE-02 (curaduría docente: revisión, aprobación,
  * rechazo, contexto) para "cards" (tarjetas). Montado en app.js bajo el prefijo /api/v1/cards.
  *
- * @note El orden importa: "/pending" debe declararse ANTES de "/:id", porque Express evalúa
- * las rutas en orden y "/:id" haría match con la palabra "pending" como si fuera un id.
+ * @note El orden importa: "/pending" y "/approved" deben declararse ANTES de "/:id", porque
+ * Express evalúa las rutas en orden y "/:id" haría match con esas palabras como si fueran un id.
  */
 
 import { Router } from 'express';
@@ -26,6 +26,16 @@ router.post('/check-duplicate', TarjetaController.checkDuplicate);
  * GET /api/v1/cards/pending
  */
 router.get('/pending', TarjetaController.listarPendientes);
+
+/**
+ * @brief Lista las tarjetas en estado 'revisado_docente', para la pestaña "Historial
+ * Aprobadas" del panel de curaduría. GET /api/v1/cards/approved
+ *
+ * @note No corresponde a un CA explícito del backlog de HE-02 (HU-2.1/CA-2.1.1 solo pide
+ * el filtrado de pendientes) -- agregado por pedido directo del equipo, documentado en
+ * CLAUDE.md.
+ */
+router.get('/approved', TarjetaController.listarAprobadas);
 
 /** @brief Consulta una tarjeta por su id_tarjeta (incluye etiquetas de contexto). GET /api/v1/cards/:id */
 router.get('/:id', TarjetaController.obtenerPorId);

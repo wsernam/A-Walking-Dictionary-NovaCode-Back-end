@@ -15,6 +15,10 @@ export const CuraduriaService = {
     return TarjetaRepository.listarPorEstado('pendiente_revision');
   },
 
+  async listarAprobadas() {
+    return TarjetaRepository.listarPorEstado('revisado_docente');
+  },
+
   async aprobarTarjeta(idTarjeta) {
     const tarjeta = await TarjetaRepository.obtenerPorId(idTarjeta);
 
