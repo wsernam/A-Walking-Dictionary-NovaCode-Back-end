@@ -7,9 +7,9 @@
 import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
 import { EtiquetaContextoRepository } from '../repositories/EtiquetaContextoRepository.js';
 
-const REGISTROS_PERMITIDOS = ['formal', 'informal', 'slang', 'coloquial', 'anticuado'];
+const REGISTROS_PERMITIDOS = ['formal',  'informal',  'slang',  'coloquial',  'anticuado'];
 
-const VARIANTES_PERMITIDAS = ['inglés ghanés', 'jamaicano', 'nigeriano', 'británico'];
+const VARIANTES_PERMITIDAS = ['británico',  'nigeriano',  'jamaicano',  'inglés ghanés',  'estadounidense'];
 
 function validarRegistro(registro) {
   if (registro && !REGISTROS_PERMITIDOS.includes(registro.toLowerCase())) {
