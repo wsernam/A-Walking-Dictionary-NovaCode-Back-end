@@ -1,13 +1,14 @@
-// CuraduriaService.js
-// HU-2.1: revisión, edición y aprobación de tarjetas por parte de la docente.
-// A propósito NO hay rechazo aquí: en revisión individual la docente solo edita y aprueba
-// (regla del equipo). "Rechazar" solo existe en el flujo de coautoría, ver AporteController.
-// Historia de Usuario: HU-2.1 (HU-004 en la numeración de ramas del equipo)
-// Endpoints relacionados: GET /api/v1/cards/pending, PUT /api/v1/cards/:id,
-// PATCH /api/v1/cards/:id/approve
-// Almacenamiento: tabla tarjeta
-
 import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
+import { EtiquetaContextoRepository } from '../repositories/EtiquetaContextoRepository.js';
+import { AporteRepository } from '../repositories/AporteRepository.js';
+
+const LETRAS_ESTUDIANTE = ['A', 'B', 'C'];
+
+function derivarEstudiantePlaceholder(inscripcionId) {
+  if (inscripcionId == null) return 'Desconocido';
+  const indice = (inscripcionId - 1) % LETRAS_ESTUDIANTE.length;
+  return `Estudiante ${LETRAS_ESTUDIANTE[indice]}`;
+}
 
 export const CuraduriaService = {
 
@@ -16,7 +17,22 @@ export const CuraduriaService = {
   },
 
   async listarAprobadas() {
-    return TarjetaRepository.listarPorEstado('revisado_docente');
+    const tarjetas = await TarjetaRepository.listarPorEstado('revisado_docente');
+
+    const tarjetasEnriquecidas = await Promise.all(
+      tarjetas.map(async (tarjeta) => {
+        const etiquetas = await EtiquetaContextoRepository.listarPorTarjeta(tarjeta.id_tarjeta);
+        const registro = etiquetas.find((e) => e.tipo === 'registro')?.valor ?? null;
+        const variante_regional = etiquetas.find((e) => e.tipo === 'variante_regional')?.valor ?? null;
+
+        const inscripcionId = await AporteRepository.obtenerInscripcionOriginal(tarjeta.id_tarjeta);
+        const estudiante = derivarEstudiantePlaceholder(inscripcionId);
+
+        return { ...tarjeta, registro, variante_regional, estudiante };
+      })
+    );
+
+    return tarjetasEnriquecidas;
   },
 
   async aprobarTarjeta(idTarjeta) {
@@ -29,18 +45,12 @@ export const CuraduriaService = {
     }
 
     if (tarjeta.estado !== 'pendiente_revision') {
-      const error = new Error(
-        'La tarjeta no está pendiente de revisión'
-      );
+      const error = new Error('La tarjeta no está pendiente de revisión');
       error.status = 409;
       throw error;
     }
 
-    return TarjetaRepository.actualizarEstado(
-      idTarjeta,
-      'revisado_docente',
-      new Date()
-    );
+    return TarjetaRepository.actualizarEstado(idTarjeta, 'revisado_docente', new Date());
   },
 
   async editarTarjeta(idTarjeta, datos) {
@@ -53,9 +63,7 @@ export const CuraduriaService = {
     }
 
     if (tarjeta.estado !== 'pendiente_revision') {
-      const error = new Error(
-        'Solo se pueden editar tarjetas pendientes de revisión'
-      );
+      const error = new Error('Solo se pueden editar tarjetas pendientes de revisión');
       error.status = 409;
       throw error;
     }
