@@ -69,4 +69,57 @@ export const ProgresoEstudioRepository = {
     const { rowCount } = await pool.query('DELETE FROM progreso_estudio WHERE id_progreso = $1', [id_progreso]);
     return rowCount > 0;
   },
+
+  async crearOActualizar(datos) {
+      const {
+        inscripcion_id,
+        tarjeta_id,
+        factor_facilidad,
+        intervalo_dias,
+        repeticiones,
+        ultima_valoracion,
+        fecha_ultimo_repaso,
+        fecha_proximo_repaso,
+      } = datos;
+
+      const { rows } = await pool.query(
+        `INSERT INTO progreso_estudio (
+          inscripcion_id,
+          tarjeta_id,
+          factor_facilidad,
+          intervalo_dias,
+          repeticiones,
+          ultima_valoracion,
+          fecha_ultimo_repaso,
+          fecha_proximo_repaso
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        ON CONFLICT (inscripcion_id, tarjeta_id)
+        DO UPDATE SET
+          factor_facilidad = EXCLUDED.factor_facilidad,
+          intervalo_dias = EXCLUDED.intervalo_dias,
+          repeticiones = EXCLUDED.repeticiones,
+          ultima_valoracion = EXCLUDED.ultima_valoracion,
+          fecha_ultimo_repaso = EXCLUDED.fecha_ultimo_repaso,
+          fecha_proximo_repaso = EXCLUDED.fecha_proximo_repaso
+        RETURNING *`,
+        [
+          inscripcion_id,
+          tarjeta_id,
+          factor_facilidad,
+          intervalo_dias,
+          repeticiones,
+          ultima_valoracion,
+          fecha_ultimo_repaso,
+          fecha_proximo_repaso,
+        ]
+      );
+
+      return new ProgresoEstudio(rows[0]);
+  },
+
+
+
+
+
 };

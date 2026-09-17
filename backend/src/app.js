@@ -43,6 +43,7 @@ import cardRoutes from './routes/cardRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import contributionRoutes from './routes/contributionRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import studyRoutes from './routes/studyRoutes.js';
 
 /** @brief Instancia principal de la aplicación Express. */
 const app = express();
@@ -55,5 +56,6 @@ app.use('/api/v1/cards', cardRoutes);
 app.use('/api/v1/courses', courseRoutes);
 app.use('/api/v1/contributions', contributionRoutes);
 app.use('/api/v1/teacher/analytics', analyticsRoutes);
+app.use('/api/v1/study', studyRoutes);
 
 export default app;
