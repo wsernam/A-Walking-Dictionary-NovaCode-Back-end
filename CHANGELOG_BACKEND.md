@@ -1,9 +1,58 @@
 # Changelog - Estructura Backend
 
 ## Fecha
-2026-08-31 (última actualización — ver historial de sesiones más abajo)
+2026-09-17 (última actualización — ver historial de sesiones más abajo)
 
-## Cambios aplicados en esta sesión (2026-08-31) — Cobertura completa para Curso e Inscripcion
+## Cambios aplicados en esta sesión (2026-09-17) — HU-5.4: Login y control de roles
+
+Se implementó HU-5.4 (Iniciar sesión y control de roles) de HE-05. Alcance: solo login y
+autorización por rol; el registro (HU-5.1) queda en otra rama, no se tocó aquí. No hubo cambios
+de esquema: `usuario.password_hash` y `usuario.rol` ya existían en el DER (init.sql).
+
+### Archivos creados
+- `backend/src/controllers/AuthController.js` — `login` (CA-5.4.1), llama a `AuthService.login`.
+- `backend/src/routes/authRoutes.js` — `POST /api/v1/auth/login`, montado en `app.js`.
+
+### Archivos implementados (existían como stubs "pendiente")
+- `backend/src/services/AuthService.js` — `login(email, password)`: busca el usuario por email,
+  compara `password` contra `password_hash` con bcrypt, firma un JWT (`JWT_SECRET`, expira en 8h)
+  con claims `{ id_usuario, email, rol }`. Mensaje de error genérico ("Credenciales inválidas")
+  tanto si el email no existe como si la contraseña no coincide, para no revelar cuál falló.
+- `backend/src/middleware/authMiddleware.js` — `authenticate` (CA-5.4.1: valida el JWT del header
+  `Authorization: Bearer <token>`, adjunta `req.usuario`) y `requireRole(...roles)` (CA-5.4.2:
+  403 si el rol de `req.usuario` no está permitido).
+
+### Archivos modificados
+- `backend/src/repositories/UsuarioRepository.js` — se agregó `obtenerPorEmail(email)`, necesario
+  para el login (no existía ningún método de búsqueda por email).
+- `backend/src/app.js` — se montó `authRoutes` en `/api/v1/auth` y se documentó en el encabezado
+  qué rutas exigen `authenticate`/`requireRole('docente')`.
+- `backend/src/routes/deckRoutes.js`, `cardRoutes.js`, `analyticsRoutes.js` — se aplicó
+  `requireRole('docente')` a los endpoints que su propia HU ya describe como acción exclusiva de
+  docente (crear/cerrar mazo, asignar variante por defecto, aprobar/editar/contextualizar
+  tarjeta, listar pendientes/aprobadas, analíticas). El resto de POST/PUT/PATCH/DELETE (crear
+  tarjeta, check-duplicate, eliminar mazo, crear curso, rechazar aporte) solo exige `authenticate`
+  (sesión iniciada), sin restricción de rol, por no estar documentado como acción docente-only.
+- `backend/src/routes/courseRoutes.js`, `contributionRoutes.js` — se aplicó `authenticate` a las
+  rutas de escritura, mismo criterio anterior.
+
+### Decisión de diseño (CA-5.4.3, sin endpoint definido en el backlog)
+El backlog no define ningún endpoint de "diccionario demostrativo" para el modo Invitado. Se
+interpretó (confirmado con el usuario) dejando las rutas `GET` de decks/cards/courses sin
+`authenticate`, cubriendo así el acceso de solo lectura sin login. Queda documentado como
+interpretación, no como CA formalmente cerrado — si el equipo define un endpoint específico para
+Invitado más adelante, esto se ajusta.
+
+### Pendiente / conocido
+- `seed.sql` inserta usuarios con `password_hash = 'hash_temporal'` (no es un hash bcrypt real),
+  por lo que el login fallará contra esos datos semilla hasta que se reemplacen por un hash bcrypt
+  válido o se implemente HU-5.1 (registro) en la rama correspondiente.
+- No se corrió la colección Postman/manual contra una BD real en esta sesión (se validó con un
+  test funcional aislado mockeando `UsuarioRepository`, sin Docker/PostgreSQL disponible).
+
+## Historial de sesiones anteriores
+
+### Sesión 2026-08-31 — Cobertura completa para Curso e Inscripcion
 
 Las tablas `curso` e `inscripcion` existen en el DER oficial (DBML) pero habían quedado fuera del
 diagrama de paquetes original, así que no tenían ninguna capa implementada. Se agregó su cobertura

@@ -1,0 +1,836 @@
+{
+  "info": {
+    "_postman_id": "b7e4a1d0-1f2e-4c3a-9d5e-hu54auth0001",
+    "name": "HU-5.4 - Autenticacion y Roles",
+    "description": "Coleccion para HU-5.4 (Iniciar sesion y control de roles). No modifica ni reemplaza \"Sprint 1 (HE1 y HE2).postman_collection.json\", es una coleccion nueva y separada.\n\nRequiere el backend corriendo en {{base_url}}, la base de datos sembrada con init.sql + seed.sql, y ADEMAS con seed_auth_test.sql (raiz del repo) ya ejecutado -- seed.sql trae usuarios con password_hash = \"hash_temporal\" (no es un hash bcrypt real), asi que no sirven para loguearse. seed_auth_test.sql agrega:\n  - docente_test@unicauca.edu.co / Docente123!\n  - estudiante_test@unicauca.edu.co / Estudiante123!\n\nHU-5.1 (registro) no esta en esta rama, por eso estos usuarios se insertan a mano por SQL en vez de con un request de esta coleccion.\n\nOrden de ejecucion: correr las carpetas en orden (1 -> 4). La carpeta 2 crea DOS mazos de prueba: uno queda vacio (se limpia en la carpeta 4) y otro recibe una tarjeta del estudiante y se deja sin limpiar a proposito -- mismo criterio que ya usa \"Sprint 1 (HE1 y HE2)\" en su carpeta HE-02, donde tampoco se borran los decks/cards de Setup (MazoController.eliminar responde 500 por violacion de foreign key si el mazo todavia tiene tarjetas asociadas -- comportamiento ya documentado en deckRoutes.js, no es un bug de esta coleccion).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. CA-5.4.1 - Login",
+      "item": [
+        {
+          "name": "Login docente - credenciales validas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"docente_test@unicauca.edu.co\",\n  \"password\": \"Docente123!\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Retorna token y rol docente (CA-5.4.1)', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.token).to.not.be.undefined;",
+                  "    pm.expect(jsonData.usuario.rol).to.eql('docente');",
+                  "});",
+                  "",
+                  "pm.test('password_hash NO viaja en la respuesta', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.usuario.password_hash).to.be.undefined;",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('docente_token', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login estudiante - credenciales validas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"estudiante_test@unicauca.edu.co\",\n  \"password\": \"Estudiante123!\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Retorna token y rol estudiante (CA-5.4.1)', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.token).to.not.be.undefined;",
+                  "    pm.expect(jsonData.usuario.rol).to.eql('estudiante');",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('estudiante_token', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - password incorrecta (debe fallar)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"docente_test@unicauca.edu.co\",\n  \"password\": \"clave-equivocada\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Mensaje generico, no revela cual campo fallo', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error).to.eql('Credenciales inválidas');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - email no existe (debe fallar, mismo mensaje generico)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"no-existe@unicauca.edu.co\",\n  \"password\": \"lo-que-sea\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Mismo mensaje generico que password incorrecta', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error).to.eql('Credenciales inválidas');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - campos faltantes (debe fallar 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. CA-5.4.2 - Control de acceso por rol",
+      "item": [
+        {
+          "name": "Sin token - crear mazo (debe fallar 401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/decks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "decks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"curso_id\": 1,\n  \"docente_id\": 1,\n  \"nombre_lectura\": \"Auth Test Deck (sin token)\",\n  \"autor\": \"N/A\",\n  \"semana\": 1,\n  \"fecha_apertura\": \"2026-09-01\",\n  \"fecha_cierre\": \"2026-12-01\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401 - sin token', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Token invalido - crear mazo (debe fallar 401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/decks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "decks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"curso_id\": 1,\n  \"docente_id\": 1,\n  \"nombre_lectura\": \"Auth Test Deck (token invalido)\",\n  \"autor\": \"N/A\",\n  \"semana\": 1,\n  \"fecha_apertura\": \"2026-09-01\",\n  \"fecha_cierre\": \"2026-12-01\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401 - token invalido', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Estudiante intenta crear mazo (debe fallar 403, CA-5.4.2)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{estudiante_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/decks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "decks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"curso_id\": 1,\n  \"docente_id\": 1,\n  \"nombre_lectura\": \"Auth Test Deck (estudiante, debe fallar)\",\n  \"autor\": \"N/A\",\n  \"semana\": 1,\n  \"fecha_apertura\": \"2026-09-01\",\n  \"fecha_cierre\": \"2026-12-01\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403 - rol estudiante no autorizado (CA-5.4.2)', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Docente crea mazo de prueba para checks de rol (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{docente_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/decks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "decks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"curso_id\": 1,\n  \"docente_id\": 1,\n  \"nombre_lectura\": \"Auth Test Deck (checks de rol, se limpia al final)\",\n  \"autor\": \"N/A\",\n  \"semana\": 1,\n  \"fecha_apertura\": \"2026-09-01\",\n  \"fecha_cierre\": \"2026-12-01\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 - rol docente autorizado', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('role_test_deck_id', jsonData.id_mazo);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Estudiante intenta ver panel de pendientes (debe fallar 403)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{estudiante_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cards/pending",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cards",
+                "pending"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403 - panel exclusivo de docente (HU-2.1)', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Docente ve panel de pendientes (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{docente_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cards/pending",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cards",
+                "pending"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Docente crea un segundo mazo, para que el estudiante le aporte una tarjeta (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{docente_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/decks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "decks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"curso_id\": 1,\n  \"docente_id\": 1,\n  \"nombre_lectura\": \"Auth Test Deck (recibe tarjeta, NO se limpia)\",\n  \"autor\": \"N/A\",\n  \"semana\": 1,\n  \"fecha_apertura\": \"2026-09-01\",\n  \"fecha_cierre\": \"2026-12-01\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('role_test_deck_with_card_id', jsonData.id_mazo);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Estudiante registra una tarjeta (201 - solo exige login, no rol especifico)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{estudiante_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/decks/{{role_test_deck_with_card_id}}/cards",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "decks",
+                "{{role_test_deck_with_card_id}}",
+                "cards"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"palabra\": \"authtest\",\n  \"traduccion\": \"prueba de auth\",\n  \"definicion\": \"palabra usada solo para probar HU-5.4\",\n  \"inscripcion_id\": 1\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 - estudiante autenticado puede aportar', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('role_test_card_id', jsonData.tarjeta.id_tarjeta);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Estudiante intenta ver analiticas del mazo (debe fallar 403)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{estudiante_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/teacher/analytics/deck/{{role_test_deck_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "teacher",
+                "analytics",
+                "deck",
+                "{{role_test_deck_id}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403 - analiticas son exclusivas de docente (HU-2.3)', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Docente ve analiticas del mazo (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{docente_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/teacher/analytics/deck/{{role_test_deck_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "teacher",
+                "analytics",
+                "deck",
+                "{{role_test_deck_id}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. CA-5.4.3 - Modo invitado (lectura sin login)",
+      "item": [
+        {
+          "name": "Invitado lista mazos sin token (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/decks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "decks"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - sin Authorization header', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invitado ve el mazo de prueba por id, sin token (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/decks/{{role_test_deck_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "decks",
+                "{{role_test_deck_id}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invitado ve la tarjeta creada por el estudiante, sin token (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/cards/{{role_test_card_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cards",
+                "{{role_test_card_id}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - CA-2.2.3/CA-5.4.3, vista de solo lectura', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Cleanup",
+      "item": [
+        {
+          "name": "Docente elimina el mazo de prueba SIN tarjetas (limpieza)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{docente_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/decks/{{role_test_deck_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "decks",
+                "{{role_test_deck_id}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 o 204', function () {",
+                  "    pm.expect([200, 204]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api/v1"
+    },
+    {
+      "key": "docente_token",
+      "value": ""
+    },
+    {
+      "key": "estudiante_token",
+      "value": ""
+    },
+    {
+      "key": "role_test_deck_id",
+      "value": ""
+    },
+    {
+      "key": "role_test_deck_with_card_id",
+      "value": ""
+    },
+    {
+      "key": "role_test_card_id",
+      "value": ""
+    }
+  ]
+}

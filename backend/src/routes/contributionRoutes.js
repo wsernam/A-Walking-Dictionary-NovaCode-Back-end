@@ -10,6 +10,7 @@
 
 import { Router } from 'express';
 import { AporteController } from '../controllers/AporteController.js';
+import { authenticate } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
@@ -20,8 +21,9 @@ const router = Router();
  * Flujo de Coautoría (Aportes Duplicados): esta es la ÚNICA acción de "Rechazar" del sistema.
  * Solo aplica a aportes con tipo_aporte 'coautoria' o 'acepcion_nueva' — el controlador
  * responde 403 si se intenta rechazar un aporte 'creada' (esos se manejan en el flujo de
- * revisión individual de la tarjeta, ver PATCH /api/v1/cards/:id/approve).
+ * revisión individual de la tarjeta, ver PATCH /api/v1/cards/:id/approve). Requiere sesión
+ * iniciada; no está documentado como acción docente-only, así que no se exige rol específico.
  */
-router.delete('/:id', AporteController.rechazar);
+router.delete('/:id', authenticate, AporteController.rechazar);
 
 export default router;

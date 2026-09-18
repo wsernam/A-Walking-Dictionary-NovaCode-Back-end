@@ -20,6 +20,13 @@ export const UsuarioRepository = {
     return rows[0] ? new Usuario(rows[0]) : null;
   },
 
+  // HU-5.4 (login): busca por email, único en el DER (usuario.email UNIQUE), para validar
+  // credenciales en AuthService.
+  async obtenerPorEmail(email) {
+    const { rows } = await pool.query('SELECT * FROM usuario WHERE email = $1', [email]);
+    return rows[0] ? new Usuario(rows[0]) : null;
+  },
+
   async listar() {
     const { rows } = await pool.query('SELECT * FROM usuario');
     return rows.map((row) => new Usuario(row));

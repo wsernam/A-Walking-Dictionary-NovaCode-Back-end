@@ -30,6 +30,15 @@
  *   - GET  /api/v1/courses
  *   - GET  /api/v1/courses/:id
  *
+ *   HE-05 (HU-5.4 — login y control de roles; HU-5.1/5.2/5.3 quedan fuera de esta rama):
+ *   - POST /api/v1/auth/login                           (CA-5.4.1)
+ *
+ *   Control de acceso (CA-5.4.2): las rutas de creación/edición exigen JWT válido
+ *   (middleware authenticate); las de curaduría/analítica docente (HE-02) exigen además
+ *   rol "docente" (middleware requireRole). Las rutas GET de decks/cards/courses quedan sin
+ *   autenticación para cubrir el acceso de solo lectura de Invitado (CA-5.4.3) — no hay
+ *   endpoint de "diccionario demostrativo" definido en el backlog, se interpretó así.
+ *
  * @note El resto de controladores/rutas de las entidades genéricas (usuario, inscripcion,
  * etiqueta_contexto vía CRUD directo, progreso_estudio, quiz, quiz_mazo, pregunta_quiz,
  * resultado_quiz, respuesta_quiz, y actualizar/eliminar curso/aporte) ya existen en
@@ -43,6 +52,7 @@ import cardRoutes from './routes/cardRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import contributionRoutes from './routes/contributionRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 
 /** @brief Instancia principal de la aplicación Express. */
 const app = express();
@@ -50,6 +60,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/decks', deckRoutes);
 app.use('/api/v1/cards', cardRoutes);
 app.use('/api/v1/courses', courseRoutes);
