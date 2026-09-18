@@ -1,9 +1,58 @@
 # Changelog - Estructura Backend
 
 ## Fecha
-2026-09-17 (última actualización — ver historial de sesiones más abajo)
+2026-09-18 (última actualización — ver historial de sesiones más abajo)
 
-## Cambios aplicados en esta sesión (2026-09-17) — HU-5.4: Login y control de roles
+## Cambios aplicados en esta sesión (2026-09-18) — HU-5.4: login por bcrypt reemplazado por Google/OAuth
+
+El profesor pidió, después de la primera entrega, reemplazar el login por email/password
+(bcrypt) de HU-5.4 por OAuth usando Google como proveedor de identidad. Se eliminó el login por
+contraseña y se implementó login con Google. El resto de HU-5.4 (JWT propio, `authenticate`,
+`requireRole`, la tabla de qué ruta exige qué rol) **no cambió** — solo cambió cómo se emite el
+JWT al inicio.
+
+### Archivos modificados
+- `backend/src/services/AuthService.js` — se reemplazó `login(email, password)` (bcrypt.compare)
+  por `loginConGoogle(idToken)`: verifica el token con `google-auth-library`
+  (`OAuth2Client.verifyIdToken`), busca el usuario por email, lo auto-crea con rol `estudiante`
+  si no existía (decisión no especificada en ningún CA, ver `FLUJO_AUTENTICACION.md`), y firma
+  el mismo tipo de JWT que antes.
+- `backend/src/controllers/AuthController.js` — `login` → `loginGoogle`.
+- `backend/src/routes/authRoutes.js` — `POST /login` → `POST /google`.
+- `backend/src/app.js` — `@file` actualizado: endpoint nuevo, nota de que el login por
+  contraseña se eliminó.
+- `backend/package.json` — se agregó `google-auth-library`. `bcrypt` se mantiene (se sigue
+  usando para generar un `password_hash` aleatorio/inutilizable, ya que la columna es `NOT NULL`
+  en el DER y los usuarios de Google no tienen contraseña propia).
+- `backend/.env.example` — se agregó `GOOGLE_CLIENT_ID` (Client ID de Google Cloud Console,
+  necesario para verificar los tokens). `JWT_SECRET` sigue igual.
+- `backend/.dockerignore` — **nuevo**, agregado en esta sesión: excluye `node_modules/` del
+  build de Docker. Sin esto, un `npm install` corrido en el host (Windows) terminaba pisando el
+  `node_modules` Linux del contenedor al hacer `COPY . .` en el Dockerfile, causando un crash de
+  `bcrypt` (`Exec format error`) — bug real encontrado y corregido en esta sesión.
+
+### Archivos eliminados
+- `seed_auth_test.sql` — creaba usuarios con hash bcrypt real para probar el login por
+  contraseña; ya no aplica, el login ya no valida contraseñas.
+
+### Archivos reescritos (no eliminados)
+- `HU-5.4 - Autenticacion y Roles.postman_collection.json` — ya no prueba el login de punta a
+  punta (Postman no puede automatizar la pantalla de consentimiento de Google); solo prueba los
+  errores de `/auth/google` que no requieren credenciales reales (falta `idToken`, `idToken`
+  basura), más los checks de rol/invitado de antes, que ahora requieren pegar manualmente un
+  token real obtenido logueándose de verdad desde el frontend.
+- `FLUJO_AUTENTICACION.md` — reescrito para describir el flujo de Google en vez de bcrypt.
+
+### Pendiente / decisión no tomada por cuenta propia
+- **Rol por defecto al auto-crear un usuario nuevo por Google**: se decidió `"estudiante"` por
+  no haber otra opción documentada (mismo criterio que el auto-registro de HU-5.1). Falta que el
+  equipo/profe lo confirme. Las cuentas docente se siguen creando a mano.
+- Ver el resto de decisiones/pendientes en `FLUJO_AUTENTICACION.md`.
+
+## Cambios aplicados en la sesión anterior (2026-09-17) — HU-5.4: Login y control de roles (versión inicial, con email/password)
+
+**Nota: esta versión del login fue reemplazada por Google/OAuth en la sesión del 2026-09-18 de
+arriba.** Se deja el registro histórico de lo que se hizo primero, por continuidad.
 
 Se implementó HU-5.4 (Iniciar sesión y control de roles) de HE-05. Alcance: solo login y
 autorización por rol; el registro (HU-5.1) queda en otra rama, no se tocó aquí. No hubo cambios

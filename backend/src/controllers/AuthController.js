@@ -4,11 +4,11 @@
 import { AuthService } from '../services/AuthService.js';
 
 export const AuthController = {
-  // CA-5.4.1: POST /api/v1/auth/login
-  async login(req, res) {
+  // CA-5.4.1: POST /api/v1/auth/google
+  async loginGoogle(req, res) {
     try {
-      const { email, password } = req.body;
-      const resultado = await AuthService.login(email, password);
+      const { idToken } = req.body;
+      const resultado = await AuthService.loginConGoogle(idToken);
       res.status(200).json(resultado);
     } catch (error) {
       const status = error.status || 500;

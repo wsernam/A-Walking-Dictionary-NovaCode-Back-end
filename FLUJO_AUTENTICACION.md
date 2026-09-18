@@ -1,17 +1,26 @@
 # Flujo de Autenticación y Control de Roles (HU-5.4)
 
 ## Fecha
-2026-09-17
+2026-09-17 (login email/password con bcrypt) — actualizado 2026-09-18 (reemplazado por login
+con Google/OAuth, a pedido del profesor después de la primera entrega)
+
+## Cambio de enfoque: de login propio a Google/OAuth
+
+La primera versión de esta HU implementaba login con email + contraseña (bcrypt) — ver historial
+de git si hace falta ese flujo. El profesor pidió reemplazarlo por **OAuth usando Google como
+proveedor de identidad**. Este documento describe la versión actual (Google); el login por
+contraseña **ya no existe** en el código (`POST /api/v1/auth/login` fue eliminado).
 
 ## Alcance
 
-Esta HU cubre **solo** login (autenticación) y autorización por rol. El **registro** de usuarios
-(HU-5.1, `POST /api/v1/auth/register`) se implementa en otra rama — este documento no lo cubre,
-y el login descrito aquí asume que el usuario ya existe en la tabla `usuario` con un
-`password_hash` válido.
+Esta HU cubre login (ahora vía Google/OAuth) y autorización por rol. El **registro** explícito
+(HU-5.1) nunca se implementó como endpoint aparte, y con Google tampoco hace falta uno: si el
+email no existe en `usuario`, se crea automáticamente en el primer login (ver Flujo 1).
 
 No hubo cambios de esquema: `usuario.password_hash` y `usuario.rol` ya existían en el DER
-(`init.sql`) desde antes de esta sesión.
+(`init.sql`) desde antes de esta sesión. `password_hash` se sigue llenando (con un valor
+aleatorio inutilizable) solo porque la columna es `NOT NULL` en el DER — ver la sección de
+decisiones más abajo.
 
 ## Por qué el DER ya soportaba esto sin cambios de esquema
 
@@ -30,46 +39,70 @@ CREATE TABLE usuario (
 práctica el resto del código ya usaba `'docente'` y `'estudiante'` en minúscula (ver `seed.sql`),
 así que el login y el middleware de roles respetan esos mismos valores tal cual están guardados.
 
-## Flujo 1 — Login (CA-5.4.1)
+## Flujo 1 — Login con Google (CA-5.4.1)
+
+El frontend usa Google Identity Services (fuera de este repo) para conseguir un `idToken` firmado
+por Google — este backend nunca ve la contraseña de Google del usuario, solo recibe ese token ya
+emitido.
 
 ```
-Cliente envía { email, password }
+Frontend obtiene un idToken de Google (Google Identity Services, fuera de este repo)
         │
         ▼
-POST /api/v1/auth/login
+Cliente envía { idToken }
         │
         ▼
-AuthController.login
+POST /api/v1/auth/google
         │
         ▼
-AuthService.login(email, password)
+AuthController.loginGoogle
         │
-        ├── UsuarioRepository.obtenerPorEmail(email)
+        ▼
+AuthService.loginConGoogle(idToken)
+        │
+        ├── falta idToken  ──► 400 "idToken es obligatorio"
+        │
+        ├── GOOGLE_CLIENT_ID no configurado en el servidor  ──► 500 (error de configuración,
+        │       no confundir con un token inválido del cliente)
+        │
+        ├── OAuth2Client.verifyIdToken(idToken, audience: GOOGLE_CLIENT_ID)
         │       │
-        │       ├── no existe, o usuario.activo = false  ──► 401 "Credenciales inválidas"
+        │       ├── firma inválida / no es de Google / audience no coincide  ──► 401 "Token de Google inválido"
         │       │
-        │       └── existe
+        │       └── válido → payload = { email, email_verified, name, ... }
         │               │
-        │               ▼
-        │       bcrypt.compare(password, usuario.password_hash)
+        │               ├── email_verified = false  ──► 401 "El email de la cuenta de Google no está verificado"
         │               │
-        │               ├── no coincide  ──► 401 "Credenciales inválidas"
-        │               │
-        │               └── coincide
+        │               └── email_verified = true
         │                       │
         │                       ▼
-        │               jwt.sign({ id_usuario, email, rol }, JWT_SECRET, { expiresIn: '8h' })
+        │               UsuarioRepository.obtenerPorEmail(payload.email)
         │                       │
-        ▼                       ▼
+        │                       ├── no existe  ──► se CREA automáticamente con rol "estudiante"
+        │                       │                  (password_hash = hash de un valor aleatorio
+        │                       │                  que nadie conoce, solo para cumplir el NOT NULL
+        │                       │                  del DER; esta cuenta nunca hace login por
+        │                       │                  contraseña)
+        │                       │
+        │                       └── existe → se reutiliza tal cual (conserva su rol actual,
+        │                                    por ejemplo "docente" si ya lo era)
+        │                               │
+        │                               ├── usuario.activo = false  ──► 401 "Cuenta inactiva"
+        │                               │
+        │                               └── activo
+        │                                       │
+        │                                       ▼
+        │                               jwt.sign({ id_usuario, email, rol }, JWT_SECRET, { expiresIn: '8h' })
+        │                                       │
+        ▼                                       ▼
 200 OK  { token, usuario: { id_usuario, nombre_completo, email, rol } }
 ```
 
-**El mensaje de error es el mismo** ("Credenciales inválidas", 401) tanto si el email no existe
-como si la contraseña no coincide — así no se revela cuál de los dos campos fue el incorrecto
-(evita que alguien use el endpoint para enumerar emails registrados).
-
 `password_hash` **nunca** viaja en la respuesta; el objeto `usuario` que se retorna se arma a
-mano en `AuthService.login` solo con los campos necesarios.
+mano en `AuthService.loginConGoogle` solo con los campos necesarios. El `token` que devuelve este
+endpoint es el **mismo tipo de JWT propio** que ya emitía el login anterior — el resto del
+sistema (`authenticate`, `requireRole`, el frontend) no necesita saber que el login ahora pasa
+por Google.
 
 ## Flujo 2 — Petición a una ruta protegida (CA-5.4.1 / CA-5.4.2)
 
@@ -154,38 +187,50 @@ defecto de `.env.example`), el comportamiento es el normal descrito arriba — n
 **Nunca debe quedar en `true` en un entorno que no sea tu máquina local.** No es parte de ningún
 CA del backlog, es solo una salida de escape de conveniencia para desarrollo.
 
-## Endpoints nuevos
+## Endpoints
 
-| Método | Endpoint | CA |
+| Método | Endpoint | CA | Estado |
+|---|---|---|---|
+| ~~POST~~ | ~~`/api/v1/auth/login`~~ | CA-5.4.1 | **Eliminado** — era el login por email/password |
+| POST | `/api/v1/auth/google` | CA-5.4.1 | Actual — recibe el `idToken` de Google |
+
+## Configuración necesaria (variables de entorno)
+
+| Variable | Para qué | Dónde se consigue |
 |---|---|---|
-| POST | `/api/v1/auth/login` | CA-5.4.1 |
+| `JWT_SECRET` | Firmar el JWT propio de la app (sin cambios respecto a la versión anterior) | La inventa el equipo, cualquier string largo |
+| `GOOGLE_CLIENT_ID` | Verificar que el `idToken` fue emitido por Google para esta app | Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client ID (tipo "Web application"). Es un dato público, pero hay que crearlo desde una cuenta de Google real — no se puede inventar. |
 
-## Archivos nuevos / modificados en esta sesión
+## Archivos nuevos / modificados
 
 | Archivo | Cambio |
 |---|---|
-| `backend/src/services/AuthService.js` | Implementado (antes stub): `login(email, password)`. |
-| `backend/src/middleware/authMiddleware.js` | Implementado (antes stub): `authenticate`, `requireRole(...roles)`, interruptor `DISABLE_AUTH`. |
-| `backend/src/controllers/AuthController.js` | **Nuevo**: `login`. |
-| `backend/src/routes/authRoutes.js` | **Nuevo**: `POST /login`. |
-| `backend/src/repositories/UsuarioRepository.js` | Se agregó `obtenerPorEmail(email)`. |
-| `backend/src/app.js` | Se montó `authRoutes` en `/api/v1/auth`; `@file` actualizado. |
-| `backend/src/routes/deckRoutes.js`, `cardRoutes.js`, `analyticsRoutes.js`, `courseRoutes.js`, `contributionRoutes.js` | Se agregó `authenticate`/`requireRole('docente')` según la tabla de arriba. |
-| `backend/.env.example` | Documentadas `DISABLE_AUTH` y `DISABLE_AUTH_ROL`. |
+| `backend/src/services/AuthService.js` | Reescrito: `login(email, password)` → `loginConGoogle(idToken)`, usando `google-auth-library`. |
+| `backend/src/controllers/AuthController.js` | Reescrito: `login` → `loginGoogle`. |
+| `backend/src/routes/authRoutes.js` | Reescrito: `POST /login` → `POST /google`. |
+| `backend/src/middleware/authMiddleware.js` | Sin cambios en esta actualización — `authenticate`/`requireRole`/`DISABLE_AUTH` siguen igual, porque solo dependen del JWT propio, no de cómo se emitió. |
+| `backend/src/repositories/UsuarioRepository.js` | Sin cambios nuevos (ya tenía `obtenerPorEmail` y `crear` de la versión anterior; ambos se reutilizan). |
+| `backend/package.json` | Se agregó `google-auth-library`; se puede quitar `bcrypt` si ya no se usa en ningún otro lado del proyecto (no se quitó automáticamente por si otro módulo lo necesita). |
+| `backend/.env.example` | Se agregó `GOOGLE_CLIENT_ID`. `JWT_SECRET` sigue igual. |
+| `seed_auth_test.sql` | **Eliminado** — creaba usuarios con hash bcrypt real para probar el login por contraseña; ya no aplica. |
+| `HU-5.4 - Autenticacion y Roles.postman_collection.json` | Reescrito: ya no prueba login de punta a punta (Postman no puede automatizar la pantalla de consentimiento de Google), solo los errores de `/auth/google` que no requieren credenciales reales, más los checks de rol (que ahora requieren pegar un token real obtenido a mano). |
 
 ## Pendientes / decisiones que no se tomaron por cuenta propia
 
-- **CA-5.4.3 (modo Invitado)**: el backlog no define ningún endpoint de "diccionario
-  demostrativo". Se interpretó (confirmado con el usuario) dejando las rutas `GET` de
-  decks/cards/courses sin `authenticate` — no es un CA formalmente cerrado con un endpoint
-  propio, es una interpretación sobre la infraestructura ya existente.
-- **`seed.sql` no sirve para probar login todavía**: los usuarios de prueba tienen
-  `password_hash = 'hash_temporal'`, que no es un hash bcrypt real. El login fallará contra esos
-  datos hasta que se reemplace por un hash bcrypt válido a mano, o hasta que HU-5.1 (registro, en
-  otra rama) genere usuarios con hash real.
-- **Duración del token (8h)**: no está especificada en ningún CA; se hardcodeó en
-  `AuthService.js` en vez de agregar una variable de entorno nueva, para no introducir
-  configuración no pedida. El equipo puede ajustarla si lo necesita.
-- **`DISABLE_AUTH`**: no corresponde a ningún CA del backlog, es una utilidad de desarrollo. Se
-  documenta aquí para que quede claro que es temporal/opcional y no parte de la regla de negocio
-  de HU-5.4.
+- **Rol por defecto al auto-crear un usuario nuevo por Google**: no hay ningún CA (ni de HU-5.1
+  ni de HU-5.4) que diga qué rol darle a un email de Google que nunca había iniciado sesión. Se
+  decidió crearlo como `"estudiante"` (mismo criterio que el auto-registro de HU-5.1), ya que no
+  existe ningún flujo para que alguien se auto-asigne `"docente"` — las cuentas docente se siguen
+  creando a mano en la base de datos, igual que hasta ahora. **Confirmar con el equipo/profe si
+  este comportamiento es el esperado.**
+- **CA-5.4.3 (modo Invitado)**: sigue igual que antes — el backlog no define ningún endpoint de
+  "diccionario demostrativo", se interpretó dejando las rutas `GET` de decks/cards/courses sin
+  `authenticate`.
+- **Duración del token (8h)**: sigue hardcodeada en `AuthService.js`, sin variable de entorno
+  nueva, igual que en la versión anterior.
+- **`DISABLE_AUTH`**: sigue existiendo, sin cambios — es independiente de cómo se emite el JWT.
+- **`bcrypt` sigue en `package.json`**: no se eliminó la dependencia porque técnicamente se sigue
+  usando una vez (para generar el `password_hash` aleatorio/inutilizable de los usuarios creados
+  por Google, para cumplir el `NOT NULL` del DER). Si el equipo prefiere quitar `bcrypt` del todo
+  y resolver ese `NOT NULL` de otra forma (ej. una migración que lo vuelva nullable), es una
+  decisión de esquema que no se tomó por cuenta propia.

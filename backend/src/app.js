@@ -30,14 +30,20 @@
  *   - GET  /api/v1/courses
  *   - GET  /api/v1/courses/:id
  *
- *   HE-05 (HU-5.4 — login y control de roles; HU-5.1/5.2/5.3 quedan fuera de esta rama):
- *   - POST /api/v1/auth/login                           (CA-5.4.1)
+ *   HE-05 (HU-5.4 — login con Google/OAuth y control de roles; HU-5.1/5.2/5.3 quedan fuera de
+ *   esta rama):
+ *   - POST /api/v1/auth/google                          (CA-5.4.1, login vía Google/OAuth)
  *
- *   Control de acceso (CA-5.4.2): las rutas de creación/edición exigen JWT válido
- *   (middleware authenticate); las de curaduría/analítica docente (HE-02) exigen además
- *   rol "docente" (middleware requireRole). Las rutas GET de decks/cards/courses quedan sin
- *   autenticación para cubrir el acceso de solo lectura de Invitado (CA-5.4.3) — no hay
- *   endpoint de "diccionario demostrativo" definido en el backlog, se interpretó así.
+ *   Control de acceso (CA-5.4.2): las rutas de creación/edición exigen JWT propio válido
+ *   (middleware authenticate, emitido por AuthService tras validar el token de Google); las de
+ *   curaduría/analítica docente (HE-02) exigen además rol "docente" (middleware requireRole).
+ *   Las rutas GET de decks/cards/courses quedan sin autenticación para cubrir el acceso de solo
+ *   lectura de Invitado (CA-5.4.3) — no hay endpoint de "diccionario demostrativo" definido en
+ *   el backlog, se interpretó así.
+ *
+ *   @note El login por email/password con bcrypt (POST /api/v1/auth/login) que existía antes en
+ *   esta rama se ELIMINÓ: el profesor pidió reemplazarlo por OAuth (Google) después de la
+ *   primera entrega. Ver FLUJO_AUTENTICACION.md para el detalle completo del cambio.
  *
  * @note El resto de controladores/rutas de las entidades genéricas (usuario, inscripcion,
  * etiqueta_contexto vía CRUD directo, progreso_estudio, quiz, quiz_mazo, pregunta_quiz,
