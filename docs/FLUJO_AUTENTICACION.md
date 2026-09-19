@@ -13,14 +13,13 @@ contraseña **ya no existe** en el código (`POST /api/v1/auth/login` fue elimin
 
 ## Alcance
 
-Esta HU cubre login (ahora vía Google/OAuth) y autorización por rol. El **registro** explícito
-(HU-5.1) nunca se implementó como endpoint aparte, y con Google tampoco hace falta uno: si el
-email no existe en `usuario`, se crea automáticamente en el primer login (ver Flujo 1).
+Esta HU cubre **solo** autenticación (login vía Google/OAuth) y autorización por rol. **No crea
+usuarios**: el registro/creación de usuarios (HU-5.1) le corresponde a otra HU. Si el correo de
+Google no existe en la tabla `usuario`, el login se rechaza con 403; la cuenta (con su rol) tiene
+que haberse creado antes.
 
-No hubo cambios de esquema: `usuario.password_hash` y `usuario.rol` ya existían en el DER
-(`init.sql`) desde antes de esta sesión. `password_hash` se sigue llenando (con un valor
-aleatorio inutilizable) solo porque la columna es `NOT NULL` en el DER — ver la sección de
-decisiones más abajo.
+No hubo cambios de esquema: `usuario.rol` ya existía en el DER (`init.sql`). `password_hash` ya
+no interviene en el login.
 
 ## Por qué el DER ya soportaba esto sin cambios de esquema
 
@@ -78,14 +77,11 @@ AuthService.loginConGoogle(idToken)
         │                       ▼
         │               UsuarioRepository.obtenerPorEmail(payload.email)
         │                       │
-        │                       ├── no existe  ──► se CREA automáticamente con rol "estudiante"
-        │                       │                  (password_hash = hash de un valor aleatorio
-        │                       │                  que nadie conoce, solo para cumplir el NOT NULL
-        │                       │                  del DER; esta cuenta nunca hace login por
-        │                       │                  contraseña)
+        │                       ├── no existe  ──► 403 "Usuario no registrado en la plataforma"
+        │                       │                  (este servicio NO crea usuarios)
         │                       │
-        │                       └── existe → se reutiliza tal cual (conserva su rol actual,
-        │                                    por ejemplo "docente" si ya lo era)
+        │                       └── existe → se usa tal cual (con el rol que ya tenga guardado,
+        │                                    por ejemplo "docente")
         │                               │
         │                               ├── usuario.activo = false  ──► 401 "Cuenta inactiva"
         │                               │
@@ -217,20 +213,17 @@ CA del backlog, es solo una salida de escape de conveniencia para desarrollo.
 
 ## Pendientes / decisiones que no se tomaron por cuenta propia
 
-- **Rol por defecto al auto-crear un usuario nuevo por Google**: no hay ningún CA (ni de HU-5.1
-  ni de HU-5.4) que diga qué rol darle a un email de Google que nunca había iniciado sesión. Se
-  decidió crearlo como `"estudiante"` (mismo criterio que el auto-registro de HU-5.1), ya que no
-  existe ningún flujo para que alguien se auto-asigne `"docente"` — las cuentas docente se siguen
-  creando a mano en la base de datos, igual que hasta ahora. **Confirmar con el equipo/profe si
-  este comportamiento es el esperado.**
+- **Creación de usuarios (y su rol) fuera de esta HU**: el login no crea cuentas. Un correo de
+  Google sin fila en `usuario` recibe 403. Cómo se crean los usuarios (estudiantes y docentes) lo
+  define la HU de registro; mientras tanto, las cuentas de prueba se insertan por SQL. El
+  frontend debe mostrar un mensaje claro ante ese 403 ("tu cuenta no está registrada").
 - **CA-5.4.3 (modo Invitado)**: sigue igual que antes — el backlog no define ningún endpoint de
   "diccionario demostrativo", se interpretó dejando las rutas `GET` de decks/cards/courses sin
   `authenticate`.
 - **Duración del token (8h)**: sigue hardcodeada en `AuthService.js`, sin variable de entorno
   nueva, igual que en la versión anterior.
 - **`DISABLE_AUTH`**: sigue existiendo, sin cambios — es independiente de cómo se emite el JWT.
-- **`bcrypt` sigue en `package.json`**: no se eliminó la dependencia porque técnicamente se sigue
-  usando una vez (para generar el `password_hash` aleatorio/inutilizable de los usuarios creados
-  por Google, para cumplir el `NOT NULL` del DER). Si el equipo prefiere quitar `bcrypt` del todo
-  y resolver ese `NOT NULL` de otra forma (ej. una migración que lo vuelva nullable), es una
-  decisión de esquema que no se tomó por cuenta propia.
+- **`bcrypt` sigue en `package.json`** aunque el login ya no lo use: la HU de registro de
+  usuarios (otra rama) probablemente lo necesite para `password_hash`, así que no se quitó.
+  Además `password_hash` sigue siendo `NOT NULL` en el DER; cómo se llena para usuarios que
+  entran solo con Google lo debe decidir quien implemente la creación de usuarios.

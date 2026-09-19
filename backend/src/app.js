@@ -43,7 +43,7 @@
  *
  *   @note El login por email/password con bcrypt (POST /api/v1/auth/login) que existía antes en
  *   esta rama se ELIMINÓ: el profesor pidió reemplazarlo por OAuth (Google) después de la
- *   primera entrega. Ver FLUJO_AUTENTICACION.md para el detalle completo del cambio.
+ *   primera entrega. Ver docs/FLUJO_AUTENTICACION.md para el detalle completo del cambio.
  *
  * @note El resto de controladores/rutas de las entidades genéricas (usuario, inscripcion,
  * etiqueta_contexto vía CRUD directo, progreso_estudio, quiz, quiz_mazo, pregunta_quiz,

@@ -1,18 +1,39 @@
-// authMiddleware.js
-// Historia de Usuario: HU-5.4 — Iniciar sesión y control de roles.
-// Depende de: AuthService.js (emite el token), variable de entorno JWT_SECRET.
+/**
+ * @file authMiddleware.js
+ * @brief Middlewares de autenticación y control de acceso por rol (HU-5.4).
+ *
+ * Depende de: la variable de entorno JWT_SECRET (con la que AuthService firma el token).
+ * Se aplican por ruta, en los archivos de src/routes/, no de forma global en app.js.
+ */
 
 import jwt from 'jsonwebtoken';
 
-// Interruptor SOLO para desarrollo/pruebas locales: con DISABLE_AUTH=true en .env, authenticate
-// y requireRole dejan pasar todo sin pedir token, simulando un usuario con el rol indicado en
-// DISABLE_AUTH_ROL (por defecto "docente", para poder probar también las rutas docente-only).
-// No es parte de ningún CA del backlog — es una salida de escape de conveniencia, apagada por
-// defecto. NUNCA debe quedar en true en un entorno real.
+/**
+ * @brief Indica si el interruptor de desarrollo DISABLE_AUTH está activo.
+ *
+ * Interruptor SOLO para desarrollo/pruebas locales: con DISABLE_AUTH=true en el entorno,
+ * authenticate y requireRole dejan pasar todo sin pedir token, simulando un usuario con el rol
+ * indicado en DISABLE_AUTH_ROL (por defecto "docente", para poder probar también las rutas
+ * exclusivas de docente).
+ *
+ * @note No es parte de ningún CA del backlog: es una salida de escape de conveniencia, apagada
+ * por defecto. NUNCA debe quedar en true en un entorno real.
+ * @return {boolean} true si DISABLE_AUTH === 'true'.
+ */
 const authDeshabilitado = () => process.env.DISABLE_AUTH === 'true';
 
-// CA-5.4.1: verifica el token JWT del header Authorization. Adjunta el payload decodificado
-// (id_usuario, email, rol) en req.usuario para que las rutas/controladores lo usen.
+/**
+ * @brief CA-5.4.1: verifica el token JWT del header "Authorization: Bearer <token>".
+ *
+ * Si es válido, adjunta el payload decodificado ({ id_usuario, email, rol }) en req.usuario para
+ * que las rutas y controladores siguientes lo usen, y continúa con next().
+ *
+ * @param {import('express').Request} req - Debe traer el header Authorization con el JWT.
+ * @param {import('express').Response} res - Responde 401 si falta el header o si el token es
+ * inválido o expiró ({ error: mensaje }).
+ * @param {import('express').NextFunction} next - Se invoca si el token es válido.
+ * @return {void}
+ */
 export function authenticate(req, res, next) {
   if (authDeshabilitado()) {
     req.usuario = {
@@ -38,8 +59,17 @@ export function authenticate(req, res, next) {
   }
 }
 
-// CA-5.4.2: deniega con 403 si el rol del usuario autenticado no está entre los permitidos.
-// Debe usarse después de authenticate (necesita req.usuario ya poblado).
+/**
+ * @brief CA-5.4.2: crea un middleware que deniega con 403 si el rol del usuario autenticado no
+ * está entre los permitidos.
+ *
+ * Debe usarse DESPUÉS de authenticate, porque necesita req.usuario ya poblado.
+ * Ejemplo: router.post('/', authenticate, requireRole('docente'), Controller.crear);
+ *
+ * @param {...string} rolesPermitidos - Roles autorizados para la ruta (p. ej. 'docente').
+ * @return {import('express').RequestHandler} Middleware que responde 401 si no hay
+ * req.usuario, 403 si el rol no está permitido, o continúa con next().
+ */
 export function requireRole(...rolesPermitidos) {
   return (req, res, next) => {
     if (authDeshabilitado()) {

@@ -1,4 +1,7 @@
-// Repositorio de Usuario: acceso a datos para la tabla "usuario" del DER oficial.
+/**
+ * @file UsuarioRepository.js
+ * @brief Repositorio de Usuario: acceso a datos para la tabla "usuario" del DER oficial.
+ */
 
 import { pool } from '../config/db.js';
 import { Usuario } from '../models/Usuario.js';
@@ -20,8 +23,14 @@ export const UsuarioRepository = {
     return rows[0] ? new Usuario(rows[0]) : null;
   },
 
-  // HU-5.4 (login): busca por email, único en el DER (usuario.email UNIQUE), para validar
-  // credenciales en AuthService.
+  /**
+   * @brief HU-5.4 (login con Google): busca un usuario por su correo. El correo es único en el
+   * DER (usuario.email UNIQUE). Lo usa AuthService para saber si el correo que Google confirmó
+   * tiene cuenta en la plataforma.
+   *
+   * @param {string} email - Correo a buscar (coincidencia exacta).
+   * @return {Promise<Usuario|null>} El usuario, o null si no existe.
+   */
   async obtenerPorEmail(email) {
     const { rows } = await pool.query('SELECT * FROM usuario WHERE email = $1', [email]);
     return rows[0] ? new Usuario(rows[0]) : null;

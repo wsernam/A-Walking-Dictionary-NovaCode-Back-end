@@ -1,27 +1,37 @@
-// AuthService.js
-// Historia de Usuario: HU-5.4 — Iniciar sesión y control de roles.
-// Endpoint relacionado: POST /api/v1/auth/google
-// Almacenamiento: tabla usuario (password_hash, rol ya existen en el DER, sin cambios de esquema).
-//
-// CAMBIO DE ENFOQUE (post primera entrega): el profesor pidió reemplazar el login propio
-// (email + password con bcrypt) por OAuth usando Google como proveedor de identidad. Google
-// verifica quién es la persona; este servicio solo confía en ese resultado y sigue emitiendo
-// el MISMO tipo de JWT propio que ya emitía el login anterior (id_usuario, email, rol), así que
-// authMiddleware.js no cambió en nada.
-//
-// NOTA: el registro (HU-5.1) tampoco existe en esta rama. Con Google no hace falta un endpoint
-// de registro aparte: si el email no existe en la tabla usuario, se crea automáticamente en el
-// primer login (ver "Decisión no especificada en ningún CA" más abajo).
+/**
+ * @file AuthService.js
+ * @brief Servicio de autenticación (HU-5.4): valida el token de Google (OAuth) y emite el JWT
+ * propio de la app.
+ *
+ * Endpoint relacionado: POST /api/v1/auth/google. Almacenamiento: tabla usuario (columnas
+ * rol y activo del DER, sin cambios de esquema).
+ *
+ * @note CAMBIO DE ENFOQUE (post primera entrega): el profesor pidió reemplazar el login propio
+ * (email + password con bcrypt) por OAuth usando Google como proveedor de identidad. Google
+ * verifica quién es la persona; este servicio solo confía en ese resultado y emite el MISMO tipo
+ * de JWT propio que ya emitía el login anterior (id_usuario, email, rol), así que
+ * authMiddleware.js no cambió.
+ *
+ * @note ALCANCE: este servicio SOLO autentica. No crea usuarios: el registro/creación de
+ * usuarios (con su rol) le corresponde a otra HU. Si el correo de Google no existe en la tabla
+ * usuario, el login se rechaza (403).
+ */
 
-import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import { UsuarioRepository } from '../repositories/UsuarioRepository.js';
 
+/** @brief Duración del JWT propio de la app (no está fijada por ningún CA del backlog). */
 const JWT_EXPIRES_IN = '8h';
 
 let googleClient;
+
+/**
+ * @brief Devuelve el cliente OAuth2 de Google, creándolo la primera vez (patrón singleton).
+ * @return {OAuth2Client} Cliente configurado con GOOGLE_CLIENT_ID.
+ * @throws {Error} Si la variable de entorno GOOGLE_CLIENT_ID no está definida (error de
+ * configuración del servidor, se responde como 500).
+ */
 function getGoogleClient() {
   if (!process.env.GOOGLE_CLIENT_ID) {
     throw new Error('GOOGLE_CLIENT_ID no está configurado en el entorno');
@@ -33,8 +43,22 @@ function getGoogleClient() {
 }
 
 export const AuthService = {
-  // CA-5.4.1: recibe el idToken que el frontend obtiene de Google Identity Services, lo
-  // verifica contra los servidores de Google, y retorna el JWT propio de la app.
+  /**
+   * @brief CA-5.4.1: recibe el idToken que el frontend obtiene de Google Identity Services, lo
+   * verifica contra Google y retorna el JWT propio de la app junto con los datos del usuario.
+   *
+   * Pasos: (1) valida que venga el idToken; (2) verifica su firma y que fue emitido para este
+   * GOOGLE_CLIENT_ID; (3) exige que el correo esté verificado en Google; (4) busca el usuario
+   * por correo en la tabla usuario; (5) firma el JWT con { id_usuario, email, rol }.
+   *
+   * @param {string} idToken - Campo "credential" que entrega Google en el frontend.
+   * @return {Promise<{token: string, usuario: {id_usuario: number, nombre_completo: string,
+   * email: string, rol: string}}>} JWT propio (dura 8 h) y datos básicos del usuario. Nunca
+   * incluye password_hash.
+   * @throws {Error} status 400 si falta idToken; 401 si el token de Google es inválido, el
+   * correo no está verificado o la cuenta está inactiva; 403 si el correo no existe en usuario
+   * (este servicio NO crea usuarios). Sin status (500) si falta GOOGLE_CLIENT_ID o JWT_SECRET.
+   */
   async loginConGoogle(idToken) {
     if (!idToken) {
       const error = new Error('idToken es obligatorio');
@@ -64,24 +88,14 @@ export const AuthService = {
       throw error;
     }
 
-    let usuario = await UsuarioRepository.obtenerPorEmail(payload.email);
+    const usuario = await UsuarioRepository.obtenerPorEmail(payload.email);
 
     if (!usuario) {
-      // Decisión no especificada en ningún CA (HU-5.1 tampoco define un default): un email de
-      // Google que nunca inició sesión se crea automáticamente con rol "estudiante", igual que
-      // el auto-registro de HU-5.1. No hay forma de que alguien se auto-asigne "docente" por
-      // este camino; las cuentas docente se siguen creando a mano (mismo criterio que ya usaba
-      // seed.sql). password_hash queda con un hash de un valor aleatorio que nadie conoce, solo
-      // para satisfacer la columna NOT NULL del DER -- esta cuenta nunca hace login por password.
-      usuario = await UsuarioRepository.crear({
-        nombre_completo: payload.name || payload.email,
-        email: payload.email,
-        password_hash: await bcrypt.hash(crypto.randomUUID(), 10),
-        rol: 'estudiante',
-        nivel_ingles: null,
-        activo: true,
-        fecha_registro: new Date(),
-      });
+      // Google confirmó la identidad, pero esa persona no tiene cuenta en la plataforma.
+      // Crearla no es responsabilidad de este servicio.
+      const error = new Error('Usuario no registrado en la plataforma');
+      error.status = 403;
+      throw error;
     }
 
     if (!usuario.activo) {

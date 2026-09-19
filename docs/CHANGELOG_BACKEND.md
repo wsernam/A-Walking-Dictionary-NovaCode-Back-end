@@ -1,9 +1,30 @@
 # Changelog - Estructura Backend
 
 ## Fecha
-2026-09-18 (última actualización — ver historial de sesiones más abajo)
+2026-09-19 (última actualización — ver historial de sesiones más abajo)
 
-## Cambios aplicados en esta sesión (2026-09-18) — HU-5.4: login por bcrypt reemplazado por Google/OAuth
+## Cambios aplicados en esta sesión (2026-09-19) — Documentación, contrato de frontend y seed de pruebas
+
+- **Carpeta `docs/`**: se movieron aquí (con `git mv`) `CHANGELOG_BACKEND.md`,
+  `FLUJO_AUTENTICACION.md` y `FLUJO_REVISION_TARJETAS.md`. `CLAUDE.md` y `README.md` se quedan en
+  la raíz a propósito (Claude Code carga `CLAUDE.md` desde ahí; GitHub muestra `README.md`).
+  Se actualizó la referencia a `docs/FLUJO_AUTENTICACION.md` en el comentario de `app.js`.
+- **`docs/CONTRATO_AUTENTICACION_FRONTEND.md` (nuevo)**: contrato para quien implementa el login
+  en el frontend (endpoint `POST /api/v1/auth/google`, errores, flujo, tabla de rutas por rol,
+  configuración de Google/Docker, cuentas de prueba).
+- **`seed.sql`**: se agregaron cuentas reales del equipo para probar el login con Google:
+  `wserna@unicauca.edu.co` (docente) y `ksandoval@`, `manmeneses@`, `thaliabernal@unicauca.edu.co`
+  (estudiantes). Los usuarios originales (ids 1-4) se mantienen porque la colección de Postman de
+  Sprint 1 depende de esos ids. Los nombres de los estudiantes son un placeholder (solo se
+  conocen los correos) y no tienen inscripciones.
+- **`AuthService.js`**: el login ya no crea usuarios; un correo de Google sin cuenta recibe 403
+  (ver la entrada siguiente y `docs/FLUJO_AUTENTICACION.md`).
+- **Doxygen**: se documentaron con bloques `/** @file @brief @param @return @throws */` (misma
+  convención que `TarjetaController`/`MazoRepository`) `AuthService.js`, `AuthController.js`,
+  `authMiddleware.js` y `UsuarioRepository.js` (encabezado `@file` y `obtenerPorEmail`). Solo se
+  tocaron comentarios, la lógica no cambió. El repo no tiene `Doxyfile`, así que no se genera HTML.
+
+## Cambios aplicados en la sesión anterior (2026-09-18) — HU-5.4: login por bcrypt reemplazado por Google/OAuth
 
 El profesor pidió, después de la primera entrega, reemplazar el login por email/password
 (bcrypt) de HU-5.4 por OAuth usando Google como proveedor de identidad. Se eliminó el login por
@@ -14,16 +35,16 @@ JWT al inicio.
 ### Archivos modificados
 - `backend/src/services/AuthService.js` — se reemplazó `login(email, password)` (bcrypt.compare)
   por `loginConGoogle(idToken)`: verifica el token con `google-auth-library`
-  (`OAuth2Client.verifyIdToken`), busca el usuario por email, lo auto-crea con rol `estudiante`
-  si no existía (decisión no especificada en ningún CA, ver `FLUJO_AUTENTICACION.md`), y firma
-  el mismo tipo de JWT que antes.
+  (`OAuth2Client.verifyIdToken`), busca el usuario por email y firma el mismo tipo de JWT que
+  antes. Si el correo no existe en `usuario` responde 403: el login NO crea usuarios (eso le
+  corresponde a otra HU).
 - `backend/src/controllers/AuthController.js` — `login` → `loginGoogle`.
 - `backend/src/routes/authRoutes.js` — `POST /login` → `POST /google`.
 - `backend/src/app.js` — `@file` actualizado: endpoint nuevo, nota de que el login por
   contraseña se eliminó.
-- `backend/package.json` — se agregó `google-auth-library`. `bcrypt` se mantiene (se sigue
-  usando para generar un `password_hash` aleatorio/inutilizable, ya que la columna es `NOT NULL`
-  en el DER y los usuarios de Google no tienen contraseña propia).
+- `backend/package.json` — se agregó `google-auth-library`. `bcrypt` se mantiene en el
+  `package.json` aunque el login ya no lo use (la HU de registro, en otra rama, probablemente
+  lo necesite).
 - `backend/.env.example` — se agregó `GOOGLE_CLIENT_ID` (Client ID de Google Cloud Console,
   necesario para verificar los tokens). `JWT_SECRET` sigue igual.
 - `backend/.dockerignore` — **nuevo**, agregado en esta sesión: excluye `node_modules/` del
@@ -44,9 +65,9 @@ JWT al inicio.
 - `FLUJO_AUTENTICACION.md` — reescrito para describir el flujo de Google en vez de bcrypt.
 
 ### Pendiente / decisión no tomada por cuenta propia
-- **Rol por defecto al auto-crear un usuario nuevo por Google**: se decidió `"estudiante"` por
-  no haber otra opción documentada (mismo criterio que el auto-registro de HU-5.1). Falta que el
-  equipo/profe lo confirme. Las cuentas docente se siguen creando a mano.
+- **Creación de usuarios**: una primera versión auto-creaba al usuario como `estudiante` en su
+  primer login; se eliminó por salirse del alcance de autenticación. Ahora un correo sin cuenta
+  recibe 403 y la creación (con su rol) queda para la HU de registro.
 - Ver el resto de decisiones/pendientes en `FLUJO_AUTENTICACION.md`.
 
 ## Cambios aplicados en la sesión anterior (2026-09-17) — HU-5.4: Login y control de roles (versión inicial, con email/password)
