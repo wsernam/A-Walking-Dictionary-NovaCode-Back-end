@@ -32,7 +32,30 @@ export const CursoRepository = {
   async obtenerPorId(id_curso) {
     const { rows } = await pool.query('SELECT * FROM curso WHERE id_curso = $1', [id_curso]);
     return rows[0] ? new Curso(rows[0]) : null;
-  },
+    },
+
+  async obtenerPorCodigoAcceso(codigo_acceso) {
+      const { rows } = await pool.query(
+        'SELECT * FROM curso WHERE codigo_acceso = $1',
+        [codigo_acceso]
+      );
+
+      return rows[0] ? new Curso(rows[0]) : null;
+    }, 
+
+    async guardarCodigoAcceso(id_curso, codigo_acceso) {
+      const { rows } = await pool.query(
+        `UPDATE curso
+        SET codigo_acceso = $2
+        WHERE id_curso = $1
+        RETURNING *`,
+        [id_curso, codigo_acceso]
+      );
+
+      return rows[0] ? new Curso(rows[0]) : null;
+    },
+
+
 
   /**
    * @brief Lista todos los cursos, sin filtros.

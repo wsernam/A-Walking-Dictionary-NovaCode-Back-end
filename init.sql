@@ -27,6 +27,7 @@ CREATE TABLE curso (
     fecha_fin DATE NOT NULL,
     docente_id INT NOT NULL,
     estado VARCHAR(30) NOT NULL,
+    codigo_acceso VARCHAR(20) UNIQUE,
     CONSTRAINT fk_curso_docente FOREIGN KEY (docente_id) REFERENCES usuario(id_usuario)
 );
 
