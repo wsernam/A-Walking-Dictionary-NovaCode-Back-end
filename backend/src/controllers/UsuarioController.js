@@ -3,6 +3,7 @@
 // se insertará entre el controlador y el repositorio sin cambiar esta firma.
 
 import { UsuarioRepository } from '../repositories/UsuarioRepository.js';
+import { PerfilService } from '../services/PerfilService.js';
 
 export const UsuarioController = {
   async crear(req, res) {
@@ -69,6 +70,60 @@ export const UsuarioController = {
       res.status(200).json(usuario);
     } catch (error) {
       res.status(500).json({ error: error.message });
+    }
+  },
+
+  // HU-5.2: GET /api/v1/users/:id — shape acordado con el frontend (estudiante_id, correo, sin
+  // password_hash), distinto del obtenerPorId() genérico de arriba. Ver PerfilService.js.
+  async obtenerPerfil(req, res) {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ error: 'id inválido' });
+      }
+      const perfil = await PerfilService.obtenerPerfil(id);
+      res.status(200).json(perfil);
+    } catch (error) {
+      const status = error.status || 500;
+      res.status(status).json({ error: error.message });
+    }
+  },
+
+  // CA-5.2.1 + CA-5.2.2: PATCH /api/v1/users/profile
+  // estudiante_id viaja en el body (no en la URL) porque esta rama todavía no tiene auth real
+  // -- mismo patrón que ya usan mazos/tarjetas/inscripción (ver contrato acordado con frontend).
+  async actualizarPerfil(req, res) {
+    try {
+      const { estudiante_id, nivel_ingles, codigo_estudiantil, avatar, intereses } = req.body;
+      const id = Number(estudiante_id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ error: 'estudiante_id es obligatorio y debe ser numérico' });
+      }
+      const perfil = await PerfilService.actualizarPerfil(id, {
+        nivel_ingles,
+        codigo_estudiantil,
+        avatar,
+        intereses,
+      });
+      res.status(200).json(perfil);
+    } catch (error) {
+      const status = error.status || 500;
+      res.status(status).json({ error: error.message });
+    }
+  },
+
+  // HU-5.2: GET /api/v1/students/:id/context — contexto académico de solo lectura.
+  async obtenerContextoAcademico(req, res) {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ error: 'id inválido' });
+      }
+      const contexto = await PerfilService.obtenerContextoAcademico(id);
+      res.status(200).json(contexto);
+    } catch (error) {
+      const status = error.status || 500;
+      res.status(status).json({ error: error.message });
     }
   },
 

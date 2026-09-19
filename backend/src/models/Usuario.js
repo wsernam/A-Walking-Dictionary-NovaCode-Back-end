@@ -8,6 +8,9 @@ export class Usuario {
     password_hash,
     rol,
     nivel_ingles,
+    codigo_estudiantil,
+    avatar,
+    intereses,
     activo,
     fecha_registro,
   }) {
@@ -17,6 +20,9 @@ export class Usuario {
     this.password_hash = password_hash;
     this.rol = rol;
     this.nivel_ingles = nivel_ingles;
+    this.codigo_estudiantil = codigo_estudiantil;
+    this.avatar = avatar;
+    this.intereses = intereses;
     this.activo = activo;
     this.fecha_registro = fecha_registro;
   }

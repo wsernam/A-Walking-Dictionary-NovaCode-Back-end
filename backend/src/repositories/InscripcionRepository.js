@@ -29,6 +29,20 @@ export const InscripcionRepository = {
     return rows[0] ? new Inscripcion(rows[0]) : null;
   },
 
+  // Inscripción más reciente del estudiante con los datos de su curso (HU-5.2, contexto académico).
+  async obtenerContextoAcademico(estudiante_id) {
+    const { rows } = await pool.query(
+      `SELECT c.nombre AS curso_asignado, c.periodo AS semestre_activo
+       FROM inscripcion i
+       JOIN curso c ON c.id_curso = i.curso_id
+       WHERE i.estudiante_id = $1
+       ORDER BY i.fecha_inscripcion DESC, i.id_inscripcion DESC
+       LIMIT 1`,
+      [estudiante_id]
+    );
+    return rows[0] || null;
+  },
+
   async listar() {
     const { rows } = await pool.query('SELECT * FROM inscripcion');
     return rows.map((row) => new Inscripcion(row));

@@ -30,7 +30,12 @@
  *   - GET  /api/v1/courses
  *   - GET  /api/v1/courses/:id
  *
- * @note El resto de controladores/rutas de las entidades genéricas (usuario, inscripcion,
+ *   HE-05 (HU-5.2 — configurar perfil académico; HU-5.1/5.3/5.4 quedan fuera de esta rama):
+ *   - PATCH /api/v1/users/profile                       (CA-5.2.1 + CA-5.2.2, campo "intereses")
+ *   - GET  /api/v1/users/:id                             (shape de perfil, ver PerfilService.js)
+ *   - GET  /api/v1/students/:id/context                  (contexto académico, desde la inscripción)
+ *
+ * @note El resto de controladores/rutas de las entidades genéricas (inscripcion,
  * etiqueta_contexto vía CRUD directo, progreso_estudio, quiz, quiz_mazo, pregunta_quiz,
  * resultado_quiz, respuesta_quiz, y actualizar/eliminar curso/aporte) ya existen en
  * src/controllers/ y src/repositories/, pero NO se montan aquí todavía.
@@ -43,6 +48,8 @@ import cardRoutes from './routes/cardRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import contributionRoutes from './routes/contributionRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import usuarioRoutes from './routes/usuarioRoutes.js';
+import studentRoutes from './routes/studentRoutes.js';
 
 /** @brief Instancia principal de la aplicación Express. */
 const app = express();
@@ -55,5 +62,7 @@ app.use('/api/v1/cards', cardRoutes);
 app.use('/api/v1/courses', courseRoutes);
 app.use('/api/v1/contributions', contributionRoutes);
 app.use('/api/v1/teacher/analytics', analyticsRoutes);
+app.use('/api/v1/users', usuarioRoutes);
+app.use('/api/v1/students', studentRoutes);
 
 export default app;
