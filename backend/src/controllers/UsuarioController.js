@@ -1,6 +1,9 @@
-// Controlador REST de Usuario: recibe la petición HTTP, llama directamente al repositorio
-// (UsuarioRepository) y devuelve la respuesta. Cuando exista lógica de negocio en services/,
-// se insertará entre el controlador y el repositorio sin cambiar esta firma.
+/**
+ * @file UsuarioController.js
+ * @brief Controlador REST de Usuario: recibe la petición HTTP, llama al repositorio
+ * (UsuarioRepository) o, en los endpoints de perfil de HU-5.2, a PerfilService, y devuelve la
+ * respuesta.
+ */
 
 import { UsuarioRepository } from '../repositories/UsuarioRepository.js';
 import { PerfilService } from '../services/PerfilService.js';
@@ -73,8 +76,16 @@ export const UsuarioController = {
     }
   },
 
-  // HU-5.2: GET /api/v1/users/:id — shape acordado con el frontend (estudiante_id, correo, sin
-  // password_hash), distinto del obtenerPorId() genérico de arriba. Ver PerfilService.js.
+  /**
+   * @brief HU-5.2: obtiene el perfil académico. GET /api/v1/users/:id
+   *
+   * @note Shape acordado con el frontend (estudiante_id, correo, sin password_hash), distinto del
+   * obtenerPorId() genérico. Ver PerfilService.js.
+   *
+   * @param {import('express').Request} req - req.params.id es el id_usuario.
+   * @param {import('express').Response} res - 200 con el perfil, 400 si el id no es numérico,
+   * 404 si no existe, 500 ante error inesperado.
+   */
   async obtenerPerfil(req, res) {
     try {
       const id = Number(req.params.id);
@@ -89,9 +100,17 @@ export const UsuarioController = {
     }
   },
 
-  // CA-5.2.1 + CA-5.2.2: PATCH /api/v1/users/profile
-  // estudiante_id viaja en el body (no en la URL) porque esta rama todavía no tiene auth real
-  // -- mismo patrón que ya usan mazos/tarjetas/inscripción (ver contrato acordado con frontend).
+  /**
+   * @brief CA-5.2.1 + CA-5.2.2: actualiza el perfil académico. PATCH /api/v1/users/profile
+   *
+   * @note estudiante_id viaja en el body (no en la URL) porque esta rama todavía no tiene auth
+   * real -- mismo patrón que ya usan mazos/tarjetas/inscripción (contrato acordado con frontend).
+   *
+   * @param {import('express').Request} req - req.body: estudiante_id (obligatorio, numérico) y,
+   * opcionales, nivel_ingles, codigo_estudiantil, avatar e intereses.
+   * @param {import('express').Response} res - 200 con el perfil actualizado, 400 si falta
+   * estudiante_id o falla una validación, 404 si el usuario no existe, 500 ante error inesperado.
+   */
   async actualizarPerfil(req, res) {
     try {
       const { estudiante_id, nivel_ingles, codigo_estudiantil, avatar, intereses } = req.body;
@@ -112,7 +131,15 @@ export const UsuarioController = {
     }
   },
 
-  // HU-5.2: GET /api/v1/students/:id/context — contexto académico de solo lectura.
+  /**
+   * @brief HU-5.2: contexto académico (curso y semestre) de solo lectura.
+   * GET /api/v1/students/:id/context
+   *
+   * @param {import('express').Request} req - req.params.id es el id_usuario del estudiante.
+   * @param {import('express').Response} res - 200 con curso_asignado, semestre_activo y
+   * departamento_universidad, 400 si el id no es numérico, 404 si no existe, 500 ante error
+   * inesperado.
+   */
   async obtenerContextoAcademico(req, res) {
     try {
       const id = Number(req.params.id);

@@ -61,8 +61,13 @@ export const UsuarioRepository = {
     return rows[0] ? new Usuario(rows[0]) : null;
   },
 
-  // HU-5.2 (CA-5.2.1 + CA-5.2.2): actualización parcial del perfil académico, sin tocar
-  // password_hash/activo/fecha_registro como sí hace el actualizar() genérico de arriba.
+  /**
+   * @brief HU-5.2 (CA-5.2.1 + CA-5.2.2): actualiza solo el perfil académico, sin tocar
+   * password_hash/activo/fecha_registro como sí hace el actualizar() genérico.
+   * @param {number} id_usuario - Usuario a actualizar.
+   * @param {object} datos - nivel_ingles, codigo_estudiantil, avatar e intereses (ya validados).
+   * @returns {Promise<Usuario|null>} Usuario actualizado, o null si no existe.
+   */
   async actualizarPerfil(id_usuario, { nivel_ingles, codigo_estudiantil, avatar, intereses }) {
     const { rows } = await pool.query(
       `UPDATE usuario

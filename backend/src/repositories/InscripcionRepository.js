@@ -29,7 +29,12 @@ export const InscripcionRepository = {
     return rows[0] ? new Inscripcion(rows[0]) : null;
   },
 
-  // Inscripción más reciente del estudiante con los datos de su curso (HU-5.2, contexto académico).
+  /**
+   * @brief HU-5.2: inscripción más reciente del estudiante con los datos de su curso.
+   * @param {number} estudiante_id - id_usuario del estudiante.
+   * @returns {Promise<{curso_asignado:string, semestre_activo:string}|null>} curso.nombre y
+   * curso.periodo, o null si el estudiante no tiene inscripciones.
+   */
   async obtenerContextoAcademico(estudiante_id) {
     const { rows } = await pool.query(
       `SELECT c.nombre AS curso_asignado, c.periodo AS semestre_activo
