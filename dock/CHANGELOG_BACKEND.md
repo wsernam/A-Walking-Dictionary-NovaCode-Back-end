@@ -3,6 +3,13 @@
 ## Fecha
 2026-09-13 (última actualización — ver historial de sesiones más abajo)
 
+## Ajustes posteriores a HE-03 (2026-09-21)
+
+Solo `backend/src/services/QuizService.js`:
+- **CA-3.1.2:** `construirPregunta` deduplica los distractores por traducción normalizada (sin mayúsculas ni espacios), también entre sí, no solo contra la respuesta correcta.
+- **CA-3.2.1:** `enviarRespuestas` valida el tiempo en el servidor: rechaza con 400 si `fecha_inicio`/`tiempo_empleado_seg` exceden `tiempo_limite_min` + 30 s de margen (`MARGEN_ENVIO_MS`); tolera el mismo margen tras `fecha_cierre` (solo si el cierre es el derivado de la fecha); `tiempo_empleado_seg` se guarda topado al límite. Supuesto pendiente de validar: el inicio lo informa el cliente, no hay registro de inicio en servidor.
+- Los `.md` de documentación (excepto `CLAUDE.md` y `README.md`) se movieron a `dock/`. Contrato para el frontend: `dock/CONTRATO_FRONTEND_HE-03.md`.
+
 ## Cambios aplicados en esta sesión (2026-09-13) — HE-03: quiz acumulativo, envío de respuestas y exportación a PDF
 
 Implementación de HU-3.1 (generar quiz), HU-3.2 (responder y calificar) y HU-3.3 (exportar a PDF).

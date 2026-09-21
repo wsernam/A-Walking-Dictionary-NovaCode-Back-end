@@ -33,6 +33,9 @@ import { ResultadoQuizRepository } from '../repositories/ResultadoQuizRepository
 import { RespuestaQuizRepository } from '../repositories/RespuestaQuizRepository.js';
 import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
 
+/** @brief Margen (ms) que se tolera al recibir un envío tras vencer el tiempo/cierre (latencia). */
+const MARGEN_ENVIO_MS = 30 * 1000;
+
 /**
  * @brief Crea un Error con un código HTTP adjunto, para que el controlador que atrapa la
  * excepción sepa con qué status responder (mismo patrón que ContextoService.js).
@@ -73,10 +76,19 @@ function barajar(arreglo) {
  * respuesta_correcta, orden }.
  */
 function construirPregunta(tarjetaObjetivo, poolCompleto, orden) {
-  const candidatosDistractor = poolCompleto.filter(
-    (t) => t.id_tarjeta !== tarjetaObjetivo.id_tarjeta && t.traduccion !== tarjetaObjetivo.traduccion
-  );
-  const distractores = barajar(candidatosDistractor).slice(0, 3);
+  const normalizar = (texto) => String(texto).trim().toLowerCase();
+
+  // CA-3.1.2 "sin repetir opciones": se descartan traducciones iguales a la correcta y también
+  // iguales entre sí (dos tarjetas distintas pueden compartir traducción).
+  const vistas = new Set([normalizar(tarjetaObjetivo.traduccion)]);
+  const distractores = [];
+  for (const candidata of barajar(poolCompleto)) {
+    if (distractores.length === 3) break;
+    const clave = normalizar(candidata.traduccion);
+    if (candidata.id_tarjeta === tarjetaObjetivo.id_tarjeta || vistas.has(clave)) continue;
+    vistas.add(clave);
+    distractores.push(candidata);
+  }
 
   const opciones = barajar([tarjetaObjetivo.traduccion, ...distractores.map((t) => t.traduccion)]);
   const [opcion_a = null, opcion_b = null, opcion_c = null, opcion_d = null] = opciones;
@@ -257,11 +269,19 @@ export const QuizService = {
       throw error(404, 'Quiz no encontrado');
     }
 
+    const ahora = new Date();
     const estadoEfectivo = this.calcularEstadoEfectivo(quiz);
     if (estadoEfectivo === 'programado') {
       throw error(400, 'El quiz aún no está abierto (fecha_apertura no ha llegado)');
     }
-    if (estadoEfectivo === 'cerrado') {
+    // CA-3.2.1: el autoenvío por fin de tiempo puede llegar unos segundos después de
+    // fecha_cierre (latencia de red); se tolera un margen solo si el cierre es el derivado de la
+    // fecha, no si alguien cerró el quiz manualmente.
+    const dentroDeGraciaDeCierre =
+      quiz.estado === 'programado' &&
+      quiz.fecha_cierre &&
+      ahora.getTime() <= new Date(quiz.fecha_cierre).getTime() + MARGEN_ENVIO_MS;
+    if (estadoEfectivo === 'cerrado' && !dentroDeGraciaDeCierre) {
       throw error(400, 'El quiz ya cerró y no acepta más respuestas');
     }
 
@@ -298,10 +318,27 @@ export const QuizService = {
     // confirme otra escala.
     const calificacion = Number(((puntaje_obtenido / puntaje_maximo) * 5).toFixed(2));
 
-    const fecha_envio = new Date();
+    const fecha_envio = ahora;
     const fecha_inicio_final = fecha_inicio
       ? new Date(fecha_inicio)
       : new Date(fecha_envio.getTime() - (Number(tiempo_empleado_seg) || 0) * 1000);
+
+    // CA-3.2.1: control de tiempo del lado del servidor. Si el quiz tiene tiempo límite y el
+    // cliente informa cuándo empezó (fecha_inicio) o cuánto tardó (tiempo_empleado_seg), se
+    // rechaza el envío que exceda el límite más el margen de red. Un envío dentro del margen
+    // (el autoenvío al agotarse el tiempo) se califica con lo contestado hasta el momento.
+    // Limitación: fecha_inicio / tiempo_empleado_seg los informa el cliente; sin un registro de
+    // inicio en servidor (el backlog solo documenta POST /quizzes/:id/submit) no se pueden
+    // verificar de forma inviolable. Supuesto pendiente de validar con el equipo.
+    let tiempoEmpleadoFinal = tiempo_empleado_seg ?? null;
+    if (quiz.tiempo_limite_min && (fecha_inicio || tiempo_empleado_seg != null)) {
+      const limiteMs = quiz.tiempo_limite_min * 60 * 1000;
+      const transcurridoMs = fecha_envio.getTime() - fecha_inicio_final.getTime();
+      if (transcurridoMs > limiteMs + MARGEN_ENVIO_MS) {
+        throw error(400, `Se agotó el tiempo límite de ${quiz.tiempo_limite_min} minutos; el envío fue rechazado`);
+      }
+      tiempoEmpleadoFinal = Math.min(Math.round(transcurridoMs / 1000), quiz.tiempo_limite_min * 60);
+    }
 
     const resultado = await ResultadoQuizRepository.crear({
       quiz_id,
@@ -311,7 +348,7 @@ export const QuizService = {
       puntaje_obtenido,
       puntaje_maximo,
       calificacion,
-      tiempo_empleado_seg: tiempo_empleado_seg ?? null,
+      tiempo_empleado_seg: tiempoEmpleadoFinal,
     });
 
     const respuestasGuardadas = [];

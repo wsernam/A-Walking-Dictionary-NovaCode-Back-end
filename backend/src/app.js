@@ -35,7 +35,7 @@
  *   - GET  /api/v1/quizzes/:id                    (idem)
  *   - POST /api/v1/quizzes/:id/submit             (CA-3.2.1, CA-3.2.2, CA-3.2.3)
  *   - GET  /api/v1/quizzes/:id/export-pdf         (CA-3.3.2, endpoint adicional — el backlog
- *     solo documenta export-pdf para mazos, no para quizzes; ver CHANGELOG_BACKEND.md)
+ *     solo documenta export-pdf para mazos, no para quizzes; ver dock/CHANGELOG_BACKEND.md)
  *   - GET  /api/v1/decks/:id/export-pdf           (CA-3.3.1, CA-3.3.3)
  *
  * @note El resto de controladores/rutas de las entidades genéricas (usuario, inscripcion,

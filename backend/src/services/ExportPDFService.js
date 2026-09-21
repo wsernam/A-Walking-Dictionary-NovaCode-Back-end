@@ -14,7 +14,7 @@
  *   clase.
  * - CA-3.3.2 pide exportar el QUIZ con hoja de respuestas, pero el backlog solo documenta
  *   GET /api/v1/decks/:id/export-pdf (mazos). Se agregó GET /api/v1/quizzes/:id/export-pdf,
- *   análogo, como endpoint adicional para cubrir esa CA (ver CHANGELOG_BACKEND.md).
+ *   análogo, como endpoint adicional para cubrir esa CA (ver dock/CHANGELOG_BACKEND.md).
  * - Limitación conocida: se usa `StandardFonts.Helvetica` de pdf-lib, con codificación WinAnsi
  *   (Windows-1252). Cubre español/inglés normal (incluye ñ, tildes, ¿, ¡), pero un carácter
  *   fuera de ese rango (emoji, alfabetos no latinos) haría fallar la exportación con un error;
