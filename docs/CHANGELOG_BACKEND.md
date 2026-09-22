@@ -1,9 +1,29 @@
 # Changelog - Estructura Backend
 
 ## Fecha
-2026-09-19 (última actualización — ver historial de sesiones más abajo)
+2026-09-22 (última actualización — ver historial de sesiones más abajo)
 
-## Cambios aplicados en esta sesión (2026-09-19) — Documentación, contrato de frontend y seed de pruebas
+## Cambios aplicados en esta sesión (2026-09-22) — Fix: rutas de perfil caídas tras el merge de HU-015
+
+El merge de `feature/Sprint_2_HU_015` (login con Google) a `develop` pisó el montaje de las rutas
+de HU-013 en `app.js`: se perdieron los `import` y `app.use` de `usuarioRoutes.js` y
+`studentRoutes.js` (probablemente un conflicto de merge mal resuelto), aunque el comentario de
+cabecera del archivo los seguía listando como activos y los archivos de rutas/controlador/servicio
+seguían intactos. Efecto real: `PATCH /api/v1/users/profile`, `GET /api/v1/users/:id` y
+`GET /api/v1/students/:id/context` devolvían 404 en `develop`.
+
+- `backend/src/app.js`: se vuelven a importar y montar `usuarioRoutes` (`/api/v1/users`) y
+  `studentRoutes` (`/api/v1/students`). Se unificó el comentario de cabecera (antes tenía dos
+  bloques "HE-05" separados y un `@note` duplicado, resultado del mismo merge).
+- No se agregó `authenticate` a estas rutas: el contrato con frontend (HU-013,
+  `contrato-perfil.md`) se acordó sin login real, con `estudiante_id` en el body y sin header
+  `Authorization`, y el frontend (`httpClient.js`) todavía no envía ese header. Agregar auth aquí
+  ahora mismo rompería el contrato vigente; queda anotado en `app.js` como pendiente a coordinar
+  con frontend, no como un descuido.
+- No se probó contra la base real en esta sesión (Docker Desktop no estaba corriendo); se validó
+  solo con `node --check`.
+
+## Cambios aplicados en la sesión anterior (2026-09-19) — Documentación, contrato de frontend y seed de pruebas
 
 - **Carpeta `docs/`**: se movieron aquí (con `git mv`) `CHANGELOG_BACKEND.md`,
   `FLUJO_AUTENTICACION.md` y `FLUJO_REVISION_TARJETAS.md`. `CLAUDE.md` y `README.md` se quedan en
