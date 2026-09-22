@@ -1,0 +1,159 @@
+{
+  "info": {
+    "_postman_id": "7e6034f7-fd06-4918-9504-0139c0fe7921",
+    "name": "pruebas incripcion",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "44402582"
+  },
+  "item": [
+    {
+      "name": "generar codigo acceso",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/v1/courses/1/access-code",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "courses",
+            "1",
+            "access-code"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "est inscribirse con codigo ya existe",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"estudiante_id\": 2,\r\n  \"codigo_acceso\": \"ZDX4JZBW\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/v1/courses/enroll",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "courses",
+            "enroll"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "est se inscribe con codigo",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"estudiante_id\": 3,\r\n  \"codigo_acceso\": \"ZDX4JZBW\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/v1/courses/enroll",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "courses",
+            "enroll"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "asignar est por correo existente",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"maria.estudiante@test.com\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/v1/courses/1/assign",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "courses",
+            "1",
+            "assign"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "asignar est por correo",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"carlos.estudiante@test.com\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/v1/courses/1/assign",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "courses",
+            "1",
+            "assign"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

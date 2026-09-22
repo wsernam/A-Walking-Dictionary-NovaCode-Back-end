@@ -3,6 +3,7 @@
 // se insertará entre el controlador y el repositorio sin cambiar esta firma.
 
 import { InscripcionRepository } from '../repositories/InscripcionRepository.js';
+import { InscripcionService } from '../services/InscripcionService.js';
 
 export const InscripcionController = {
   async crear(req, res) {
@@ -85,4 +86,91 @@ export const InscripcionController = {
       res.status(500).json({ error: error.message });
     }
   },
+
+
+  async generarCodigoAcceso(req, res) {
+    try {
+      const id_curso = Number(req.params.id);
+
+      if (Number.isNaN(id_curso)) {
+        return res.status(400).json({
+          error: 'id de curso inválido',
+        });
+      }
+
+      const resultado =
+        await InscripcionService.generarCodigoAcceso(id_curso);
+
+      res.status(200).json(resultado);
+    } catch (error) {
+      res.status(error.status || 500).json({
+        error: error.message,
+      });
+    }
+  },
+
+
+  async inscribirsePorCodigo(req, res) {
+    try {
+      const { estudiante_id, codigo_acceso } = req.body;
+
+      if (
+        estudiante_id === undefined ||
+        estudiante_id === null ||
+        !codigo_acceso
+      ) {
+        return res.status(400).json({
+          error: 'estudiante_id y codigo_acceso son obligatorios',
+        });
+      }
+
+      const inscripcion =
+        await InscripcionService.inscribirsePorCodigo(
+          estudiante_id,
+          codigo_acceso.trim().toUpperCase()
+        );
+
+      res.status(201).json(inscripcion);
+    } catch (error) {
+      res.status(error.status || 500).json({
+        error: error.message,
+      });
+    }
+  },
+
+
+
+  async asignarPorCorreo(req, res) {
+    try {
+      const id_curso = Number(req.params.id);
+
+      if (Number.isNaN(id_curso)) {
+        return res.status(400).json({
+          error: 'id de curso inválido',
+        });
+      }
+
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({
+          error: 'El correo electrónico es obligatorio',
+        });
+      }
+
+      const inscripcion =
+        await InscripcionService.asignarPorCorreo(
+          id_curso,
+          email.trim()
+        );
+
+      res.status(201).json(inscripcion);
+    } catch (error) {
+      res.status(error.status || 500).json({
+        error: error.message,
+      });
+    }
+  },
+
+
 };

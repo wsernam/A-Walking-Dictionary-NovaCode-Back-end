@@ -1,0 +1,84 @@
+{
+  "info": {
+    "_postman_id": "a38386b8-a742-4da5-ba42-3d6c964e990b",
+    "name": "pruebas sesion estudio",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "44402582"
+  },
+  "item": [
+    {
+      "name": "inicio sesion de estudio con tarjetas aprobadas",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"inscripcion_id\": 1\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/v1/study/review-session",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "study",
+            "review-session"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "registrar valoracion",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"inscripcion_id\": 1,\r\n  \"tarjeta_id\": 1,\r\n  \"valoracion\": \"Buena\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/v1/study/review-session/review",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "study",
+            "review-session",
+            "review"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "repetir",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    }
+  ]
+}
