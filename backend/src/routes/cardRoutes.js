@@ -9,6 +9,7 @@
 
 import { Router } from 'express';
 import { TarjetaController } from '../controllers/TarjetaController.js';
+import { authenticate, requireRole } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
@@ -17,15 +18,16 @@ const router = Router();
  * POST /api/v1/cards/check-duplicate
  *
  * Cubre CA-1.3.4: el frontend llama este endpoint antes de que el estudiante confirme el
- * formulario, para mostrarle el aviso de coautoría/acepción nueva.
+ * formulario, para mostrarle el aviso de coautoría/acepción nueva. Requiere sesión iniciada.
  */
-router.post('/check-duplicate', TarjetaController.checkDuplicate);
+router.post('/check-duplicate', authenticate, TarjetaController.checkDuplicate);
 
 /**
  * @brief CA-2.1.1: lista las tarjetas pendientes de revisión, para el panel de curaduría.
- * GET /api/v1/cards/pending
+ * GET /api/v1/cards/pending. Panel exclusivo de docente (HU-2.1), no es la vista de
+ * "diccionario" de solo lectura de CA-5.4.3.
  */
-router.get('/pending', TarjetaController.listarPendientes);
+router.get('/pending', authenticate, requireRole('docente'), TarjetaController.listarPendientes);
 
 /**
  * @brief Lista las tarjetas en estado 'revisado_docente', para la pestaña "Historial
@@ -33,25 +35,36 @@ router.get('/pending', TarjetaController.listarPendientes);
  *
  * @note No corresponde a un CA explícito del backlog de HE-02 (HU-2.1/CA-2.1.1 solo pide
  * el filtrado de pendientes) -- agregado por pedido directo del equipo, documentado en
- * CLAUDE.md.
+ * CLAUDE.md. Mismo panel docente que /pending: rol docente (CA-5.4.2).
  */
-router.get('/approved', TarjetaController.listarAprobadas);
+router.get('/approved', authenticate, requireRole('docente'), TarjetaController.listarAprobadas);
 
-/** @brief Consulta una tarjeta por su id_tarjeta (incluye etiquetas de contexto). GET /api/v1/cards/:id */
+/**
+ * @brief Consulta una tarjeta por su id_tarjeta (incluye etiquetas de contexto).
+ * GET /api/v1/cards/:id
+ * @note CA-2.2.3 la describe como vista del estudiante sobre una tarjeta ya aprobada; queda
+ * sin autenticación junto con el resto de GET de "diccionario" (CA-5.4.3).
+ */
 router.get('/:id', TarjetaController.obtenerPorId);
 
 /**
  * @brief CA-2.1.2 (paso "editar, corregir"): edita una tarjeta en revisión individual.
  * PUT /api/v1/cards/:id
  * Exige que la tarjeta esté 'pendiente_revision' (ver TarjetaController.editarRevision).
+ * Acción de docente (CA-5.4.2).
  */
-router.put('/:id', TarjetaController.editarRevision);
+router.put('/:id', authenticate, requireRole('docente'), TarjetaController.editarRevision);
 
 /**
  * @brief CA-2.2.1: asigna registro y/o variante regional a la tarjeta.
- * PUT /api/v1/cards/:id/context
+ * PUT /api/v1/cards/:id/context. Acción de docente (CA-5.4.2).
  */
-router.put('/:id/context', TarjetaController.actualizarContexto);
+router.put(
+  '/:id/context',
+  authenticate,
+  requireRole('docente'),
+  TarjetaController.actualizarContexto
+);
 
 /**
  * @brief CA-2.1.2 (paso "aprobar"): aprueba una tarjeta en revisión individual.
@@ -59,7 +72,8 @@ router.put('/:id/context', TarjetaController.actualizarContexto);
  *
  * @note A propósito NO existe un endpoint de "rechazar" para revisión individual: en este
  * flujo la docente solo edita (PUT de arriba) y aprueba. Ver TarjetaController.aprobar.
+ * Acción de docente (CA-5.4.2).
  */
-router.patch('/:id/approve', TarjetaController.aprobar);
+router.patch('/:id/approve', authenticate, requireRole('docente'), TarjetaController.aprobar);
 
 export default router;

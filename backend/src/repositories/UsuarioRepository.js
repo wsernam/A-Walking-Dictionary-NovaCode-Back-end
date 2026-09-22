@@ -1,4 +1,7 @@
-// Repositorio de Usuario: acceso a datos para la tabla "usuario" del DER oficial.
+/**
+ * @file UsuarioRepository.js
+ * @brief Repositorio de Usuario: acceso a datos para la tabla "usuario" del DER oficial.
+ */
 
 import { pool } from '../config/db.js';
 import { Usuario } from '../models/Usuario.js';

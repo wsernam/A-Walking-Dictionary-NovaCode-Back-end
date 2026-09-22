@@ -30,6 +30,22 @@
  *   - GET  /api/v1/courses
  *   - GET  /api/v1/courses/:id
  *
+ *   HE-05 (HU-5.4 — login con Google/OAuth y control de roles; HU-5.1/5.2/5.3 quedan fuera de
+ *   esta rama):
+ *   - POST /api/v1/auth/google                          (CA-5.4.1, login vía Google/OAuth)
+ *
+ *   Control de acceso (CA-5.4.2): las rutas de creación/edición exigen JWT propio válido
+ *   (middleware authenticate, emitido por AuthService tras validar el token de Google); las de
+ *   curaduría/analítica docente (HE-02) exigen además rol "docente" (middleware requireRole).
+ *   Las rutas GET de decks/cards/courses quedan sin autenticación para cubrir el acceso de solo
+ *   lectura de Invitado (CA-5.4.3) — no hay endpoint de "diccionario demostrativo" definido en
+ *   el backlog, se interpretó así.
+ *
+ *   @note El login por email/password con bcrypt (POST /api/v1/auth/login) que existía antes en
+ *   esta rama se ELIMINÓ: el profesor pidió reemplazarlo por OAuth (Google) después de la
+ *   primera entrega. Ver docs/FLUJO_AUTENTICACION.md para el detalle completo del cambio.
+ *
+ * @note El resto de controladores/rutas de las entidades genéricas (usuario, inscripcion,
  *   HE-05 (HU-5.2 — configurar perfil académico; HU-5.1/5.3/5.4 quedan fuera de esta rama):
  *   - PATCH /api/v1/users/profile                       (CA-5.2.1 + CA-5.2.2, campo "intereses")
  *   - GET  /api/v1/users/:id                             (shape de perfil, ver PerfilService.js)
@@ -48,6 +64,7 @@ import cardRoutes from './routes/cardRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import contributionRoutes from './routes/contributionRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 import studyRoutes from './routes/studyRoutes.js';
 
 /** @brief Instancia principal de la aplicación Express. */
@@ -56,6 +73,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/decks', deckRoutes);
 app.use('/api/v1/cards', cardRoutes);
 app.use('/api/v1/courses', courseRoutes);

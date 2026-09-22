@@ -1,6 +1,128 @@
 # Changelog - Estructura Backend
 
 ## Fecha
+2026-09-19 (última actualización — ver historial de sesiones más abajo)
+
+## Cambios aplicados en esta sesión (2026-09-19) — Documentación, contrato de frontend y seed de pruebas
+
+- **Carpeta `docs/`**: se movieron aquí (con `git mv`) `CHANGELOG_BACKEND.md`,
+  `FLUJO_AUTENTICACION.md` y `FLUJO_REVISION_TARJETAS.md`. `CLAUDE.md` y `README.md` se quedan en
+  la raíz a propósito (Claude Code carga `CLAUDE.md` desde ahí; GitHub muestra `README.md`).
+  Se actualizó la referencia a `docs/FLUJO_AUTENTICACION.md` en el comentario de `app.js`.
+- **`docs/CONTRATO_AUTENTICACION_FRONTEND.md` (nuevo)**: contrato para quien implementa el login
+  en el frontend (endpoint `POST /api/v1/auth/google`, errores, flujo, tabla de rutas por rol,
+  configuración de Google/Docker, cuentas de prueba).
+- **`seed.sql`**: se agregaron cuentas reales del equipo para probar el login con Google:
+  `wserna@unicauca.edu.co` (docente) y `ksandoval@`, `manmeneses@`, `thaliabernal@unicauca.edu.co`
+  (estudiantes). Los usuarios originales (ids 1-4) se mantienen porque la colección de Postman de
+  Sprint 1 depende de esos ids. Los nombres de los estudiantes son un placeholder (solo se
+  conocen los correos) y no tienen inscripciones.
+- **`AuthService.js`**: el login ya no crea usuarios; un correo de Google sin cuenta recibe 403
+  (ver la entrada siguiente y `docs/FLUJO_AUTENTICACION.md`).
+- **Doxygen**: se documentaron con bloques `/** @file @brief @param @return @throws */` (misma
+  convención que `TarjetaController`/`MazoRepository`) `AuthService.js`, `AuthController.js`,
+  `authMiddleware.js` y `UsuarioRepository.js` (encabezado `@file` y `obtenerPorEmail`). Solo se
+  tocaron comentarios, la lógica no cambió. El repo no tiene `Doxyfile`, así que no se genera HTML.
+
+## Cambios aplicados en la sesión anterior (2026-09-18) — HU-5.4: login por bcrypt reemplazado por Google/OAuth
+
+El profesor pidió, después de la primera entrega, reemplazar el login por email/password
+(bcrypt) de HU-5.4 por OAuth usando Google como proveedor de identidad. Se eliminó el login por
+contraseña y se implementó login con Google. El resto de HU-5.4 (JWT propio, `authenticate`,
+`requireRole`, la tabla de qué ruta exige qué rol) **no cambió** — solo cambió cómo se emite el
+JWT al inicio.
+
+### Archivos modificados
+- `backend/src/services/AuthService.js` — se reemplazó `login(email, password)` (bcrypt.compare)
+  por `loginConGoogle(idToken)`: verifica el token con `google-auth-library`
+  (`OAuth2Client.verifyIdToken`), busca el usuario por email y firma el mismo tipo de JWT que
+  antes. Si el correo no existe en `usuario` responde 403: el login NO crea usuarios (eso le
+  corresponde a otra HU).
+- `backend/src/controllers/AuthController.js` — `login` → `loginGoogle`.
+- `backend/src/routes/authRoutes.js` — `POST /login` → `POST /google`.
+- `backend/src/app.js` — `@file` actualizado: endpoint nuevo, nota de que el login por
+  contraseña se eliminó.
+- `backend/package.json` — se agregó `google-auth-library`. `bcrypt` se mantiene en el
+  `package.json` aunque el login ya no lo use (la HU de registro, en otra rama, probablemente
+  lo necesite).
+- `backend/.env.example` — se agregó `GOOGLE_CLIENT_ID` (Client ID de Google Cloud Console,
+  necesario para verificar los tokens). `JWT_SECRET` sigue igual.
+- `backend/.dockerignore` — **nuevo**, agregado en esta sesión: excluye `node_modules/` del
+  build de Docker. Sin esto, un `npm install` corrido en el host (Windows) terminaba pisando el
+  `node_modules` Linux del contenedor al hacer `COPY . .` en el Dockerfile, causando un crash de
+  `bcrypt` (`Exec format error`) — bug real encontrado y corregido en esta sesión.
+
+### Archivos eliminados
+- `seed_auth_test.sql` — creaba usuarios con hash bcrypt real para probar el login por
+  contraseña; ya no aplica, el login ya no valida contraseñas.
+
+### Archivos reescritos (no eliminados)
+- `HU-5.4 - Autenticacion y Roles.postman_collection.json` — ya no prueba el login de punta a
+  punta (Postman no puede automatizar la pantalla de consentimiento de Google); solo prueba los
+  errores de `/auth/google` que no requieren credenciales reales (falta `idToken`, `idToken`
+  basura), más los checks de rol/invitado de antes, que ahora requieren pegar manualmente un
+  token real obtenido logueándose de verdad desde el frontend.
+- `FLUJO_AUTENTICACION.md` — reescrito para describir el flujo de Google en vez de bcrypt.
+
+### Pendiente / decisión no tomada por cuenta propia
+- **Creación de usuarios**: una primera versión auto-creaba al usuario como `estudiante` en su
+  primer login; se eliminó por salirse del alcance de autenticación. Ahora un correo sin cuenta
+  recibe 403 y la creación (con su rol) queda para la HU de registro.
+- Ver el resto de decisiones/pendientes en `FLUJO_AUTENTICACION.md`.
+
+## Cambios aplicados en la sesión anterior (2026-09-17) — HU-5.4: Login y control de roles (versión inicial, con email/password)
+
+**Nota: esta versión del login fue reemplazada por Google/OAuth en la sesión del 2026-09-18 de
+arriba.** Se deja el registro histórico de lo que se hizo primero, por continuidad.
+
+Se implementó HU-5.4 (Iniciar sesión y control de roles) de HE-05. Alcance: solo login y
+autorización por rol; el registro (HU-5.1) queda en otra rama, no se tocó aquí. No hubo cambios
+de esquema: `usuario.password_hash` y `usuario.rol` ya existían en el DER (init.sql).
+
+### Archivos creados
+- `backend/src/controllers/AuthController.js` — `login` (CA-5.4.1), llama a `AuthService.login`.
+- `backend/src/routes/authRoutes.js` — `POST /api/v1/auth/login`, montado en `app.js`.
+
+### Archivos implementados (existían como stubs "pendiente")
+- `backend/src/services/AuthService.js` — `login(email, password)`: busca el usuario por email,
+  compara `password` contra `password_hash` con bcrypt, firma un JWT (`JWT_SECRET`, expira en 8h)
+  con claims `{ id_usuario, email, rol }`. Mensaje de error genérico ("Credenciales inválidas")
+  tanto si el email no existe como si la contraseña no coincide, para no revelar cuál falló.
+- `backend/src/middleware/authMiddleware.js` — `authenticate` (CA-5.4.1: valida el JWT del header
+  `Authorization: Bearer <token>`, adjunta `req.usuario`) y `requireRole(...roles)` (CA-5.4.2:
+  403 si el rol de `req.usuario` no está permitido).
+
+### Archivos modificados
+- `backend/src/repositories/UsuarioRepository.js` — se agregó `obtenerPorEmail(email)`, necesario
+  para el login (no existía ningún método de búsqueda por email).
+- `backend/src/app.js` — se montó `authRoutes` en `/api/v1/auth` y se documentó en el encabezado
+  qué rutas exigen `authenticate`/`requireRole('docente')`.
+- `backend/src/routes/deckRoutes.js`, `cardRoutes.js`, `analyticsRoutes.js` — se aplicó
+  `requireRole('docente')` a los endpoints que su propia HU ya describe como acción exclusiva de
+  docente (crear/cerrar mazo, asignar variante por defecto, aprobar/editar/contextualizar
+  tarjeta, listar pendientes/aprobadas, analíticas). El resto de POST/PUT/PATCH/DELETE (crear
+  tarjeta, check-duplicate, eliminar mazo, crear curso, rechazar aporte) solo exige `authenticate`
+  (sesión iniciada), sin restricción de rol, por no estar documentado como acción docente-only.
+- `backend/src/routes/courseRoutes.js`, `contributionRoutes.js` — se aplicó `authenticate` a las
+  rutas de escritura, mismo criterio anterior.
+
+### Decisión de diseño (CA-5.4.3, sin endpoint definido en el backlog)
+El backlog no define ningún endpoint de "diccionario demostrativo" para el modo Invitado. Se
+interpretó (confirmado con el usuario) dejando las rutas `GET` de decks/cards/courses sin
+`authenticate`, cubriendo así el acceso de solo lectura sin login. Queda documentado como
+interpretación, no como CA formalmente cerrado — si el equipo define un endpoint específico para
+Invitado más adelante, esto se ajusta.
+
+### Pendiente / conocido
+- `seed.sql` inserta usuarios con `password_hash = 'hash_temporal'` (no es un hash bcrypt real),
+  por lo que el login fallará contra esos datos semilla hasta que se reemplacen por un hash bcrypt
+  válido o se implemente HU-5.1 (registro) en la rama correspondiente.
+- No se corrió la colección Postman/manual contra una BD real en esta sesión (se validó con un
+  test funcional aislado mockeando `UsuarioRepository`, sin Docker/PostgreSQL disponible).
+
+## Historial de sesiones anteriores
+
+### Sesión 2026-08-31 — Cobertura completa para Curso e Inscripcion
 2026-09-18 (última actualización — ver historial de sesiones más abajo)
 
 ## Cambios aplicados en esta sesión (2026-09-18) — HU-5.2: perfil académico (CA-5.2.1 + CA-5.2.2)
