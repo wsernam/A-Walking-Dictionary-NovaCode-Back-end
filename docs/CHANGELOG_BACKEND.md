@@ -123,6 +123,62 @@ Invitado más adelante, esto se ajusta.
 ## Historial de sesiones anteriores
 
 ### Sesión 2026-08-31 — Cobertura completa para Curso e Inscripcion
+2026-09-18 (última actualización — ver historial de sesiones más abajo)
+
+## Cambios aplicados en esta sesión (2026-09-18) — HU-5.2: perfil académico (CA-5.2.1 + CA-5.2.2)
+
+Se implementó HU-5.2 completa (configurar perfil académico: nivel MCER, código estudiantil,
+avatar, e intereses), siguiendo el contrato exacto que dejó la compañera de frontend (rama
+`feature/HU-013-configuracion-perfil`) para no tener que tocar nombres de campos del lado del
+front. Detalle completo en `FLUJO_PERFIL_ACADEMICO.md`.
+
+### Cambio de esquema (autorizado explícitamente por el usuario)
+- `init.sql`: se agregaron `usuario.codigo_estudiantil VARCHAR(20)`, `usuario.avatar VARCHAR(500)`
+  y `usuario.intereses TEXT` (las tres nullable). A diferencia de HE-02, aquí no se dejó como
+  propuesta/migración aparte — se aplicó directo porque el usuario lo pidió así.
+  `intereses` (CA-5.2.2) se agregó en una segunda vuelta de la misma sesión, después de que el
+  usuario confirmara el nombre exacto del campo y que fuera texto libre (no lista de opciones).
+
+### Ajustes para concordar con el frontend (2026-09-19)
+- Nuevo `GET /api/v1/students/:id/context` (`studentRoutes.js`): `curso_asignado` y
+  `semestre_activo` salen de la inscripción más reciente del estudiante (JOIN con `curso`), sin
+  columnas nuevas. `departamento_universidad` se devuelve `null` (sin fuente en BD, pendiente de
+  decidir). Sin inscripción responde 200 con nulls; usuario inexistente, 404.
+- `PerfilService.mapearPerfil`: `nivel_ingles`/`codigo_estudiantil`/`avatar` vacíos se devuelven
+  como `''` (no `null`) y `rol` capitalizado ("Estudiante"), como en el contrato del front.
+- Validación 400: `codigo_estudiantil` > 20 caracteres; `avatar` en base64 (`data:`) o > 500
+  caracteres (se guarda solo la URL/ruta de la imagen).
+
+- `intereses` pasa de texto libre a selección (2026-09-19): `usuario.intereses` es `TEXT[]`, se
+  valida que sea un arreglo de strings no vacíos (400 si no) y se devuelve `[]` si está vacío. La
+  lista fija de géneros/temas la define el frontend; el back no la valida.
+
+### Archivos nuevos
+- `backend/src/services/PerfilService.js` — `obtenerPerfil`, `actualizarPerfil`, validación de
+  nivel MCER (A1-C2), mapea la respuesta al shape acordado con frontend (`estudiante_id`, `correo`
+  en vez de `id_usuario`/`email`, sin `password_hash`).
+- `FLUJO_PERFIL_ACADEMICO.md`.
+- `backend/.dockerignore` — ya existía en `feature/Sprint_2_HU_005`, se agregó también aquí
+  (mismo motivo: evitar que un `npm install` en Windows pise el `node_modules` de Linux del
+  contenedor al hacer `COPY . .`).
+
+### Archivos modificados
+- `backend/src/models/Usuario.js`, `backend/src/repositories/UsuarioRepository.js` — reflejan las
+  columnas nuevas; se agregó `UsuarioRepository.actualizarPerfil` (update parcial).
+- `backend/src/controllers/UsuarioController.js` — se agregaron `obtenerPerfil` y
+  `actualizarPerfil`.
+- `backend/src/routes/usuarioRoutes.js` — `GET /:id` ahora usa `obtenerPerfil` (shape de perfil)
+  en vez del `obtenerPorId` genérico; se agregó `PATCH /profile`.
+- `backend/src/app.js` — se montó `usuarioRoutes` en `/api/v1/users` (antes existía pero no
+  estaba montado en ningún lado).
+
+### Pendiente / no implementado en esta sesión
+- **"Contexto Académico"** (`GET /students/:id/context` del mock de frontend): no viene de
+  ningún CA del backlog, la compañera de frontend misma pidió repensarlo antes de construirlo. No
+  se implementó nada de esto.
+- Ver el resto de pendientes en `FLUJO_PERFIL_ACADEMICO.md`.
+
+## Cambios aplicados en la sesión anterior (2026-08-31) — Cobertura completa para Curso e Inscripcion
 
 Las tablas `curso` e `inscripcion` existen en el DER oficial (DBML) pero habían quedado fuera del
 diagrama de paquetes original, así que no tenían ninguna capa implementada. Se agregó su cobertura

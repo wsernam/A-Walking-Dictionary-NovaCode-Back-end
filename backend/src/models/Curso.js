@@ -26,6 +26,7 @@ export class Curso {
     fecha_fin,
     docente_id,
     estado,
+    codigo_acceso,
   }) {
     this.id_curso = id_curso;
     this.nombre = nombre;
@@ -34,5 +35,6 @@ export class Curso {
     this.fecha_fin = fecha_fin;
     this.docente_id = docente_id;
     this.estado = estado;
+    this.codigo_acceso = codigo_acceso;
   }
 }

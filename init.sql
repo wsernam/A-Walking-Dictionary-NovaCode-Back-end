@@ -12,6 +12,14 @@ CREATE TABLE usuario (
     password_hash VARCHAR(255) NOT NULL,
     rol VARCHAR(30) NOT NULL,
     nivel_ingles VARCHAR(10),
+    -- codigo_estudiantil, avatar e intereses: agregados para HU-5.2 (configurar perfil
+    -- académico). Nullable igual que nivel_ingles, porque no aplican a un docente. avatar
+    -- guarda una URL (string), no el archivo -- decisión tomada explícitamente para HU-5.2, ver
+    -- docs/FLUJO_PERFIL_ACADEMICO.md. intereses (CA-5.2.2) es un arreglo de strings: las opciones
+    -- (lista fija de géneros/temas) las define el frontend, el back solo guarda la selección.
+    codigo_estudiantil VARCHAR(20),
+    avatar VARCHAR(500),
+    intereses TEXT[],
     activo BOOLEAN NOT NULL DEFAULT true,
     fecha_registro TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -27,6 +35,7 @@ CREATE TABLE curso (
     fecha_fin DATE NOT NULL,
     docente_id INT NOT NULL,
     estado VARCHAR(30) NOT NULL,
+    codigo_acceso VARCHAR(20) UNIQUE,
     CONSTRAINT fk_curso_docente FOREIGN KEY (docente_id) REFERENCES usuario(id_usuario)
 );
 
