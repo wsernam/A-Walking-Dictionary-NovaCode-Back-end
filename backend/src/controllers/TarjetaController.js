@@ -290,7 +290,9 @@ export const TarjetaController = {
    *
    * @param {import('express').Request} req - req.params.id es el id_tarjeta a aprobar.
    * @param {import('express').Response} res - 200 con la tarjeta aprobada, 400 si el id no es
-   * numérico, 404 si no existe, 409 si no está pendiente de revisión, 500 ante error inesperado.
+   * numérico, 404 si no existe, 409 si no está pendiente de revisión o si tiene
+   * coautorías/acepciones pendientes (en ese caso incluye aportes_pendientes: [id_aporte, ...]),
+   * 500 ante error inesperado.
    */
   async aprobar(req, res) {
     try {
@@ -301,7 +303,9 @@ export const TarjetaController = {
       const tarjeta = await CuraduriaService.aprobarTarjeta(id);
       res.status(200).json({ mensaje: 'Tarjeta aprobada correctamente', tarjeta });
     } catch (error) {
-      res.status(error.status || 500).json({ error: error.message });
+      const cuerpo = { error: error.message };
+      if (error.aportes_pendientes) cuerpo.aportes_pendientes = error.aportes_pendientes;
+      res.status(error.status || 500).json(cuerpo);
     }
   },
 

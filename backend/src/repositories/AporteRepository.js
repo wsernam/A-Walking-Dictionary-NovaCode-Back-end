@@ -85,6 +85,23 @@ export const AporteRepository = {
   },
 
   /**
+   * @brief Ids de las coautorías/acepciones nuevas de una tarjeta que siguen pendientes de revisión.
+   * @param {number} tarjeta_id - Id de la tarjeta.
+   * @return {Promise<number[]>} Ids de aporte pendientes (vacío si no hay).
+   */
+  async listarIdsPendientesPorTarjeta(tarjeta_id) {
+    const { rows } = await pool.query(
+      `SELECT id_aporte FROM aporte
+       WHERE tarjeta_id = $1
+         AND tipo_aporte IN ('coautoria', 'acepcion_nueva')
+         AND estado = 'pendiente_revision'
+       ORDER BY id_aporte`,
+      [tarjeta_id]
+    );
+    return rows.map((row) => row.id_aporte);
+  },
+
+  /**
    * @brief Aprueba un aporte de coautoría/acepción nueva, con correcciones opcionales de la docente.
    * @note Depende de la columna aporte.estado (supuesto pendiente de validar, no está en el DER).
    * @param {number} id_aporte - Id del aporte a aprobar.

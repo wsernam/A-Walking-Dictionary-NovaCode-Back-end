@@ -57,6 +57,19 @@ export const CuraduriaService = {
       throw error;
     }
 
+    // Si se aprueba con coautorías/acepciones pendientes, estas desaparecen de
+    // GET /aportes/pending (solo lista las de tarjetas pendientes) y quedan sin revisar para
+    // siempre. Por eso primero hay que aprobarlas o rechazarlas.
+    const aportesPendientes = await AporteRepository.listarIdsPendientesPorTarjeta(idTarjeta);
+    if (aportesPendientes.length > 0) {
+      const error = new Error(
+        `La tarjeta tiene ${aportesPendientes.length} coautoría(s)/acepción(es) pendiente(s) de revisión; apruébalas o recházalas antes de aprobar la tarjeta.`
+      );
+      error.status = 409;
+      error.aportes_pendientes = aportesPendientes;
+      throw error;
+    }
+
     return TarjetaRepository.actualizarEstado(
       idTarjeta,
       'revisado_docente',
