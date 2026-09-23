@@ -30,7 +30,31 @@
  *   - GET  /api/v1/courses
  *   - GET  /api/v1/courses/:id
  *
- * @note El resto de controladores/rutas de las entidades genéricas (usuario, inscripcion,
+ *   HE-05 (HU-5.4 — login con Google/OAuth y control de roles; HU-5.2 — configurar perfil
+ *   académico; HU-5.1/5.3 quedan fuera de esta rama):
+ *   - POST /api/v1/auth/google                          (CA-5.4.1, login vía Google/OAuth)
+ *   - PATCH /api/v1/users/profile                       (CA-5.2.1 + CA-5.2.2, campo "intereses")
+ *   - GET  /api/v1/users/:id                             (shape de perfil, ver PerfilService.js)
+ *   - GET  /api/v1/students/:id/context                  (contexto académico, desde la inscripción)
+ *
+ *   Control de acceso (CA-5.4.2): las rutas de creación/edición exigen JWT propio válido
+ *   (middleware authenticate, emitido por AuthService tras validar el token de Google); las de
+ *   curaduría/analítica docente (HE-02) exigen además rol "docente" (middleware requireRole).
+ *   Las rutas GET de decks/cards/courses quedan sin autenticación para cubrir el acceso de solo
+ *   lectura de Invitado (CA-5.4.3) — no hay endpoint de "diccionario demostrativo" definido en
+ *   el backlog, se interpretó así.
+ *
+ *   @note Los endpoints de perfil (/users/profile, /users/:id, /students/:id/context) NO llevan
+ *   authenticate todavía: el contrato con el frontend (HU-013, contrato-perfil.md) se acordó
+ *   antes de que existiera login real, con estudiante_id viajando en el body y sin header
+ *   Authorization. Protegerlos requiere coordinar el cambio con frontend primero, para no
+ *   romper ese contrato — queda pendiente, no es un descuido.
+ *
+ *   @note El login por email/password con bcrypt (POST /api/v1/auth/login) que existía antes en
+ *   esta rama se ELIMINÓ: el profesor pidió reemplazarlo por OAuth (Google) después de la
+ *   primera entrega. Ver docs/FLUJO_AUTENTICACION.md para el detalle completo del cambio.
+ *
+ * @note El resto de controladores/rutas de las entidades genéricas (inscripcion,
  * etiqueta_contexto vía CRUD directo, progreso_estudio, quiz, quiz_mazo, pregunta_quiz,
  * resultado_quiz, respuesta_quiz, y actualizar/eliminar curso/aporte) ya existen en
  * src/controllers/ y src/repositories/, pero NO se montan aquí todavía.
@@ -43,18 +67,25 @@ import cardRoutes from './routes/cardRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import contributionRoutes from './routes/contributionRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
-import aporteRoutes from './routes/aporteRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import studyRoutes from './routes/studyRoutes.js';
+import usuarioRoutes from './routes/usuarioRoutes.js';
+import studentRoutes from './routes/studentRoutes.js';
 
+/** @brief Instancia principal de la aplicación Express. */
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/decks', deckRoutes);
 app.use('/api/v1/cards', cardRoutes);
 app.use('/api/v1/courses', courseRoutes);
 app.use('/api/v1/contributions', contributionRoutes);
 app.use('/api/v1/teacher/analytics', analyticsRoutes);
-app.use('/api/v1/aportes', aporteRoutes);
+app.use('/api/v1/study', studyRoutes);
+app.use('/api/v1/users', usuarioRoutes);
+app.use('/api/v1/students', studentRoutes);
 
 export default app;
