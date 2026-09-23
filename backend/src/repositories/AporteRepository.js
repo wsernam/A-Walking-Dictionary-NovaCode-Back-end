@@ -7,6 +7,13 @@ import { pool } from '../config/db.js';
 import { Aporte } from '../models/Aporte.js';
 
 export const AporteRepository = {
+  /**
+   * @brief Inserta un aporte nuevo en la base de datos. Se usa tanto para el aporte original
+   * (tipo_aporte='creada') como para coautorías/acepciones nuevas sobre una tarjeta existente.
+   * @param {Object} datos - Campos de "aporte" (tarjeta_id, inscripcion_id,
+   * traduccion_aportada, definicion_aportada, ejemplo_aportado, tipo_aporte, fecha_aporte).
+   * @return {Promise<Aporte>} El aporte recién creado, con su id_aporte asignado.
+   */
   async crear(datos) {
     const {
       tarjeta_id,
@@ -26,11 +33,20 @@ export const AporteRepository = {
     return new Aporte(rows[0]);
   },
 
+  /**
+   * @brief Busca un aporte por su id_aporte.
+   * @param {number} id_aporte - Id del aporte a buscar.
+   * @return {Promise<Aporte|null>} El aporte encontrado, o null si no existe.
+   */
   async obtenerPorId(id_aporte) {
     const { rows } = await pool.query('SELECT * FROM aporte WHERE id_aporte = $1', [id_aporte]);
     return rows[0] ? new Aporte(rows[0]) : null;
   },
 
+  /**
+   * @brief Lista todos los aportes, sin filtros.
+   * @return {Promise<Aporte[]>} Arreglo con todos los aportes existentes.
+   */
   async listar() {
     const { rows } = await pool.query('SELECT * FROM aporte');
     return rows.map((row) => new Aporte(row));
@@ -39,6 +55,8 @@ export const AporteRepository = {
   /**
    * @brief Lista los aportes de tipo 'coautoria' o 'acepcion_nueva' que siguen pendientes de
    * revisión docente, tanto a nivel de aporte como de la tarjeta a la que pertenecen.
+   * @note Depende de la columna aporte.estado (supuesto pendiente de validar, no está en el DER).
+   * @return {Promise<Object[]>} Filas del aporte + palabra/traducción/definición/estado de su tarjeta.
    */
   async listarCoautoriasPendientes() {
     const { rows } = await pool.query(
@@ -67,7 +85,12 @@ export const AporteRepository = {
   },
 
   /**
-   * @brief Aprueba un aporte de coautoría/acepción nueva, con correcciones opcionales.
+   * @brief Aprueba un aporte de coautoría/acepción nueva, con correcciones opcionales de la docente.
+   * @note Depende de la columna aporte.estado (supuesto pendiente de validar, no está en el DER).
+   * @param {number} id_aporte - Id del aporte a aprobar.
+   * @param {Object} [datosEditados] - traduccion_aportada/definicion_aportada/ejemplo_aportado
+   * corregidos; los que no vengan conservan su valor actual.
+   * @return {Promise<Aporte|null>} El aporte aprobado, o null si el id no existe.
    */
   async aprobar(id_aporte, datosEditados = {}) {
     const actual = await this.obtenerPorId(id_aporte);
@@ -91,17 +114,31 @@ export const AporteRepository = {
   },
 
   /**
-   * @brief Obtiene el inscripcion_id del aporte original (tipo_aporte='creada') de una
-   * tarjeta. Placeholder mientras no exista join real hasta "usuario".
+   * @brief Obtiene, en una sola consulta, el nombre del estudiante que creó cada tarjeta
+   * (aporte tipo 'creada' -> inscripcion -> usuario).
+   * @param {number[]} tarjetaIds - Ids de las tarjetas a consultar.
+   * @return {Promise<Map<number, string>>} Mapa tarjeta_id -> nombre_completo del autor.
    */
-  async obtenerInscripcionOriginal(tarjeta_id) {
+  async obtenerAutoresOriginales(tarjetaIds) {
+    if (tarjetaIds.length === 0) return new Map();
     const { rows } = await pool.query(
-      `SELECT inscripcion_id FROM aporte WHERE tarjeta_id = $1 AND tipo_aporte = 'creada' LIMIT 1`,
-      [tarjeta_id]
+      `SELECT DISTINCT ON (ap.tarjeta_id) ap.tarjeta_id, u.nombre_completo
+       FROM aporte ap
+       JOIN inscripcion i ON i.id_inscripcion = ap.inscripcion_id
+       JOIN usuario u ON u.id_usuario = i.estudiante_id
+       WHERE ap.tarjeta_id = ANY($1) AND ap.tipo_aporte = 'creada'
+       ORDER BY ap.tarjeta_id, ap.fecha_aporte ASC`,
+      [tarjetaIds]
     );
-    return rows[0]?.inscripcion_id ?? null;
+    return new Map(rows.map((row) => [row.tarjeta_id, row.nombre_completo]));
   },
 
+  /**
+   * @brief Reemplaza todos los campos de un aporte existente (UPDATE completo).
+   * @param {number} id_aporte - Id del aporte a actualizar.
+   * @param {Object} datos - Nuevos valores de todas las columnas de "aporte".
+   * @return {Promise<Aporte|null>} El aporte actualizado, o null si el id no existe.
+   */
   async actualizar(id_aporte, datos) {
     const {
       tarjeta_id,
@@ -123,6 +160,11 @@ export const AporteRepository = {
     return rows[0] ? new Aporte(rows[0]) : null;
   },
 
+  /**
+   * @brief Elimina un aporte por su id_aporte.
+   * @param {number} id_aporte - Id del aporte a eliminar.
+   * @return {Promise<boolean>} true si se eliminó una fila, false si el id no existía.
+   */
   async eliminar(id_aporte) {
     const { rowCount } = await pool.query('DELETE FROM aporte WHERE id_aporte = $1', [id_aporte]);
     return rowCount > 0;
