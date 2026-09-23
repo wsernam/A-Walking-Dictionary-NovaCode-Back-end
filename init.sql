@@ -9,7 +9,7 @@ CREATE TABLE usuario (
     id_usuario SERIAL PRIMARY KEY,
     nombre_completo VARCHAR(150) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255),
     rol VARCHAR(30) NOT NULL,
     nivel_ingles VARCHAR(10),
     -- codigo_estudiantil, avatar e intereses: agregados para HU-5.2 (configurar perfil
