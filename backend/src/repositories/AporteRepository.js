@@ -53,6 +53,90 @@ export const AporteRepository = {
   },
 
   /**
+   * @brief Lista los aportes de tipo 'coautoria' o 'acepcion_nueva' pendientes de revisión docente.
+   *
+   * La revisión del aporte es independiente de la tarjeta: la palabra es del estudiante que la
+   * creó y lo que llega después son aportes que se revisan por separado. Por eso NO se filtra por
+   * el estado de la tarjeta; si ya está aprobada, sus aportes nuevos igual aparecen aquí
+   * (estado_tarjeta = 'revisado_docente').
+   * @note Depende de la columna aporte.estado (supuesto pendiente de validar, no está en el DER).
+   * @return {Promise<Object[]>} Filas del aporte + palabra/traducción/definición/estado de su tarjeta.
+   */
+  async listarCoautoriasPendientes() {
+    const { rows } = await pool.query(
+      `SELECT
+         ap.id_aporte,
+         ap.tarjeta_id,
+         ap.inscripcion_id,
+         ap.traduccion_aportada,
+         ap.definicion_aportada,
+         ap.ejemplo_aportado,
+         ap.tipo_aporte,
+         ap.fecha_aporte,
+         ap.estado AS estado_aporte,
+         t.palabra AS palabra_tarjeta,
+         t.traduccion AS traduccion_tarjeta,
+         t.definicion AS definicion_tarjeta,
+         t.estado AS estado_tarjeta
+       FROM aporte ap
+       JOIN tarjeta t ON t.id_tarjeta = ap.tarjeta_id
+       WHERE ap.tipo_aporte IN ('coautoria', 'acepcion_nueva')
+         AND ap.estado = 'pendiente_revision'
+       ORDER BY ap.fecha_aporte ASC`
+    );
+    return rows;
+  },
+
+  /**
+   * @brief Aprueba un aporte de coautoría/acepción nueva, con correcciones opcionales de la docente.
+   * @note Depende de la columna aporte.estado (supuesto pendiente de validar, no está en el DER).
+   * @param {number} id_aporte - Id del aporte a aprobar.
+   * @param {Object} [datosEditados] - traduccion_aportada/definicion_aportada/ejemplo_aportado
+   * corregidos; los que no vengan conservan su valor actual.
+   * @return {Promise<Aporte|null>} El aporte aprobado, o null si el id no existe.
+   */
+  async aprobar(id_aporte, datosEditados = {}) {
+    const actual = await this.obtenerPorId(id_aporte);
+    if (!actual) return null;
+
+    const traduccion_aportada = datosEditados.traduccion_aportada ?? actual.traduccion_aportada;
+    const definicion_aportada = datosEditados.definicion_aportada ?? actual.definicion_aportada;
+    const ejemplo_aportado = datosEditados.ejemplo_aportado ?? actual.ejemplo_aportado;
+
+    const { rows } = await pool.query(
+      `UPDATE aporte
+       SET estado = 'aprobado',
+           traduccion_aportada = $2,
+           definicion_aportada = $3,
+           ejemplo_aportado = $4
+       WHERE id_aporte = $1
+       RETURNING *`,
+      [id_aporte, traduccion_aportada, definicion_aportada, ejemplo_aportado]
+    );
+    return rows[0] ? new Aporte(rows[0]) : null;
+  },
+
+  /**
+   * @brief Obtiene, en una sola consulta, el nombre del estudiante que creó cada tarjeta
+   * (aporte tipo 'creada' -> inscripcion -> usuario).
+   * @param {number[]} tarjetaIds - Ids de las tarjetas a consultar.
+   * @return {Promise<Map<number, string>>} Mapa tarjeta_id -> nombre_completo del autor.
+   */
+  async obtenerAutoresOriginales(tarjetaIds) {
+    if (tarjetaIds.length === 0) return new Map();
+    const { rows } = await pool.query(
+      `SELECT DISTINCT ON (ap.tarjeta_id) ap.tarjeta_id, u.nombre_completo
+       FROM aporte ap
+       JOIN inscripcion i ON i.id_inscripcion = ap.inscripcion_id
+       JOIN usuario u ON u.id_usuario = i.estudiante_id
+       WHERE ap.tarjeta_id = ANY($1) AND ap.tipo_aporte = 'creada'
+       ORDER BY ap.tarjeta_id, ap.fecha_aporte ASC`,
+      [tarjetaIds]
+    );
+    return new Map(rows.map((row) => [row.tarjeta_id, row.nombre_completo]));
+  },
+
+  /**
    * @brief Reemplaza todos los campos de un aporte existente (UPDATE completo).
    * @param {number} id_aporte - Id del aporte a actualizar.
    * @param {Object} datos - Nuevos valores de todas las columnas de "aporte".

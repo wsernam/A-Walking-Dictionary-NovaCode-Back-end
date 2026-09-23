@@ -80,6 +80,76 @@ export const AporteController = {
     }
   },
 
+  /**
+   * @brief Lista las coautorías/acepciones nuevas pendientes de revisión docente
+   * (GET /api/v1/aportes/pending). Endpoint adicional, fuera de los CA de HU-1.3.
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res - 200 con el arreglo, 500 ante error inesperado.
+   */
+  async listarPendientes(req, res) {
+    try {
+      const aportes = await AporteRepository.listarCoautoriasPendientes();
+      res.set('Cache-Control', 'no-store');
+      res.status(200).json(aportes);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  /**
+   * @brief Aprueba una coautoría/acepción nueva, con correcciones opcionales
+   * (PATCH /api/v1/aportes/:id/approve). Endpoint adicional, fuera de los CA de HU-1.3.
+   *
+   * Igual que rechazar(), no aplica a aportes 'creada': esos se aprueban por la revisión
+   * individual de la tarjeta (PATCH /cards/:id/approve).
+   *
+   * @param {import('express').Request} req - req.params.id es el id_aporte; req.body puede traer
+   * traduccion_aportada, definicion_aportada y ejemplo_aportado corregidos.
+   * @param {import('express').Response} res - 200 con el aporte aprobado, 400 si el id no es
+   * numérico o una corrección excede la longitud del DER, 403 si es tipo 'creada', 404 si no
+   * existe, 500 ante error inesperado.
+   */
+  async aprobar(req, res) {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ error: 'id inválido' });
+      }
+
+      // Mismos límites del DER que valida crear().
+      const { traduccion_aportada, ejemplo_aportado } = req.body;
+      const erroresLongitud = [];
+      if (traduccion_aportada && traduccion_aportada.length > 255) {
+        erroresLongitud.push(
+          `El campo traduccion_aportada no puede superar 255 caracteres (tiene ${traduccion_aportada.length} caracteres).`
+        );
+      }
+      if (ejemplo_aportado && ejemplo_aportado.length > 150) {
+        erroresLongitud.push(
+          `El campo ejemplo_aportado no puede superar 150 caracteres (tiene ${ejemplo_aportado.length} caracteres).`
+        );
+      }
+      if (erroresLongitud.length > 0) {
+        return res.status(400).json({ error: erroresLongitud.join(' ') });
+      }
+
+      const actual = await AporteRepository.obtenerPorId(id);
+      if (!actual) {
+        return res.status(404).json({ error: 'Aporte no encontrado' });
+      }
+      if (actual.tipo_aporte === 'creada') {
+        return res.status(403).json({
+          error:
+            'No se puede aprobar un aporte de creación original por esta vía; use el flujo de revisión individual de la tarjeta (PATCH /cards/:id/approve).',
+        });
+      }
+      const aporte = await AporteRepository.aprobar(id, req.body);
+      res.status(200).json({ mensaje: 'Aporte aprobado correctamente', aporte });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
   async actualizar(req, res) {
     try {
       const id = Number(req.params.id);

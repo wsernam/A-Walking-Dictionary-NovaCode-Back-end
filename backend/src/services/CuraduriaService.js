@@ -8,6 +8,8 @@
 // Almacenamiento: tabla tarjeta
 
 import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
+import { EtiquetaContextoRepository } from '../repositories/EtiquetaContextoRepository.js';
+import { AporteRepository } from '../repositories/AporteRepository.js';
 
 export const CuraduriaService = {
 
@@ -15,8 +17,27 @@ export const CuraduriaService = {
     return TarjetaRepository.listarPorEstado('pendiente_revision');
   },
 
+  // Historial de aprobadas: cada tarjeta lleva además su registro, variante_regional
+  // (etiqueta_contexto) y el nombre del estudiante que la creó. Se consulta en lote (3 queries
+  // en total) en vez de una por tarjeta.
   async listarAprobadas() {
-    return TarjetaRepository.listarPorEstado('revisado_docente');
+    const tarjetas = await TarjetaRepository.listarPorEstado('revisado_docente');
+    const ids = tarjetas.map((t) => t.id_tarjeta);
+
+    const [etiquetas, autores] = await Promise.all([
+      EtiquetaContextoRepository.listarPorTarjetas(ids),
+      AporteRepository.obtenerAutoresOriginales(ids),
+    ]);
+
+    return tarjetas.map((tarjeta) => {
+      const propias = etiquetas.filter((e) => e.tarjeta_id === tarjeta.id_tarjeta);
+      return {
+        ...tarjeta,
+        registro: propias.find((e) => e.tipo === 'registro')?.valor ?? null,
+        variante_regional: propias.find((e) => e.tipo === 'variante_regional')?.valor ?? null,
+        estudiante: autores.get(tarjeta.id_tarjeta) ?? 'Desconocido',
+      };
+    });
   },
 
   async aprobarTarjeta(idTarjeta) {

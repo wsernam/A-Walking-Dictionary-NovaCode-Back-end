@@ -71,6 +71,7 @@ import authRoutes from './routes/authRoutes.js';
 import studyRoutes from './routes/studyRoutes.js';
 import usuarioRoutes from './routes/usuarioRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
+import aporteRoutes from './routes/aporteRoutes.js';
 
 /** @brief Instancia principal de la aplicación Express. */
 const app = express();
@@ -87,5 +88,6 @@ app.use('/api/v1/teacher/analytics', analyticsRoutes);
 app.use('/api/v1/study', studyRoutes);
 app.use('/api/v1/users', usuarioRoutes);
 app.use('/api/v1/students', studentRoutes);
+app.use('/api/v1/aportes', aporteRoutes);
 
 export default app;

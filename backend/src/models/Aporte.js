@@ -22,6 +22,8 @@ export class Aporte {
    * @param {string} config.tipo_aporte - Tipo de aporte: 'creada' | 'coautoria' | 'acepcion_nueva'
    * (varchar 40), decidido por DeduplicacionService.resolverAporte.
    * @param {string} config.fecha_aporte - Marca de tiempo del aporte.
+   * @param {string} config.estado - 'pendiente_revision' | 'aprobado' (varchar 30). Columna
+   * agregada fuera del DER original, supuesto pendiente de validar — ver docs/CAMBIO_APORTE_ESTADO.md.
    */
   constructor({
     id_aporte,
@@ -32,6 +34,7 @@ export class Aporte {
     ejemplo_aportado,
     tipo_aporte,
     fecha_aporte,
+    estado,
   }) {
     this.id_aporte = id_aporte;
     this.tarjeta_id = tarjeta_id;
@@ -41,5 +44,6 @@ export class Aporte {
     this.ejemplo_aportado = ejemplo_aportado;
     this.tipo_aporte = tipo_aporte;
     this.fecha_aporte = fecha_aporte;
+    this.estado = estado;
   }
 }

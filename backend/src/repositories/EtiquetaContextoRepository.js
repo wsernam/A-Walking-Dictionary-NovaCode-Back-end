@@ -53,6 +53,16 @@ export const EtiquetaContextoRepository = {
     return rows.map((row) => new EtiquetaContexto(row));
   },
 
+  // Igual que listarPorTarjeta pero para varias tarjetas en una sola consulta (evita N+1).
+  async listarPorTarjetas(tarjetaIds) {
+    if (tarjetaIds.length === 0) return [];
+    const { rows } = await pool.query(
+      'SELECT * FROM etiqueta_contexto WHERE tarjeta_id = ANY($1)',
+      [tarjetaIds]
+    );
+    return rows.map((row) => new EtiquetaContexto(row));
+  },
+
   async eliminarPorTarjeta(tarjeta_id) {
     const { rowCount } = await pool.query(
       'DELETE FROM etiqueta_contexto WHERE tarjeta_id = $1',
