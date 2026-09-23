@@ -1,9 +1,20 @@
 # Changelog - Estructura Backend
 
 ## Fecha
-2026-09-22 (última actualización — ver historial de sesiones más abajo)
+2026-09-23 (última actualización — ver historial de sesiones más abajo)
 
-## Cambios aplicados en esta sesión (2026-09-22) — Fix: rutas de perfil caídas tras el merge de HU-015
+## Cambios aplicados en esta sesión (2026-09-23) — PR #5 (coautorías): merge con develop y columna `aporte.estado`
+
+La funcionalidad de la PR #5 es de ManuelaE08; aquí solo se hicieron los ajustes para poder
+fusionarla. Detalle completo, autoría y preguntas abiertas en `docs/CAMBIO_APORTE_ESTADO.md`.
+
+- Conflicto en `app.js` resuelto conservando todas las rutas de `develop` y sumando `/api/v1/aportes`.
+- `init.sql` + `Aporte.js`: nueva columna `aporte.estado` (supuesto pendiente de validar).
+- `aporteRoutes.js`: JWT en todas las rutas y rol `docente` en pending/approve/PUT/DELETE.
+- `listarAprobadas`: nombre real del estudiante en vez de "Estudiante A/B/C", consultas en lote.
+- No se probó contra una base de datos real.
+
+## Cambios aplicados en la sesión anterior (2026-09-22) — Fix: rutas de perfil caídas tras el merge de HU-015
 
 El merge de `feature/Sprint_2_HU_015` (login con Google) a `develop` pisó el montaje de las rutas
 de HU-013 en `app.js`: se perdieron los `import` y `app.use` de `usuarioRoutes.js` y

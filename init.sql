@@ -103,6 +103,11 @@ CREATE TABLE aporte (
     ejemplo_aportado VARCHAR(150),
     tipo_aporte VARCHAR(40) NOT NULL,
     fecha_aporte TIMESTAMP NOT NULL DEFAULT NOW(),
+    -- estado: agregado para la revisión docente de coautorías/acepciones nuevas (PR #5,
+    -- GET /aportes/pending y PATCH /aportes/:id/approve). Valores: 'pendiente_revision' |
+    -- 'aprobado'. SUPUESTO PENDIENTE DE VALIDAR con el equipo: no está en el DER original ni en
+    -- los CA de HU-1.3. Ver docs/CAMBIO_APORTE_ESTADO.md.
+    estado VARCHAR(30) NOT NULL DEFAULT 'pendiente_revision',
     CONSTRAINT fk_aporte_tarjeta FOREIGN KEY (tarjeta_id) REFERENCES tarjeta(id_tarjeta),
     CONSTRAINT fk_aporte_inscripcion FOREIGN KEY (inscripcion_id) REFERENCES inscripcion(id_inscripcion)
 );
