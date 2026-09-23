@@ -17,6 +17,17 @@ VALUES
   ('Maria Estudiante', 'maria.estudiante@unicauca.edu.co', 'hash_temporal', 'estudiante', 'B2', true),
   ('Carlos Estudiante', 'carlos.estudiante@unicauca.edu.co', 'hash_temporal', 'estudiante', 'A2', true);
 
+-- Cuentas reales del equipo para probar el login con Google (HU-5.4). El login ya no usa
+-- contraseña ni crea usuarios: el correo de Google tiene que existir aquí, con su rol.
+-- password_hash es NOT NULL en el DER pero no interviene en el login con Google.
+-- nombre_completo de los estudiantes es un placeholder (solo se conoce el correo).
+INSERT INTO usuario (nombre_completo, email, password_hash, rol, nivel_ingles, activo)
+VALUES
+  ('William Serna', 'wserna@unicauca.edu.co', 'hash_temporal', 'docente', NULL, true),
+  ('ksandoval', 'ksandoval@unicauca.edu.co', 'hash_temporal', 'estudiante', NULL, true),
+  ('manmeneses', 'manmeneses@unicauca.edu.co', 'hash_temporal', 'estudiante', NULL, true),
+  ('thaliabernal', 'thaliabernal@unicauca.edu.co', 'hash_temporal', 'estudiante', NULL, true);
+
 -- 1 curso, con docente_id apuntando al usuario docente recién creado
 INSERT INTO curso (nombre, periodo, fecha_inicio, fecha_fin, docente_id, estado)
 VALUES (
