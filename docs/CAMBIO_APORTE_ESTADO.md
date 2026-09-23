@@ -47,14 +47,20 @@ estado VARCHAR(30) NOT NULL DEFAULT 'pendiente_revision',
 ### Si ya tienes la base de datos creada
 
 `init.sql` solo se ejecuta la primera vez que se crea el volumen de Postgres. Si tu base ya
-existía, corre esto a mano (los aportes que ya existen quedan en `'pendiente_revision'`):
+existía, bórrala y vuelve a levantarla para que tome la columna nueva (esto **borra los datos**):
+
+```bash
+docker compose down -v
+docker compose up
+```
+
+Si prefieres conservar tus datos, corre esto a mano (los aportes que ya existen quedan en
+`'pendiente_revision'`):
 
 ```sql
 ALTER TABLE aporte
   ADD COLUMN estado VARCHAR(30) NOT NULL DEFAULT 'pendiente_revision';
 ```
-
-O recrea el volumen con `docker compose down -v && docker compose up` (esto **borra los datos**).
 
 ## Otros ajustes de la revisión (commit `bcc013d`)
 
