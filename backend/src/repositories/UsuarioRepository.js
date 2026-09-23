@@ -30,6 +30,34 @@ export const UsuarioRepository = {
     return new Usuario(rows[0]);
   },
 
+
+  async crearDesdeGoogle(datos) {
+    const {
+      nombre_completo,
+      email,
+      rol = 'estudiante',
+    } = datos;
+
+    const { rows } = await pool.query(
+      `INSERT INTO usuario (
+        nombre_completo,
+        email,
+        password_hash,
+        rol,
+        activo
+      )
+      VALUES ($1, $2, NULL, $3, true)
+      RETURNING *`,
+      [
+        nombre_completo,
+        email,
+        rol,
+      ]
+    );
+
+    return new Usuario(rows[0]);
+  },
+
   async obtenerPorId(id_usuario) {
     const { rows } = await pool.query('SELECT * FROM usuario WHERE id_usuario = $1', [id_usuario]);
     return rows[0] ? new Usuario(rows[0]) : null;

@@ -6,6 +6,7 @@
 
 import { Router } from 'express';
 import { AuthController } from '../controllers/AuthController.js';
+import { RegistroController } from '../controllers/RegistroController.js';
 
 const router = Router();
 
@@ -15,5 +16,9 @@ const router = Router();
  * POST /api/v1/auth/google
  */
 router.post('/google', AuthController.loginGoogle);
+
+router.post('/register', RegistroController.registrarConGoogle);
+
+router.post('/register', AuthController.registrarGoogle);
 
 export default router;
