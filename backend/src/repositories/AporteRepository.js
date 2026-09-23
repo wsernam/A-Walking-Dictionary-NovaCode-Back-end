@@ -53,8 +53,12 @@ export const AporteRepository = {
   },
 
   /**
-   * @brief Lista los aportes de tipo 'coautoria' o 'acepcion_nueva' que siguen pendientes de
-   * revisión docente, tanto a nivel de aporte como de la tarjeta a la que pertenecen.
+   * @brief Lista los aportes de tipo 'coautoria' o 'acepcion_nueva' pendientes de revisión docente.
+   *
+   * La revisión del aporte es independiente de la tarjeta: la palabra es del estudiante que la
+   * creó y lo que llega después son aportes que se revisan por separado. Por eso NO se filtra por
+   * el estado de la tarjeta; si ya está aprobada, sus aportes nuevos igual aparecen aquí
+   * (estado_tarjeta = 'revisado_docente').
    * @note Depende de la columna aporte.estado (supuesto pendiente de validar, no está en el DER).
    * @return {Promise<Object[]>} Filas del aporte + palabra/traducción/definición/estado de su tarjeta.
    */
@@ -78,27 +82,9 @@ export const AporteRepository = {
        JOIN tarjeta t ON t.id_tarjeta = ap.tarjeta_id
        WHERE ap.tipo_aporte IN ('coautoria', 'acepcion_nueva')
          AND ap.estado = 'pendiente_revision'
-         AND t.estado = 'pendiente_revision'
        ORDER BY ap.fecha_aporte ASC`
     );
     return rows;
-  },
-
-  /**
-   * @brief Ids de las coautorías/acepciones nuevas de una tarjeta que siguen pendientes de revisión.
-   * @param {number} tarjeta_id - Id de la tarjeta.
-   * @return {Promise<number[]>} Ids de aporte pendientes (vacío si no hay).
-   */
-  async listarIdsPendientesPorTarjeta(tarjeta_id) {
-    const { rows } = await pool.query(
-      `SELECT id_aporte FROM aporte
-       WHERE tarjeta_id = $1
-         AND tipo_aporte IN ('coautoria', 'acepcion_nueva')
-         AND estado = 'pendiente_revision'
-       ORDER BY id_aporte`,
-      [tarjeta_id]
-    );
-    return rows.map((row) => row.id_aporte);
   },
 
   /**

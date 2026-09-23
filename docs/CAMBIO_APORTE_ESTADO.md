@@ -14,7 +14,7 @@ Para que no haya confusión al revisar esta PR:
 | Resolución del conflicto de merge con `develop` (`app.js`) | wsernam | `dbda870` |
 | Correcciones de revisión: autenticación, nombre real del estudiante, documentación restaurada, validación de longitudes | wsernam | `bcc013d` |
 | Columna `aporte.estado` en `init.sql` + modelo `Aporte.js` + este documento | wsernam | `a0380d7` |
-| Validación: no aprobar una tarjeta con coautorías/acepciones pendientes | wsernam | (ver sección más abajo) |
+| Quitar el filtro por estado de la palabra en `GET /aportes/pending` (coautorías independientes) | wsernam | (ver sección "Coautorías independientes") |
 
 wsernam **no diseñó** la funcionalidad de aprobación de coautorías ni la regla de negocio detrás de
 ella. Solo hizo los cambios mínimos para que la PR se pueda fusionar en `develop` sin romper nada.
@@ -76,28 +76,30 @@ ALTER TABLE aporte
 - **Validación:** `aprobar` revisa los mismos límites de longitud del DER que `crear` (255/150).
 - **Documentación:** se restauraron los comentarios JSDoc que la PR había borrado.
 
-## Validación: no se aprueba una tarjeta con coautorías pendientes
+## Coautorías independientes del estado de la palabra
 
-**Problema encontrado al probar:** `GET /aportes/pending` solo muestra aportes de tarjetas que
-siguen en `pendiente_revision`. Si la docente aprobaba la tarjeta primero, sus coautorías y
-acepciones pendientes desaparecían del panel y quedaban sin revisar para siempre.
+**Problema encontrado al probar:** la consulta original de `GET /aportes/pending` tenía la
+condición `AND t.estado = 'pendiente_revision'`, que solo mostraba aportes de palabras que
+seguían pendientes. Si un estudiante aportaba a una palabra **ya aprobada**, el aporte se
+guardaba en `pendiente_revision` pero no aparecía en el panel: la docente nunca lo veía y
+quedaba sin revisar para siempre.
 
-**Cambio:** `PATCH /api/v1/cards/:id/approve` ahora responde **409** si la tarjeta tiene
-coautorías o acepciones nuevas en `pendiente_revision`, e indica cuáles son:
+Ejemplo del flujo que fallaba:
 
-```json
-{
-  "error": "La tarjeta tiene 1 coautoría(s)/acepción(es) pendiente(s) de revisión; apruébalas o recházalas antes de aprobar la tarjeta.",
-  "aportes_pendientes": [11]
-}
+```
+1. Juan crea "yam"                → tarjeta pendiente
+2. La docente aprueba "yam"       → tarjeta aprobada
+3. María aporta "yam"             → coautoría pendiente
+4. La docente abre el panel       → la coautoría de María NO aparecía
 ```
 
-La docente primero aprueba cada una (`PATCH /aportes/:id/approve`) o la rechaza
-(`DELETE /contributions/:id`), y después aprueba la tarjeta. Archivos: `CuraduriaService.aprobarTarjeta`,
-`AporteRepository.listarIdsPendientesPorTarjeta` y `TarjetaController.aprobar` (agrega `aportes_pendientes` a la respuesta).
+**Criterio (definido por wsernam):** la palabra es del estudiante que la creó; lo que llega
+después son aportes, y cada aporte se revisa por separado, sin depender del estado de la palabra.
 
-**Para frontend:** el panel de curaduría debería mostrar ese mensaje cuando llegue el 409, o
-llevar a la docente a la pestaña de Coautoría.
+**Cambio:** se quitó esa condición de `AporteRepository.listarCoautoriasPendientes`. Ahora el
+panel muestra todos los aportes pendientes, esté la palabra aprobada o no. La respuesta ya
+incluye `estado_tarjeta`, así que el frontend puede indicar cuáles son de palabras ya aprobadas.
+Aprobar la palabra (`PATCH /cards/:id/approve`) no cambió: no depende de sus aportes.
 
 ## Preguntas abiertas para el equipo
 
@@ -123,5 +125,5 @@ Probado el 2026-09-23 contra la base real (Docker, después de `docker compose d
 - `GET /aportes/pending` → 200; `PATCH /aportes/:id/approve` → 200 (con correcciones), 403
   (aporte `creada`), 404, 400 (id inválido o ejemplo de más de 150 caracteres).
 - `GET /cards/approved` → nombres reales de los estudiantes, con `registro` y `variante_regional`.
-- Aprobar una tarjeta con coautoría pendiente → 409; después de aprobar o rechazar la coautoría → 200.
+- Aporte sobre una palabra ya aprobada → aparece en `GET /aportes/pending` con `estado_tarjeta: "revisado_docente"`.
 - Con la autenticación activada: sin token 401, estudiante en pending/approve 403, docente 200.
