@@ -1,7 +1,26 @@
 # Changelog - Estructura Backend
 
 ## Fecha
-2026-09-23 (última actualización — ver historial de sesiones más abajo)
+2026-09-24 (última actualización — ver historial de sesiones más abajo)
+
+## Cambios aplicados en esta sesión (2026-09-24) — HU-5.1: una sola versión del registro
+
+La implementación de HU-5.1 (commit `0f2f31b`) es de thaliabernalepe; dejó dos versiones de
+`POST /api/v1/auth/register` y Express solo ejecutaba la primera. Se dejó una sola:
+
+- `authRoutes.js`: se quitó la segunda declaración de `/register`.
+- `RegistroService.js`: conserva su estructura y suma lo que solo tenía la segunda versión:
+  valida correo `@unicauca.edu.co` (CA-5.1.1, 400), guarda el email en minúsculas, usa la parte
+  local del correo si Google no da nombre y devuelve `{ token, usuario }` para entrar directo.
+  Un registro simultáneo del mismo correo (UNIQUE) responde 409 en vez de 500.
+- `RegistroController.js`: la respuesta 201 ahora incluye `token`.
+- `AuthService.js`: se extrajo `emitirSesion(usuario)` (firma del JWT), usada por login y
+  registro; se eliminó `AuthService.registrarConGoogle` (segunda versión, nunca se ejecutaba).
+- `AuthController.js`: se eliminó `registrarGoogle` (segunda versión).
+- Probado contra la base real con Google simulado: registro nuevo, repetido (409), Gmail (400),
+  correo no verificado (401), sin nombre, y login posterior del usuario registrado.
+- Pendiente del equipo: rol al registrarse (hoy siempre `estudiante`, según CA-5.1.1) y si el
+  front usa un botón aparte o el mismo botón del login.
 
 ## Cambios aplicados en esta sesión (2026-09-23) — PR #5 (coautorías): merge con develop y columna `aporte.estado`
 

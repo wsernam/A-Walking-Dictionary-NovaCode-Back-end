@@ -70,6 +70,39 @@ Errores (siempre con la forma `{ "error": "mensaje" }`):
 | 403 | `Usuario no registrado en la plataforma` | El correo no existe en `usuario` | Mostrar "tu cuenta no está registrada" |
 | 500 | `GOOGLE_CLIENT_ID no está configurado en el entorno` (u otro) | Falta configuración en el servidor | Avisar al backend |
 
+### `POST /api/v1/auth/register` (HU-5.1, registro de estudiante)
+
+Mismo request que `/auth/google` (`{ "idToken": "<credential de Google>" }`). Crea la cuenta con
+rol `estudiante` y, igual que el login, devuelve el JWT para que entre directo. No hay
+contraseña: la identidad la verifica Google.
+
+Respuesta **201**:
+
+```json
+{
+  "mensaje": "Usuario registrado correctamente",
+  "token": "<JWT propio de la app>",
+  "usuario": {
+    "id_usuario": 9,
+    "nombre_completo": "Thalia Bernal",
+    "email": "thaliabernal@unicauca.edu.co",
+    "rol": "estudiante"
+  }
+}
+```
+
+Errores (misma forma `{ "error": "mensaje" }`):
+
+| Status | `error` | Cuándo |
+|---|---|---|
+| 400 | `idToken es obligatorio` | No se mandó `idToken` |
+| 400 | `Debe utilizar un correo institucional @unicauca.edu.co` | La cuenta de Google no es institucional |
+| 401 | `Token de Google inválido` / `El email de la cuenta de Google no está verificado` | Igual que en el login |
+| 409 | `El correo ya está registrado en la plataforma` | Ese correo ya tiene cuenta: debe iniciar sesión |
+
+Pendiente de decidir con el equipo: si el front usa un botón aparte de "Registrarse" o un solo
+botón de Google que, ante el 403 del login, llama a este endpoint.
+
 ## 3. Qué tiene que hacer el front (paso a paso)
 
 1. Instalar y configurar Google Identity Services (por ejemplo `@react-oauth/google`, o el script
@@ -176,7 +209,7 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 ## 8. Lo que el backend NO hace (para que no se espere)
 
-- **No crea usuarios** en el login (la creación/registro es otra HU).
+- **No crea usuarios** en el login: para eso está `POST /auth/register` (HU-5.1, ver arriba).
 - **No tiene logout** ni refresh token: pasadas las 8 h hay que volver a iniciar sesión.
 - **No restringe el dominio** del correo (`@unicauca.edu.co`): entra cualquier cuenta de Google
   cuyo correo exista en `usuario`.

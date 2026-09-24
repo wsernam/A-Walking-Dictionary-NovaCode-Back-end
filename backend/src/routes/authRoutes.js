@@ -17,8 +17,12 @@ const router = Router();
  */
 router.post('/google', AuthController.loginGoogle);
 
+/**
+ * @brief CA-5.1.1 / CA-5.1.2: registro autónomo de estudiante con Google. Recibe el mismo
+ * idToken que /google y, si el correo es institucional y no existe, crea la cuenta con rol
+ * "estudiante" y retorna el JWT propio de la app.
+ * POST /api/v1/auth/register
+ */
 router.post('/register', RegistroController.registrarConGoogle);
-
-router.post('/register', AuthController.registrarGoogle);
 
 export default router;

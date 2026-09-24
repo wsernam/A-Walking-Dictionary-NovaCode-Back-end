@@ -13,15 +13,19 @@ export const RegistroController = {
    * POST /api/v1/auth/register
    *
    * El frontend envía el idToken obtenido de Google Identity Services.
+   * Responde 201 con { mensaje, token, usuario } (mismo token y usuario que el login);
+   * 400 si falta idToken o el correo no es institucional; 401 si el token de Google es
+   * inválido o el correo no está verificado; 409 si el correo ya está registrado.
    */
   async registrarConGoogle(req, res) {
     try {
       const { idToken } = req.body;
 
-      const usuario = await RegistroService.registrarConGoogle(idToken);
+      const { token, usuario } = await RegistroService.registrarConGoogle(idToken);
 
       res.status(201).json({
         mensaje: 'Usuario registrado correctamente',
+        token,
         usuario,
       });
 

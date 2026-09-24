@@ -74,6 +74,42 @@ export async function validarTokenGoogle(idToken) {
   return payload;
 }
 
+/**
+ * Firma el JWT propio de la app para un usuario y arma la respuesta de sesión.
+ *
+ * Se reutiliza tanto para:
+ * - HU-5.4: iniciar sesión.
+ * - HU-5.1: registrarse (el estudiante entra directo tras crear su cuenta).
+ *
+ * @param {Object} usuario Fila de la tabla usuario.
+ * @returns {{ token: string, usuario: Object }} Nunca incluye password_hash.
+ */
+export function emitirSesion(usuario) {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET no está configurado en el entorno');
+  }
+
+  const token = jwt.sign(
+    {
+      id_usuario: usuario.id_usuario,
+      email: usuario.email,
+      rol: usuario.rol,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+
+  return {
+    token,
+    usuario: {
+      id_usuario: usuario.id_usuario,
+      nombre_completo: usuario.nombre_completo,
+      email: usuario.email,
+      rol: usuario.rol,
+    },
+  };
+}
+
 export const AuthService = {
 
   /**
@@ -101,114 +137,6 @@ export const AuthService = {
       throw error;
     }
 
-    if (!process.env.JWT_SECRET) {
-      throw new Error('JWT_SECRET no está configurado en el entorno');
-    }
-
-    const token = jwt.sign(
-      {
-        id_usuario: usuario.id_usuario,
-        email: usuario.email,
-        rol: usuario.rol,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
-    );
-
-    return {
-      token,
-      usuario: {
-        id_usuario: usuario.id_usuario,
-        nombre_completo: usuario.nombre_completo,
-        email: usuario.email,
-        rol: usuario.rol,
-      },
-    };
-  },
-
-
-  async registrarConGoogle(idToken) {
-    if (!idToken) {
-      const error = new Error('idToken es obligatorio');
-      error.status = 400;
-      throw error;
-    }
-
-    const client = getGoogleClient();
-
-    let payload;
-
-    try {
-      const ticket = await client.verifyIdToken({
-        idToken,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
-
-      payload = ticket.getPayload();
-    } catch {
-      const error = new Error('Token de Google inválido');
-      error.status = 401;
-      throw error;
-    }
-
-    if (!payload?.email || !payload.email_verified) {
-      const error = new Error(
-        'El email de la cuenta de Google no está verificado'
-      );
-      error.status = 401;
-      throw error;
-    }
-
-    const email = payload.email.toLowerCase();
-
-    // HU-12: debe ser correo institucional
-    if (!email.endsWith('@unicauca.edu.co')) {
-      const error = new Error(
-        'Debe utilizar un correo institucional @unicauca.edu.co'
-      );
-      error.status = 400;
-      throw error;
-    }
-
-    const usuarioExistente =
-      await UsuarioRepository.obtenerPorEmail(email);
-
-    if (usuarioExistente) {
-      const error = new Error(
-        'El correo ya está registrado en la plataforma'
-      );
-      error.status = 409;
-      throw error;
-    }
-
-    if (!process.env.JWT_SECRET) {
-      throw new Error('JWT_SECRET no está configurado en el entorno');
-    }
-
-    const usuario = await UsuarioRepository.crearDesdeGoogle({
-      nombre_completo: payload.name || email.split('@')[0],
-      email,
-      rol: 'estudiante',
-    });
-
-    const token = jwt.sign(
-      {
-        id_usuario: usuario.id_usuario,
-        email: usuario.email,
-        rol: usuario.rol,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
-    );
-
-    return {
-      token,
-      usuario: {
-        id_usuario: usuario.id_usuario,
-        nombre_completo: usuario.nombre_completo,
-        email: usuario.email,
-        rol: usuario.rol,
-      },
-    };
+    return emitirSesion(usuario);
   },
 };

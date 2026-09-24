@@ -28,20 +28,4 @@ export const AuthController = {
       res.status(status).json({ error: error.message });
     }
   },
-
-  async registrarGoogle(req, res) {
-    try {
-      const { idToken } = req.body;
-
-      const resultado = await AuthService.registrarConGoogle(idToken);
-
-      res.status(201).json(resultado);
-    } catch (error) {
-      const status = error.status || 500;
-
-      res.status(status).json({
-        error: error.message,
-      });
-    }
-  },
 };
