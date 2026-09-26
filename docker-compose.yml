@@ -46,6 +46,7 @@ services:
       DB_NAME: ${DB_NAME}
       PORT: 5000
       JWT_SECRET: ${JWT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
     volumes:
       # Monta el código local dentro del contenedor: editas en tu editor,
       # el contenedor lo ve al instante (hot reload), sin reconstruir la imagen

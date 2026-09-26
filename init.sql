@@ -9,9 +9,17 @@ CREATE TABLE usuario (
     id_usuario SERIAL PRIMARY KEY,
     nombre_completo VARCHAR(150) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255),
     rol VARCHAR(30) NOT NULL,
     nivel_ingles VARCHAR(10),
+    -- codigo_estudiantil, avatar e intereses: agregados para HU-5.2 (configurar perfil
+    -- académico). Nullable igual que nivel_ingles, porque no aplican a un docente. avatar
+    -- guarda una URL (string), no el archivo -- decisión tomada explícitamente para HU-5.2, ver
+    -- docs/FLUJO_PERFIL_ACADEMICO.md. intereses (CA-5.2.2) es un arreglo de strings: las opciones
+    -- (lista fija de géneros/temas) las define el frontend, el back solo guarda la selección.
+    codigo_estudiantil VARCHAR(20),
+    avatar VARCHAR(500),
+    intereses TEXT[],
     activo BOOLEAN NOT NULL DEFAULT true,
     fecha_registro TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -27,6 +35,7 @@ CREATE TABLE curso (
     fecha_fin DATE NOT NULL,
     docente_id INT NOT NULL,
     estado VARCHAR(30) NOT NULL,
+    codigo_acceso VARCHAR(20) UNIQUE,
     CONSTRAINT fk_curso_docente FOREIGN KEY (docente_id) REFERENCES usuario(id_usuario)
 );
 
@@ -94,6 +103,11 @@ CREATE TABLE aporte (
     ejemplo_aportado VARCHAR(150),
     tipo_aporte VARCHAR(40) NOT NULL,
     fecha_aporte TIMESTAMP NOT NULL DEFAULT NOW(),
+    -- estado: agregado para la revisión docente de coautorías/acepciones nuevas (PR #5,
+    -- GET /aportes/pending y PATCH /aportes/:id/approve). Valores: 'pendiente_revision' |
+    -- 'aprobado'. SUPUESTO PENDIENTE DE VALIDAR con el equipo: no está en el DER original ni en
+    -- los CA de HU-1.3. Ver docs/CAMBIO_APORTE_ESTADO.md.
+    estado VARCHAR(30) NOT NULL DEFAULT 'pendiente_revision',
     CONSTRAINT fk_aporte_tarjeta FOREIGN KEY (tarjeta_id) REFERENCES tarjeta(id_tarjeta),
     CONSTRAINT fk_aporte_inscripcion FOREIGN KEY (inscripcion_id) REFERENCES inscripcion(id_inscripcion)
 );
