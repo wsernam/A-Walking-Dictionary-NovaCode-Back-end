@@ -54,10 +54,10 @@ Cliente envía { idToken }
 POST /api/v1/auth/google
         │
         ▼
-AuthController.loginGoogle
+AutenticacionController.loginGoogle
         │
         ▼
-AuthService.loginConGoogle(idToken)
+AutenticacionService.loginConGoogle(idToken)
         │
         ├── falta idToken  ──► 400 "idToken es obligatorio"
         │
@@ -95,7 +95,7 @@ AuthService.loginConGoogle(idToken)
 ```
 
 `password_hash` **nunca** viaja en la respuesta; el objeto `usuario` que se retorna se arma a
-mano en `AuthService.loginConGoogle` solo con los campos necesarios. El `token` que devuelve este
+mano en `AutenticacionService.loginConGoogle` solo con los campos necesarios. El `token` que devuelve este
 endpoint es el **mismo tipo de JWT propio** que ya emitía el login anterior — el resto del
 sistema (`authenticate`, `requireRole`, el frontend) no necesita saber que el login ahora pasa
 por Google.
@@ -128,12 +128,12 @@ Middleware authenticate
                         └── sí está permitido  ──► continúa al controlador
 ```
 
-`authenticate` y `requireRole` viven en `backend/src/middleware/authMiddleware.js` y se aplican
+`authenticate` y `requireRole` viven en `backend/src/middleware/autenticacionMiddleware.js` y se aplican
 **por ruta**, directamente en cada archivo de `routes/` (no hay un middleware global en `app.js`)
 — así cada ruta declara explícitamente su nivel de protección justo donde ya se documenta su CA.
 
 ```js
-// Ejemplo real, backend/src/routes/deckRoutes.js
+// Ejemplo real, backend/src/routes/mazoRoutes.js
 router.post('/', authenticate, requireRole('docente'), MazoController.crear);
 router.get('/', MazoController.listar); // sin middleware = pública
 ```
@@ -201,10 +201,10 @@ CA del backlog, es solo una salida de escape de conveniencia para desarrollo.
 
 | Archivo | Cambio |
 |---|---|
-| `backend/src/services/AuthService.js` | Reescrito: `login(email, password)` → `loginConGoogle(idToken)`, usando `google-auth-library`. |
-| `backend/src/controllers/AuthController.js` | Reescrito: `login` → `loginGoogle`. |
-| `backend/src/routes/authRoutes.js` | Reescrito: `POST /login` → `POST /google`. |
-| `backend/src/middleware/authMiddleware.js` | Sin cambios en esta actualización — `authenticate`/`requireRole`/`DISABLE_AUTH` siguen igual, porque solo dependen del JWT propio, no de cómo se emitió. |
+| `backend/src/services/AutenticacionService.js` | Reescrito: `login(email, password)` → `loginConGoogle(idToken)`, usando `google-auth-library`. |
+| `backend/src/controllers/AutenticacionController.js` | Reescrito: `login` → `loginGoogle`. |
+| `backend/src/routes/autenticacionRoutes.js` | Reescrito: `POST /login` → `POST /google`. |
+| `backend/src/middleware/autenticacionMiddleware.js` | Sin cambios en esta actualización — `authenticate`/`requireRole`/`DISABLE_AUTH` siguen igual, porque solo dependen del JWT propio, no de cómo se emitió. |
 | `backend/src/repositories/UsuarioRepository.js` | Sin cambios nuevos (ya tenía `obtenerPorEmail` y `crear` de la versión anterior; ambos se reutilizan). |
 | `backend/package.json` | Se agregó `google-auth-library`; se puede quitar `bcrypt` si ya no se usa en ningún otro lado del proyecto (no se quitó automáticamente por si otro módulo lo necesita). |
 | `backend/.env.example` | Se agregó `GOOGLE_CLIENT_ID`. `JWT_SECRET` sigue igual. |
@@ -220,7 +220,7 @@ CA del backlog, es solo una salida de escape de conveniencia para desarrollo.
 - **CA-5.4.3 (modo Invitado)**: sigue igual que antes — el backlog no define ningún endpoint de
   "diccionario demostrativo", se interpretó dejando las rutas `GET` de decks/cards/courses sin
   `authenticate`.
-- **Duración del token (8h)**: sigue hardcodeada en `AuthService.js`, sin variable de entorno
+- **Duración del token (8h)**: sigue hardcodeada en `AutenticacionService.js`, sin variable de entorno
   nueva, igual que en la versión anterior.
 - **`DISABLE_AUTH`**: sigue existiendo, sin cambios — es independiente de cómo se emite el JWT.
 - **`bcrypt` sigue en `package.json`** aunque el login ya no lo use: la HU de registro de

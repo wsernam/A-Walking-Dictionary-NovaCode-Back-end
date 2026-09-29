@@ -1,4 +1,4 @@
-import { validarTokenGoogle, emitirSesion } from './AuthService.js';
+import { validarTokenGoogle, emitirSesion } from './AutenticacionService.js';
 import { UsuarioRepository } from '../repositories/UsuarioRepository.js';
 
 const DOMINIO_INSTITUCIONAL = '@unicauca.edu.co';

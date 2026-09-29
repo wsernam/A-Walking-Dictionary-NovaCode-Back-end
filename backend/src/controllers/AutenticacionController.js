@@ -1,12 +1,12 @@
 /**
- * @file AuthController.js
+ * @file AutenticacionController.js
  * @brief Controlador REST de autenticación (HU-5.4): recibe la petición HTTP, llama a
- * AuthService y devuelve la respuesta.
+ * AutenticacionService y devuelve la respuesta.
  */
 
-import { AuthService } from '../services/AuthService.js';
+import { AutenticacionService } from '../services/AutenticacionService.js';
 
-export const AuthController = {
+export const AutenticacionController = {
   /**
    * @brief CA-5.4.1: inicia sesión con el token de Google. POST /api/v1/auth/google
    *
@@ -21,7 +21,7 @@ export const AuthController = {
   async loginGoogle(req, res) {
     try {
       const { idToken } = req.body;
-      const resultado = await AuthService.loginConGoogle(idToken);
+      const resultado = await AutenticacionService.loginConGoogle(idToken);
       res.status(200).json(resultado);
     } catch (error) {
       const status = error.status || 500;

@@ -1,6 +1,6 @@
-import { StudyService } from '../services/StudyService.js';
+import { EstudioService } from '../services/EstudioService.js';
 
-export const StudyController = {
+export const EstudioController = {
   async iniciarSesion(req, res) {
     try {
       const { inscripcion_id } = req.body;
@@ -19,7 +19,7 @@ export const StudyController = {
         });
       }
 
-      const sesion = await StudyService.iniciarSesion(id);
+      const sesion = await EstudioService.iniciarSesion(id);
 
       return res.status(200).json(sesion);
     } catch (error) {
@@ -49,7 +49,7 @@ export const StudyController = {
         });
       }
 
-      const progreso = await StudyService.registrarValoracion(
+      const progreso = await EstudioService.registrarValoracion(
         inscripcionId,
         tarjetaId,
         valoracion

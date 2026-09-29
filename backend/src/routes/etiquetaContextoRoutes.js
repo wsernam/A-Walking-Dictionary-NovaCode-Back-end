@@ -5,13 +5,13 @@ import { EtiquetaContextoController } from '../controllers/EtiquetaContextoContr
 
 const router = Router();
 
-// TODO: agregar validationMiddleware aquí cuando esté implementado
+// TODO: agregar validacionMiddleware aquí cuando esté implementado
 router.post('/', EtiquetaContextoController.crear);
 
 router.get('/', EtiquetaContextoController.listar);
 router.get('/:id', EtiquetaContextoController.obtenerPorId);
 
-// TODO: agregar validationMiddleware aquí cuando esté implementado
+// TODO: agregar validacionMiddleware aquí cuando esté implementado
 router.put('/:id', EtiquetaContextoController.actualizar);
 
 router.delete('/:id', EtiquetaContextoController.eliminar);

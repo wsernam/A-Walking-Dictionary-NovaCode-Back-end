@@ -1,11 +1,11 @@
 /**
- * @file authRoutes.js
+ * @file autenticacionRoutes.js
  * @brief Rutas REST de autenticación (HU-5.4, login con Google/OAuth). Montado en app.js bajo
  * el prefijo /api/v1/auth.
  */
 
 import { Router } from 'express';
-import { AuthController } from '../controllers/AuthController.js';
+import { AutenticacionController } from '../controllers/AutenticacionController.js';
 import { RegistroController } from '../controllers/RegistroController.js';
 
 const router = Router();
@@ -15,7 +15,7 @@ const router = Router();
  * Services), lo valida y retorna el JWT propio de la app con claims de rol.
  * POST /api/v1/auth/google
  */
-router.post('/google', AuthController.loginGoogle);
+router.post('/google', AutenticacionController.loginGoogle);
 
 /**
  * @brief CA-5.1.1 / CA-5.1.2: registro autónomo de estudiante con Google. Recibe el mismo

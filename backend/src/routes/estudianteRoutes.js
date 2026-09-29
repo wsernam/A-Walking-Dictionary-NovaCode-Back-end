@@ -1,5 +1,5 @@
 /**
- * @file studentRoutes.js
+ * @file estudianteRoutes.js
  * @brief Rutas de lectura asociadas a un estudiante. Montadas en app.js bajo /api/v1/students.
  */
 

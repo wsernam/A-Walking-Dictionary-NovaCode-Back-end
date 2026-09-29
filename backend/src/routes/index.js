@@ -1,6 +1,6 @@
 // Agrupa y expone los routers de recursos genéricos que aún no forman parte de ningún flujo
-// de negocio activo (Mazo y Tarjeta ya NO están aquí: su creación vive en deckRoutes.js/
-// cardRoutes.js, montados directamente en app.js). Este archivo mismo tampoco se importa desde
+// de negocio activo (Mazo y Tarjeta ya NO están aquí: su creación vive en mazoRoutes.js/
+// tarjetaRoutes.js, montados directamente en app.js). Este archivo mismo tampoco se importa desde
 // app.js por ahora; queda como referencia para cuando se decida exponer estas 11 entidades.
 
 import { Router } from 'express';

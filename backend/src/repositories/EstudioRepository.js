@@ -1,6 +1,6 @@
 import { pool } from '../config/db.js';
 
-export const StudyRepository = {
+export const EstudioRepository = {
   async listarTarjetasDisponibles(inscripcion_id) {
     const { rows } = await pool.query(
       `SELECT

@@ -23,7 +23,7 @@
  *   - PATCH /api/v1/decks/:id/default-variant           (CA-2.2.2, asignación masiva)
  *   - GET  /api/v1/teacher/analytics/deck/:id           (CA-2.3.1/CA-2.3.2)
  *   - DELETE /api/v1/contributions/:id                  (rechazo de coautoría/acepción nueva,
- *     ÚNICO punto de rechazo del sistema — ver contributionRoutes.js)
+ *     ÚNICO punto de rechazo del sistema — ver rechazoAporteRoutes en aporteRoutes.js)
  *
  *   Cursos, requeridos por el frontend:
  *   - POST /api/v1/courses
@@ -38,7 +38,7 @@
  *   - GET  /api/v1/students/:id/context                  (contexto académico, desde la inscripción)
  *
  *   Control de acceso (CA-5.4.2): las rutas de creación/edición exigen JWT propio válido
- *   (middleware authenticate, emitido por AuthService tras validar el token de Google); las de
+ *   (middleware authenticate, emitido por AutenticacionService tras validar el token de Google); las de
  *   curaduría/analítica docente (HE-02) exigen además rol "docente" (middleware requireRole).
  *   Las rutas GET de decks/cards/courses quedan sin autenticación para cubrir el acceso de solo
  *   lectura de Invitado (CA-5.4.3) — no hay endpoint de "diccionario demostrativo" definido en
@@ -62,16 +62,15 @@
 
 import express from 'express';
 import cors from 'cors';
-import deckRoutes from './routes/deckRoutes.js';
-import cardRoutes from './routes/cardRoutes.js';
-import courseRoutes from './routes/courseRoutes.js';
-import contributionRoutes from './routes/contributionRoutes.js';
-import analyticsRoutes from './routes/analyticsRoutes.js';
-import authRoutes from './routes/authRoutes.js';
-import studyRoutes from './routes/studyRoutes.js';
+import mazoRoutes from './routes/mazoRoutes.js';
+import tarjetaRoutes from './routes/tarjetaRoutes.js';
+import cursoRoutes from './routes/cursoRoutes.js';
+import analiticaRoutes from './routes/analiticaRoutes.js';
+import autenticacionRoutes from './routes/autenticacionRoutes.js';
+import estudioRoutes from './routes/estudioRoutes.js';
 import usuarioRoutes from './routes/usuarioRoutes.js';
-import studentRoutes from './routes/studentRoutes.js';
-import aporteRoutes from './routes/aporteRoutes.js';
+import estudianteRoutes from './routes/estudianteRoutes.js';
+import aporteRoutes, { rechazoAporteRoutes } from './routes/aporteRoutes.js';
 
 /** @brief Instancia principal de la aplicación Express. */
 const app = express();
@@ -79,15 +78,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/decks', deckRoutes);
-app.use('/api/v1/cards', cardRoutes);
-app.use('/api/v1/courses', courseRoutes);
-app.use('/api/v1/contributions', contributionRoutes);
-app.use('/api/v1/teacher/analytics', analyticsRoutes);
-app.use('/api/v1/study', studyRoutes);
+app.use('/api/v1/auth', autenticacionRoutes);
+app.use('/api/v1/decks', mazoRoutes);
+app.use('/api/v1/cards', tarjetaRoutes);
+app.use('/api/v1/courses', cursoRoutes);
+app.use('/api/v1/contributions', rechazoAporteRoutes);
+app.use('/api/v1/teacher/analytics', analiticaRoutes);
+app.use('/api/v1/study', estudioRoutes);
 app.use('/api/v1/users', usuarioRoutes);
-app.use('/api/v1/students', studentRoutes);
+app.use('/api/v1/students', estudianteRoutes);
 app.use('/api/v1/aportes', aporteRoutes);
 
 export default app;

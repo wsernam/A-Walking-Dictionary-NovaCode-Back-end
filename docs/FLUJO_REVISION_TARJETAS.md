@@ -104,8 +104,8 @@ depende solo de que la interfaz oculte el botón correctamente.
 |---|---|
 | `backend/src/controllers/TarjetaController.js` | Método `aprobar()` nuevo. Sin método `rechazar` (a propósito). |
 | `backend/src/controllers/AporteController.js` | Método `rechazar()` nuevo, con el chequeo de `tipo_aporte === 'creada'` → `403`. `@file` agregado. |
-| `backend/src/routes/cardRoutes.js` | Se agregaron `GET /:id`, `PUT /:id` y `PATCH /:id/approve`. |
-| `backend/src/routes/contributionRoutes.js` | **Archivo nuevo** — `DELETE /:id` → `AporteController.rechazar`. |
+| `backend/src/routes/tarjetaRoutes.js` | Se agregaron `GET /:id`, `PUT /:id` y `PATCH /:id/approve`. |
+| `backend/src/routes/aporteRoutes.js` | Router nombrado `rechazoAporteRoutes` (antes `contributionRoutes.js`) — `DELETE /:id` → `AporteController.rechazar`. |
 | `backend/src/app.js` | Se montó `/api/v1/contributions`; documentación `@file` actualizada con los 4 endpoints nuevos. |
 
 ## Pendientes / decisiones que no se tomaron por cuenta propia
@@ -121,5 +121,5 @@ depende solo de que la interfaz oculte el botón correctamente.
   `aporte`, lo cual no se hizo por no estar en el DER oficial.
 - **No se agregó ningún request nuevo a `Pruebas postman H.json`** para estos 4 endpoints —
   quedó pendiente de que el equipo confirme si lo quiere ahí.
-- **Sin `authMiddleware`**: estos endpoints no verifican que quien llama sea realmente una
+- **Sin `autenticacionMiddleware`**: estos endpoints no verifican que quien llama sea realmente una
   docente — la autenticación sigue aplazada, como el resto del backend.

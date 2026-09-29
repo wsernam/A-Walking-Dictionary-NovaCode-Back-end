@@ -5,13 +5,13 @@ import { RespuestaQuizController } from '../controllers/RespuestaQuizController.
 
 const router = Router();
 
-// TODO: agregar validationMiddleware aquí cuando esté implementado
+// TODO: agregar validacionMiddleware aquí cuando esté implementado
 router.post('/', RespuestaQuizController.crear);
 
 router.get('/', RespuestaQuizController.listar);
 router.get('/:id', RespuestaQuizController.obtenerPorId);
 
-// TODO: agregar validationMiddleware aquí cuando esté implementado
+// TODO: agregar validacionMiddleware aquí cuando esté implementado
 router.put('/:id', RespuestaQuizController.actualizar);
 
 router.delete('/:id', RespuestaQuizController.eliminar);

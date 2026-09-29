@@ -1,5 +1,5 @@
 /**
- * @file deckRoutes.js
+ * @file mazoRoutes.js
  * @brief Rutas REST de HE-01 para "decks" (mazos) y "cards" (tarjetas) anidadas bajo un deck.
  *
  * Nombres de URL en inglés por acuerdo con el equipo; los campos del body siguen en español,
@@ -10,7 +10,7 @@
 import { Router } from 'express';
 import { MazoController } from '../controllers/MazoController.js';
 import { TarjetaController } from '../controllers/TarjetaController.js';
-import { authenticate, requireRole } from '../middleware/authMiddleware.js';
+import { authenticate, requireRole } from '../middleware/autenticacionMiddleware.js';
 
 const router = Router();
 

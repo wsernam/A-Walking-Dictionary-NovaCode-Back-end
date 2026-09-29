@@ -1,5 +1,5 @@
 /**
- * @file cardRoutes.js
+ * @file tarjetaRoutes.js
  * @brief Rutas REST de HE-01 (tarjetas) y HE-02 (curaduría docente: revisión, aprobación,
  * rechazo, contexto) para "cards" (tarjetas). Montado en app.js bajo el prefijo /api/v1/cards.
  *
@@ -9,7 +9,7 @@
 
 import { Router } from 'express';
 import { TarjetaController } from '../controllers/TarjetaController.js';
-import { authenticate, requireRole } from '../middleware/authMiddleware.js';
+import { authenticate, requireRole } from '../middleware/autenticacionMiddleware.js';
 
 const router = Router();
 

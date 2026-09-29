@@ -1,5 +1,5 @@
 /**
- * @file AnalyticsRepository.js
+ * @file AnaliticaRepository.js
  * @brief Repositorio de solo lectura para HU-2.3 (resumen de participación por mazo). No
  * corresponde a ninguna tabla propia del DER — agrega datos de inscripcion, usuario, aporte
  * y tarjeta con una consulta SQL directa (no hay una entidad "analytics" en el DER).
@@ -7,7 +7,7 @@
 
 import { pool } from '../config/db.js';
 
-export const AnalyticsRepository = {
+export const AnaliticaRepository = {
   /**
    * @brief CA-2.3.1: por cada estudiante inscrito en el curso del mazo, cuenta cuántas
    * palabras aportó (tipo_aporte='creada'), cuántas coautorías/acepciones hizo, y cuántas de

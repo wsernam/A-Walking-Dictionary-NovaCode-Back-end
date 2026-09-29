@@ -5,13 +5,13 @@ import { ProgresoEstudioController } from '../controllers/ProgresoEstudioControl
 
 const router = Router();
 
-// TODO: agregar validationMiddleware aquí cuando esté implementado
+// TODO: agregar validacionMiddleware aquí cuando esté implementado
 router.post('/', ProgresoEstudioController.crear);
 
 router.get('/', ProgresoEstudioController.listar);
 router.get('/:id', ProgresoEstudioController.obtenerPorId);
 
-// TODO: agregar validationMiddleware aquí cuando esté implementado
+// TODO: agregar validacionMiddleware aquí cuando esté implementado
 router.put('/:id', ProgresoEstudioController.actualizar);
 
 router.delete('/:id', ProgresoEstudioController.eliminar);

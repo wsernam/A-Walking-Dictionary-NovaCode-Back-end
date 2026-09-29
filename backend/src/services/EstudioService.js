@@ -1,9 +1,9 @@
 import { InscripcionRepository } from '../repositories/InscripcionRepository.js';
-import { StudyRepository } from '../repositories/StudyRepository.js';
+import { EstudioRepository } from '../repositories/EstudioRepository.js';
 import { ProgresoEstudioRepository } from '../repositories/ProgresoEstudioRepository.js';
 import { SM2Service } from './SM2Service.js';
 
-export const StudyService = {
+export const EstudioService = {
   /**
    * Inicia una sesión de repaso para un estudiante.
    *
@@ -26,7 +26,7 @@ export const StudyService = {
       throw error;
     }
 
-    const tarjetas = await StudyRepository.listarTarjetasDisponibles(
+    const tarjetas = await EstudioRepository.listarTarjetasDisponibles(
       inscripcion_id
     );
 
@@ -76,7 +76,7 @@ export const StudyService = {
    * y actualiza su progreso mediante SM-2.
    */
   async registrarValoracion(inscripcion_id, tarjeta_id, valoracion) {
-    const tarjeta = await StudyRepository.listarTarjetasDisponibles(
+    const tarjeta = await EstudioRepository.listarTarjetasDisponibles(
       inscripcion_id
     );
 

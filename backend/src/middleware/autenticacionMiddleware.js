@@ -1,8 +1,8 @@
 /**
- * @file authMiddleware.js
+ * @file autenticacionMiddleware.js
  * @brief Middlewares de autenticación y control de acceso por rol (HU-5.4).
  *
- * Depende de: la variable de entorno JWT_SECRET (con la que AuthService firma el token).
+ * Depende de: la variable de entorno JWT_SECRET (con la que AutenticacionService firma el token).
  * Se aplican por ruta, en los archivos de src/routes/, no de forma global en app.js.
  */
 

@@ -1,12 +1,12 @@
 /**
- * @file AnalyticsController.js
+ * @file AnaliticaController.js
  * @brief Controlador REST de analíticas de participación para la docente (HU-2.3).
  */
 
 import { MazoRepository } from '../repositories/MazoRepository.js';
-import { AnalyticsRepository } from '../repositories/AnalyticsRepository.js';
+import { AnaliticaRepository } from '../repositories/AnaliticaRepository.js';
 
-export const AnalyticsController = {
+export const AnaliticaController = {
   /**
    * @brief CA-2.3.1: resumen de participación por mazo (tabla de estudiantes con palabras
    * aportadas, coautorías y estado de revisión). CA-2.3.2: si se pasa ?sinAportes=true, filtra
@@ -32,7 +32,7 @@ export const AnalyticsController = {
         return res.status(404).json({ error: 'Mazo no encontrado' });
       }
 
-      let resumen = await AnalyticsRepository.resumenParticipacionPorMazo(id, mazo.curso_id);
+      let resumen = await AnaliticaRepository.resumenParticipacionPorMazo(id, mazo.curso_id);
 
       if (req.query.sinAportes === 'true') {
         resumen = resumen.filter((fila) => fila.palabras_aportadas === 0 && fila.coautorias === 0);

@@ -15,7 +15,7 @@ export const UsuarioController = {
 
       // nombre_completo, email y rol son varchar NOT NULL en el DER.
       // password_hash se excluye: se calcula a partir de una contraseña en texto plano,
-      // no se recibe tal cual (queda para cuando se implemente AuthService).
+      // no se recibe tal cual (queda para cuando se implemente AutenticacionService).
       const camposFaltantes = [];
       if (!nombre_completo) camposFaltantes.push('nombre_completo');
       if (!email) camposFaltantes.push('email');

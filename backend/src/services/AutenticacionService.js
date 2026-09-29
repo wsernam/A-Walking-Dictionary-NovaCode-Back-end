@@ -1,5 +1,5 @@
 /**
- * @file AuthService.js
+ * @file AutenticacionService.js
  * @brief Servicio de autenticación mediante Google OAuth (HU-5.4).
  *
  * HU-5.4: autentica usuarios ya registrados.
@@ -110,7 +110,7 @@ export function emitirSesion(usuario) {
   };
 }
 
-export const AuthService = {
+export const AutenticacionService = {
 
   /**
    * HU-5.4: inicia sesión con Google.
