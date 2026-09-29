@@ -112,24 +112,25 @@ export const UsuarioController = {
    * estudiante_id o falla una validación, 404 si el usuario no existe, 500 ante error inesperado.
    */
   async actualizarPerfil(req, res) {
-    try {
-      const { estudiante_id, nivel_ingles, codigo_estudiantil, avatar, intereses } = req.body;
-      const id = Number(estudiante_id);
-      if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'estudiante_id es obligatorio y debe ser numérico' });
-      }
-      const perfil = await PerfilService.actualizarPerfil(id, {
-        nivel_ingles,
-        codigo_estudiantil,
-        avatar,
-        intereses,
-      });
-      res.status(200).json(perfil);
-    } catch (error) {
-      const status = error.status || 500;
-      res.status(status).json({ error: error.message });
-    }
-  },
+  try {
+    const { nivel_ingles, codigo_estudiantil, avatar, intereses } = req.body;
+
+    // El usuario se obtiene del JWT generado mediante Google OAuth.
+    const id = req.usuario.id_usuario;
+
+    const perfil = await PerfilService.actualizarPerfil(id, {
+      nivel_ingles,
+      codigo_estudiantil,
+      avatar,
+      intereses,
+    });
+
+    res.status(200).json(perfil);
+  } catch (error) {
+    const status = error.status || 500;
+    res.status(status).json({ error: error.message });
+  }
+},
 
   /**
    * @brief HU-5.2: contexto académico (curso y semestre) de solo lectura.

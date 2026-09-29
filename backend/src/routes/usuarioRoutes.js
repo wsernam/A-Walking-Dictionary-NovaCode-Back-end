@@ -6,6 +6,7 @@
 
 import { Router } from 'express';
 import { UsuarioController } from '../controllers/UsuarioController.js';
+import { authenticate, requireRole } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.post('/', UsuarioController.crear);
 router.get('/', UsuarioController.listar);
 
 // HU-5.2 / CA-5.2.1: actualiza el perfil académico (nivel MCER, código estudiantil, avatar).
-router.patch('/profile', UsuarioController.actualizarPerfil);
+router.patch(  '/profile',  authenticate,  requireRole('estudiante'),  UsuarioController.actualizarPerfil);
 
 // HU-5.2: GET /api/v1/users/:id, shape de perfil acordado con el frontend (ver PerfilService.js).
 router.get('/:id', UsuarioController.obtenerPerfil);
