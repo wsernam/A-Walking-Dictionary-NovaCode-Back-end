@@ -7,9 +7,13 @@ export const EstudioService = {
   /**
    * Inicia una sesión de repaso para un estudiante.
    *
-   * Obtiene las tarjetas aprobadas de los mazos disponibles
-   * para el curso de la inscripción y determina cuáles deben
-   * aparecer en la sesión.
+   * Devuelve TODAS las tarjetas aprobadas de los mazos disponibles para el
+   * curso de la inscripción, para que el estudiante pueda repasar cuantas
+   * veces quiera (p. ej. antes de un quiz). SM-2 no filtra, solo ordena:
+   *   1. Las que ya les tocaba repaso (las más atrasadas primero).
+   *   2. Las que nunca ha estudiado.
+   *   3. El resto, primero las que más le cuestan (menor factor de facilidad).
+   * Decisión del equipo (2026-09-30), ver CHANGELOG_BACKEND.md.
    */
   async iniciarSesion(inscripcion_id) {
     const inscripcion = await InscripcionRepository.obtenerPorId(inscripcion_id);
@@ -32,7 +36,9 @@ export const EstudioService = {
 
     const ahora = new Date();
 
-    const tarjetasEstudio = [];
+    const vencidas = [];
+    const nuevas = [];
+    const pendientes = [];
 
     for (const tarjeta of tarjetas) {
       const progreso =
@@ -41,28 +47,28 @@ export const EstudioService = {
           tarjeta.id_tarjeta
         );
 
-      // Si la tarjeta nunca ha sido estudiada,
-      // se incluye como tarjeta nueva.
       if (!progreso) {
-        tarjetasEstudio.push({
-          ...tarjeta,
-          progreso: null,
-        });
-        continue;
-      }
-
-      // Si ya existe progreso, solo se incluye cuando
-      // corresponde realizar el próximo repaso.
-      if (
+        nuevas.push({ ...tarjeta, progreso: null });
+      } else if (
         !progreso.fecha_proximo_repaso ||
         new Date(progreso.fecha_proximo_repaso) <= ahora
       ) {
-        tarjetasEstudio.push({
-          ...tarjeta,
-          progreso,
-        });
+        vencidas.push({ ...tarjeta, progreso });
+      } else {
+        pendientes.push({ ...tarjeta, progreso });
       }
     }
+
+    const fechaRepaso = (t) => new Date(t.progreso.fecha_proximo_repaso ?? 0);
+
+    vencidas.sort((a, b) => fechaRepaso(a) - fechaRepaso(b));
+    pendientes.sort(
+      (a, b) =>
+        Number(a.progreso.factor_facilidad) - Number(b.progreso.factor_facilidad) ||
+        fechaRepaso(a) - fechaRepaso(b)
+    );
+
+    const tarjetasEstudio = [...vencidas, ...nuevas, ...pendientes];
 
     return {
       inscripcion_id,

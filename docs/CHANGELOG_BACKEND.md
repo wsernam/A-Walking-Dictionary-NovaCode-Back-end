@@ -1,7 +1,28 @@
 # Changelog - Estructura Backend
 
 ## Fecha
-2026-09-24 (última actualización — ver historial de sesiones más abajo)
+2026-09-30 (última actualización — ver historial de sesiones más abajo)
+
+## Cambios aplicados en esta sesión (2026-09-30) — HU-4.1: el repaso ya no se queda sin tarjetas
+
+Problema reportado por el equipo: al terminar una sesión de estudio no salían más tarjetas hasta
+24 h después (SM-2 solo devolvía las vencidas), y al cerrar un mazo sus palabras desaparecían del
+estudio, justo antes del quiz de ese mazo. Detalle completo, decisiones y pruebas en
+`docs/CAMBIO_REPASO_SM2.md`. Acordado en el grupo (William Serna / Manuela Erazo):
+
+- `EstudioRepository.listarTarjetasDisponibles`: se cambió `m.estado = 'abierto'` por
+  `m.fecha_apertura <= CURRENT_DATE`. El repaso es acumulativo: incluye mazos cerrados (cerrar
+  solo impide agregar palabras, CA-1.2.3) y excluye los mazos creados por adelantado que aún no
+  llegan a su fecha de apertura.
+- `EstudioService.iniciarSesion`: devuelve todas las tarjetas disponibles; SM-2 ya no filtra,
+  solo ordena (vencidas → nuevas → resto por menor factor de facilidad).
+- Sin cambios en `registrarValoracion` ni en `SM2Service`: cada valoración sigue recalculando
+  SM-2 (CA-4.1.2), también si el estudiante repasa varias veces el mismo día — el equipo
+  considera que estudiar repetidamente sí refleja dominio de la palabra.
+- Sin cambios en el contrato del endpoint (`POST /api/v1/study/review-session`) ni en la BD.
+- Supuesto pendiente de validar: `CURRENT_DATE` usa la zona horaria de PostgreSQL (UTC en
+  Docker), así que un mazo puede verse desde las 7:00 p. m. (hora Colombia) del día anterior a
+  su fecha_apertura.
 
 ## Cambios aplicados en esta sesión (2026-09-24) — HU-5.1: una sola versión del registro
 

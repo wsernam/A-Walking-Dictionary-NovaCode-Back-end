@@ -1,6 +1,13 @@
 import { pool } from '../config/db.js';
 
 export const EstudioRepository = {
+  /**
+   * Tarjetas aprobadas de los mazos del curso de la inscripción que ya abrieron.
+   *
+   * El repaso es acumulativo: incluye mazos cerrados (cerrar solo impide agregar palabras,
+   * CA-1.2.3) y excluye los que la docente creó por adelantado y aún no llegan a su
+   * fecha_apertura. Decisión del equipo (2026-09-30), ver CHANGELOG_BACKEND.md.
+   */
   async listarTarjetasDisponibles(inscripcion_id) {
     const { rows } = await pool.query(
       `SELECT
@@ -20,7 +27,7 @@ export const EstudioRepository = {
          ON t.mazo_id = m.id_mazo
        WHERE i.id_inscripcion = $1
          AND i.estado = 'activa'
-         AND m.estado = 'abierto'
+         AND m.fecha_apertura <= CURRENT_DATE
          AND t.estado = 'revisado_docente'
        ORDER BY t.id_tarjeta ASC`,
       [inscripcion_id]
