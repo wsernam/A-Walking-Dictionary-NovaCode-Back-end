@@ -30,10 +30,11 @@ export const AnaliticaRepository = {
          COUNT(*) FILTER (WHERE a.tipo_aporte = 'creada' AND t.estado = 'revisado_docente') AS tarjetas_aprobadas
        FROM inscripcion i
        JOIN usuario u ON u.id_usuario = i.estudiante_id
-       LEFT JOIN aporte a ON a.inscripcion_id = i.id_inscripcion
-       LEFT JOIN tarjeta t ON t.id_tarjeta = a.tarjeta_id AND t.mazo_id = $1
+       -- Solo los aportes de ESTE mazo, unidos como bloque: así un estudiante que aportó en
+       -- otros mazos pero no en este sigue en la lista con ceros ("Sin aportes", CA-2.3.2).
+       LEFT JOIN (aporte a JOIN tarjeta t ON t.id_tarjeta = a.tarjeta_id AND t.mazo_id = $1)
+         ON a.inscripcion_id = i.id_inscripcion
        WHERE i.curso_id = $2
-         AND (a.id_aporte IS NULL OR t.id_tarjeta IS NOT NULL)
        GROUP BY u.id_usuario, u.nombre_completo
        ORDER BY u.nombre_completo`,
       [mazo_id, curso_id]

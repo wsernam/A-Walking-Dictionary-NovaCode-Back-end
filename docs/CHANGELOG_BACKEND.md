@@ -3,6 +3,23 @@
 ## Fecha
 2026-09-30 (última actualización — ver historial de sesiones más abajo)
 
+## Cambios aplicados en esta sesión (2026-10-01) — HU-2.3: la analítica de participación ya no oculta estudiantes
+
+`AnaliticaRepository.resumenParticipacionPorMazo` filtraba con
+`AND (a.id_aporte IS NULL OR t.id_tarjeta IS NOT NULL)`, que sacaba de la tabla a todo estudiante
+que había aportado en OTROS mazos pero no en el consultado: no aparecía ni como "Sin aportes"
+(CA-2.3.2). En un mazo nuevo, sin palabras, la tabla salía vacía aunque el curso tuviera inscritos.
+
+- Los aportes del mazo se unen como bloque
+  (`LEFT JOIN (aporte a JOIN tarjeta t ON … AND t.mazo_id = $1) ON a.inscripcion_id = …`) y se
+  quitó ese filtro. Todos los inscritos del curso aparecen siempre, con ceros si no aportaron.
+- Mismo endpoint (`GET /api/v1/teacher/analytics/deck/:id`) y misma forma de respuesta.
+- Probado: mazo sin palabras → los 3 inscritos con 0 (antes `[]`); estudiante que solo aportó en
+  otro mazo → aparece con 0 (antes no aparecía); mazos con aportes → mismos números que antes;
+  `?sinAportes=true` → solo los que tienen 0.
+- Pendiente de decidir: la consulta incluye inscripciones inactivas (un estudiante retirado
+  seguiría saliendo como "Sin aportes").
+
 ## Cambios aplicados en esta sesión (2026-09-30) — HU-1.2: solo aportan estudiantes inscritos (CA-1.2.1)
 
 `POST /api/v1/decks/:id/cards` no cumplía el CA-1.2.1 ("dado que el estudiante está inscrito…
