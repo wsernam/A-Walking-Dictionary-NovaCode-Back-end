@@ -20,7 +20,7 @@ import jwt from 'jsonwebtoken';
  * por defecto. NUNCA debe quedar en true en un entorno real.
  * @return {boolean} true si DISABLE_AUTH === 'true'.
  */
-const authDeshabilitado = () => process.env.DISABLE_AUTH === 'true';
+export const authDeshabilitado = () => process.env.DISABLE_AUTH === 'true';
 
 /**
  * @brief CA-5.4.1: verifica el token JWT del header "Authorization: Bearer <token>".
@@ -57,6 +57,29 @@ export function authenticate(req, res, next) {
   } catch (error) {
     return res.status(401).json({ error: 'Token inválido o expirado' });
   }
+}
+
+/**
+ * @brief Autenticación opcional para rutas públicas de lectura (Invitado, CA-5.4.3).
+ *
+ * Si llega un JWT válido, adjunta req.usuario igual que authenticate, para que la ruta pueda
+ * personalizar la respuesta (p. ej. GET /decks filtra por los cursos del estudiante). Si no hay
+ * token, o es inválido o expiró, NO responde 401: continúa como invitado, sin req.usuario.
+ */
+export function autenticacionOpcional(req, res, next) {
+  if (authDeshabilitado()) {
+    return authenticate(req, res, next);
+  }
+
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      req.usuario = jwt.verify(authHeader.slice('Bearer '.length), process.env.JWT_SECRET);
+    } catch {
+      // Token inválido o expirado: se atiende como invitado.
+    }
+  }
+  next();
 }
 
 /**

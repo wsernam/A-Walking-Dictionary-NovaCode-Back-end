@@ -124,13 +124,18 @@ export const MazoController = {
   },
 
   /**
-   * @brief Lista todos los mazos existentes, sin filtros.
-   * @param {import('express').Request} req - No se usa (sin filtros ni paginación implementados).
+   * @brief Lista los mazos. Para un estudiante con sesión, solo los de sus cursos con
+   * inscripción activa (CA-1.2.1); para Invitado (sin token) o docente, todos.
+   * @param {import('express').Request} req - req.usuario viene de autenticacionOpcional (puede
+   * no existir).
    * @param {import('express').Response} res - 200 con el arreglo de mazos, 500 ante error inesperado.
    */
   async listar(req, res) {
     try {
-      const mazos = await MazoRepository.listar();
+      const mazos =
+        req.usuario?.rol === 'estudiante'
+          ? await MazoRepository.listarPorEstudiante(req.usuario.id_usuario)
+          : await MazoRepository.listar();
       res.status(200).json(mazos);
     } catch (error) {
       res.status(500).json({ error: error.message });

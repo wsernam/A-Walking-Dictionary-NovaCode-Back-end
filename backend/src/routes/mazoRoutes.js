@@ -10,7 +10,7 @@
 import { Router } from 'express';
 import { MazoController } from '../controllers/MazoController.js';
 import { TarjetaController } from '../controllers/TarjetaController.js';
-import { authenticate, requireRole } from '../middleware/autenticacionMiddleware.js';
+import { authenticate, autenticacionOpcional, requireRole } from '../middleware/autenticacionMiddleware.js';
 
 const router = Router();
 
@@ -21,11 +21,12 @@ const router = Router();
 router.post('/', authenticate, requireRole('docente'), MazoController.crear);
 
 /**
- * @brief Lista todos los mazos existentes, sin filtros. GET /api/v1/decks
+ * @brief Lista los mazos. GET /api/v1/decks
  * @note No viene de un CA específico; es consulta de apoyo para probar/usar lo ya creado
- * con POST /decks. Sin autenticación: cubre el acceso de solo lectura de Invitado (CA-5.4.3).
+ * con POST /decks. Token opcional: sin token (Invitado, CA-5.4.3) o como docente devuelve todos;
+ * con token de estudiante devuelve solo los de sus cursos con inscripción activa (CA-1.2.1).
  */
-router.get('/', MazoController.listar);
+router.get('/', autenticacionOpcional, MazoController.listar);
 
 /**
  * @brief Busca un mazo por su id_mazo. GET /api/v1/decks/:id

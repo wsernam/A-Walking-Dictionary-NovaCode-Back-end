@@ -3,6 +3,31 @@
 ## Fecha
 2026-09-30 (última actualización — ver historial de sesiones más abajo)
 
+## Cambios aplicados en esta sesión (2026-09-30) — HU-1.2: solo aportan estudiantes inscritos (CA-1.2.1)
+
+`POST /api/v1/decks/:id/cards` no cumplía el CA-1.2.1 ("dado que el estudiante está inscrito…
+registra el aporte asociado al estudiante"): tomaba `inscripcion_id` del body sin validarlo, y
+el front siempre mandaba la inscripción simulada del `.env` (1), así que cualquier usuario, incluso
+sin curso, registraba palabras y todas quedaban a nombre de la misma inscripción.
+
+- `TarjetaController.crear`: la inscripción se busca con el usuario del token y el curso del
+  mazo (`InscripcionRepository.obtenerPorCursoYEstudiante`). Si no existe o no está `activa`
+  → **403**. El `inscripcion_id` del body se ignora.
+- Excepción solo para desarrollo: con `DISABLE_AUTH=true` no hay usuario real, así que se sigue
+  usando el `inscripcion_id` del body (400 si falta), para no romper las pruebas con Postman.
+- `autenticacionMiddleware.js`: se exporta `authDeshabilitado()` para reutilizarlo.
+- Front (`RegistrarTarjetaForm.jsx`): ya no bloquea el formulario si falta
+  `VITE_INSCRIPCION_ID_SIMULADA`; lo sigue mandando solo para el modo `DISABLE_AUTH`.
+- Probado contra la API real: inscrito → 201 con su propia inscripción aunque el body diga otra;
+  sin curso, docente o inscripción inactiva → 403; mazo cerrado → 409; campos vacíos → 400.
+- `GET /api/v1/decks` (mismo endpoint, sigue público): nuevo middleware `autenticacionOpcional`.
+  Sin token (Invitado, CA-5.4.3), con token inválido o como docente devuelve todos los mazos,
+  igual que antes; con token de estudiante devuelve solo los de sus cursos con inscripción activa
+  (`MazoRepository.listarPorEstudiante`). Así el estudiante sin curso no ve mazos al registrar
+  palabras, y el front muestra un aviso para que se una a un curso con su código de acceso.
+- Probado: invitado/docente → todos; estudiante inscrito → solo su curso (un mazo de otro curso
+  no aparece y registrar en él da 403); sin curso o con inscripción inactiva → 0 mazos.
+
 ## Cambios aplicados en esta sesión (2026-09-30) — HU-4.1: el repaso ya no se queda sin tarjetas
 
 Problema reportado por el equipo: al terminar una sesión de estudio no salían más tarjetas hasta

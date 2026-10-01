@@ -58,6 +58,24 @@ export const MazoRepository = {
   },
 
   /**
+   * @brief Lista los mazos de los cursos en los que el estudiante tiene inscripción activa
+   * (CA-1.2.1: solo aporta el estudiante inscrito).
+   * @param {number} estudiante_id - id_usuario del estudiante.
+   * @return {Promise<Mazo[]>} Mazos de sus cursos; vacío si no está inscrito en ninguno.
+   */
+  async listarPorEstudiante(estudiante_id) {
+    const { rows } = await pool.query(
+      `SELECT m.*
+       FROM mazo m
+       JOIN inscripcion i ON i.curso_id = m.curso_id
+       WHERE i.estudiante_id = $1 AND i.estado = 'activa'
+       ORDER BY m.semana, m.id_mazo`,
+      [estudiante_id]
+    );
+    return rows.map((row) => new Mazo(row));
+  },
+
+  /**
    * @brief Reemplaza todos los campos de un mazo existente (UPDATE completo).
    * @param {number} id_mazo - Id del mazo a actualizar.
    * @param {Object} datos - Nuevos valores de todas las columnas de "mazo".

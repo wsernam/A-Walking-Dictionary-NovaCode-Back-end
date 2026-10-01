@@ -12,6 +12,8 @@
 import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
 import { MazoRepository } from '../repositories/MazoRepository.js';
 import { AporteRepository } from '../repositories/AporteRepository.js';
+import { InscripcionRepository } from '../repositories/InscripcionRepository.js';
+import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
 import { DeduplicacionService } from '../services/DeduplicacionService.js';
 import { CuraduriaService } from '../services/CuraduriaService.js';
 import { ContextoService } from '../services/ContextoService.js';
@@ -28,6 +30,8 @@ export const TarjetaController = {
    *
    * Flujo:
    *   a) Verifica que el mazo exista y esté "abierto" (CA-1.2.3).
+   *   a.2) Verifica que el usuario del token tenga inscripción activa en el curso del mazo y
+   *        usa esa inscripción como autora del aporte (CA-1.2.1).
    *   b) Valida palabra/traduccion/definicion obligatorios y longitudes máximas (CA-1.2.2).
    *   c) Busca duplicado en el mazo vía DeduplicacionService.buscarDuplicado (HU-1.3).
    *   d) Si no hay duplicado: crea tarjeta "pendiente_revision" + aporte tipo 'creada' (CA-1.2.1).
@@ -37,11 +41,13 @@ export const TarjetaController = {
    *   g) Responde con "resultado" para que el frontend muestre el aviso correspondiente (CA-1.3.4).
    *
    * @param {import('express').Request} req - req.params.id es el id_mazo (deck); req.body debe
-   * traer: palabra, traduccion, definicion (obligatorios), ejemplo (opcional, máx. 150
-   * caracteres) e inscripcion_id (quién hace el aporte).
+   * traer: palabra, traduccion, definicion (obligatorios) y ejemplo (opcional, máx. 150
+   * caracteres). El autor sale del token (req.usuario); inscripcion_id del body solo se usa con
+   * DISABLE_AUTH=true y en cualquier otro caso se ignora.
    * @param {import('express').Response} res - 201 con { resultado, tarjeta, aporte } donde
    * resultado es 'creada' | 'coautoria' | 'acepcion_nueva'; 400 si faltan campos o el ejemplo
-   * es muy largo; 404 si el mazo no existe; 409 si el mazo está cerrado; 500 ante error inesperado.
+   * es muy largo; 403 si el usuario no está inscrito (activo) en el curso del mazo; 404 si el
+   * mazo no existe; 409 si el mazo está cerrado; 500 ante error inesperado.
    */
   async crear(req, res) {
     try {
@@ -61,6 +67,29 @@ export const TarjetaController = {
         return res.status(409).json({ error: 'El mazo no acepta más palabras' });
       }
 
+      // a.2) el estudiante debe estar inscrito (activo) en el curso del mazo y el aporte queda a
+      // su nombre (CA-1.2.1). La inscripción se busca con el usuario del token, no se toma del
+      // body, para que nadie aporte a nombre de otro ni en un curso ajeno. Con DISABLE_AUTH no
+      // hay usuario real, así que solo en ese modo de desarrollo se usa inscripcion_id del body.
+      let inscripcionId;
+      if (authDeshabilitado()) {
+        inscripcionId = inscripcion_id;
+        if (!inscripcionId) {
+          return res.status(400).json({ error: 'inscripcion_id es obligatorio' });
+        }
+      } else {
+        const inscripcion = await InscripcionRepository.obtenerPorCursoYEstudiante(
+          mazo.curso_id,
+          req.usuario.id_usuario
+        );
+        if (!inscripcion || inscripcion.estado !== 'activa') {
+          return res.status(403).json({
+            error: 'No estás inscrito en el curso de este mazo, así que no puedes registrar palabras en él.',
+          });
+        }
+        inscripcionId = inscripcion.id_inscripcion;
+      }
+
       // b) palabra/traduccion/definicion obligatorios, ejemplo máx. 150 caracteres (CA-1.2.2)
       const camposFaltantes = [];
       if (!palabra) camposFaltantes.push('palabra');
@@ -73,9 +102,6 @@ export const TarjetaController = {
       }
       if (ejemplo && ejemplo.length > 150) {
         return res.status(400).json({ error: 'El ejemplo no puede superar los 150 caracteres' });
-      }
-      if (!inscripcion_id) {
-        return res.status(400).json({ error: 'inscripcion_id es obligatorio' });
       }
 
       // Longitud máxima según el DER: palabra varchar(150), traduccion varchar(255).
@@ -115,7 +141,7 @@ export const TarjetaController = {
         });
         const aporte = await AporteRepository.crear({
           tarjeta_id: tarjetaNueva.id_tarjeta,
-          inscripcion_id,
+          inscripcion_id: inscripcionId,
           traduccion_aportada: traduccion,
           definicion_aportada: definicion,
           ejemplo_aportado: ejemplo ?? null,
@@ -132,7 +158,7 @@ export const TarjetaController = {
 
       const aporte = await AporteRepository.crear({
         tarjeta_id: tarjetaExistente.id_tarjeta,
-        inscripcion_id,
+        inscripcion_id: inscripcionId,
         traduccion_aportada: traduccion,
         definicion_aportada: definicion,
         ejemplo_aportado: ejemplo ?? null,
