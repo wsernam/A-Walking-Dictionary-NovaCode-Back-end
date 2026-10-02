@@ -75,6 +75,16 @@ import aporteRoutes, { rechazoAporteRoutes } from './routes/aporteRoutes.js';
 /** @brief Instancia principal de la aplicación Express. */
 const app = express();
 
+//para comprobar que el backend esta funcionando
+app.get('/health', (_req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: 'a-walking-dictionary-backend'
+  });
+});
+
+
+
 app.use(cors());
 app.use(express.json());
 
