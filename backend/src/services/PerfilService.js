@@ -187,10 +187,12 @@ export const PerfilService = {
    * (JOIN con curso). departamento_universidad no tiene fuente en la BD todavía (supuesto
    * pendiente de validar), por eso se devuelve null. Si el estudiante no tiene inscripción
    * responde con nulls (no 404), porque el front carga perfil y contexto juntos.
+   * id_inscripcion se expone para que el front use la inscripción real del estudiante en
+   * POST /study/review-session y POST /decks/:id/cards (antes usaba un id simulado).
    *
    * @param {number} estudiante_id - id_usuario.
-   * @returns {Promise<{curso_asignado:(string|null), semestre_activo:(string|null),
-   * departamento_universidad:null}>}
+   * @returns {Promise<{id_inscripcion:(number|null), curso_asignado:(string|null),
+   * semestre_activo:(string|null), departamento_universidad:null}>}
    * @throws {Error} status 404 si el usuario no existe.
    */
   async obtenerContextoAcademico(estudiante_id) {
@@ -202,6 +204,7 @@ export const PerfilService = {
     }
     const contexto = await InscripcionRepository.obtenerContextoAcademico(estudiante_id);
     return {
+      id_inscripcion: contexto?.id_inscripcion ?? null,
       curso_asignado: contexto?.curso_asignado ?? null,
       semestre_activo: contexto?.semestre_activo ?? null,
       departamento_universidad: null,

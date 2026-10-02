@@ -32,12 +32,12 @@ export const InscripcionRepository = {
   /**
    * @brief HU-5.2: inscripción más reciente del estudiante con los datos de su curso.
    * @param {number} estudiante_id - id_usuario del estudiante.
-   * @returns {Promise<{curso_asignado:string, semestre_activo:string}|null>} curso.nombre y
-   * curso.periodo, o null si el estudiante no tiene inscripciones.
+   * @returns {Promise<{id_inscripcion:number, curso_asignado:string, semestre_activo:string}|null>}
+   * id de la inscripción, curso.nombre y curso.periodo, o null si el estudiante no tiene inscripciones.
    */
   async obtenerContextoAcademico(estudiante_id) {
     const { rows } = await pool.query(
-      `SELECT c.nombre AS curso_asignado, c.periodo AS semestre_activo
+      `SELECT i.id_inscripcion, c.nombre AS curso_asignado, c.periodo AS semestre_activo
        FROM inscripcion i
        JOIN curso c ON c.id_curso = i.curso_id
        WHERE i.estudiante_id = $1
