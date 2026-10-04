@@ -24,8 +24,6 @@
 
 import { MazoRepository } from '../repositories/MazoRepository.js';
 import { QuizRepository } from '../repositories/QuizRepository.js';
-import { QuizMazoRepository } from '../repositories/QuizMazoRepository.js';
-import { PreguntaQuizRepository } from '../repositories/PreguntaQuizRepository.js';
 import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
 
 /**
@@ -39,6 +37,17 @@ function error(status, message) {
   const err = new Error(message);
   err.status = status;
   return err;
+}
+
+/**
+ * @brief Indica si un valor es un entero mayor o igual a 1 (acepta números o strings numéricos,
+ * como llegan desde un formulario).
+ * @param {*} valor - Valor a validar.
+ * @return {boolean} true si `Number(valor)` es un entero >= 1.
+ */
+function esEnteroPositivo(valor) {
+  const n = Number(valor);
+  return valor !== '' && valor !== null && Number.isInteger(n) && n >= 1;
 }
 
 /**
@@ -142,13 +151,14 @@ export const QuizService = {
    * @param {number[]} datos.mazo_ids - Ids de los mazos cuyas tarjetas aprobadas forman el pool.
    * @param {string} datos.fecha_apertura - Fecha/hora desde la que el quiz acepta respuestas.
    * @param {string} datos.fecha_cierre - Fecha/hora hasta la que el quiz acepta respuestas.
-   * @param {number} datos.tiempo_limite_min - Tiempo límite en minutos para responder.
-   * @param {number} [datos.cantidad_preguntas] - Cantidad de preguntas a generar; si se omite,
-   * se usan todas las tarjetas aprobadas del rango.
+   * @param {number} datos.tiempo_limite_min - Tiempo límite en minutos para responder (entero >= 1).
+   * @param {number} [datos.cantidad_preguntas] - Cantidad de preguntas a generar (entero >= 1);
+   * si se omite, se usan todas las tarjetas aprobadas del rango.
    * @return {Promise<{quiz:Object, preguntas:import('../models/PreguntaQuiz.js').PreguntaQuiz[]}>}
    * El quiz creado (con `estado_efectivo`) y las preguntas generadas.
-   * @throws {Error} status 400 si faltan campos obligatorios, si fecha_cierre no es posterior a
-   * fecha_apertura, o si hay menos de 2 tarjetas revisado_docente disponibles en los mazos
+   * @throws {Error} status 400 si faltan campos obligatorios, si las fechas no son válidas, si
+   * mazo_ids/tiempo_limite_min/cantidad_preguntas no son enteros >= 1, si fecha_cierre no es
+   * posterior a fecha_apertura, o si hay menos de 2 tarjetas revisado_docente disponibles en los mazos
    * elegidos (CA-3.1.1); status 404 si algún mazo_id no existe.
    */
   async generar(datos) {
@@ -173,18 +183,36 @@ export const QuizService = {
       throw error(400, `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`);
     }
 
+    if (Number.isNaN(new Date(fecha_apertura).getTime())) {
+      throw error(400, 'fecha_apertura no es una fecha válida');
+    }
+    if (Number.isNaN(new Date(fecha_cierre).getTime())) {
+      throw error(400, 'fecha_cierre no es una fecha válida');
+    }
     if (new Date(fecha_cierre) <= new Date(fecha_apertura)) {
       throw error(400, 'fecha_cierre debe ser posterior a fecha_apertura');
     }
+    if (!esEnteroPositivo(tiempo_limite_min)) {
+      throw error(400, 'tiempo_limite_min debe ser un número entero mayor o igual a 1');
+    }
+    if (cantidad_preguntas !== undefined && cantidad_preguntas !== null && !esEnteroPositivo(cantidad_preguntas)) {
+      throw error(400, 'cantidad_preguntas debe ser un número entero mayor o igual a 1');
+    }
+    if (!mazo_ids.every(esEnteroPositivo)) {
+      throw error(400, 'mazo_ids debe contener solo ids de mazo (enteros mayores o iguales a 1)');
+    }
 
-    const mazos = await Promise.all(mazo_ids.map((id) => MazoRepository.obtenerPorId(id)));
-    const mazoInexistente = mazo_ids.find((id, idx) => !mazos[idx]);
+    // Un mismo mazo repetido en mazo_ids se cuenta una sola vez (quiz_mazo tiene pk (quiz_id, mazo_id)).
+    const mazoIdsUnicos = [...new Set(mazo_ids.map(Number))];
+
+    const mazos = await Promise.all(mazoIdsUnicos.map((id) => MazoRepository.obtenerPorId(id)));
+    const mazoInexistente = mazoIdsUnicos.find((id, idx) => !mazos[idx]);
     if (mazoInexistente !== undefined) {
       throw error(404, `El mazo ${mazoInexistente} no existe`);
     }
 
     // CA-3.1.1: exclusivamente tarjetas revisado_docente de los mazos elegidos.
-    const poolAprobadas = await TarjetaRepository.listarAprobadasPorMazos(mazo_ids);
+    const poolAprobadas = await TarjetaRepository.listarAprobadasPorMazos(mazoIdsUnicos);
     if (poolAprobadas.length < 2) {
       throw error(
         400,
@@ -201,28 +229,27 @@ export const QuizService = {
 
     const semana_corte = Math.max(...mazos.map((m) => m.semana));
 
-    const quiz = await QuizRepository.crear({
-      curso_id,
-      titulo,
-      semana_corte,
-      fecha_creacion: new Date(),
-      fecha_apertura,
-      fecha_cierre,
-      tiempo_limite_min,
-      estado: 'programado',
-    });
+    const datosPreguntas = tarjetasSeleccionadas.map((tarjeta, idx) =>
+      construirPregunta(tarjeta, poolAprobadas, idx + 1)
+    );
 
-    await Promise.all(mazo_ids.map((mazo_id) => QuizMazoRepository.crear({ quiz_id: quiz.id_quiz, mazo_id })));
+    // Quiz, quiz_mazo y pregunta_quiz se guardan en una sola transacción: si algo falla no queda
+    // un quiz a medias en la base de datos.
+    const { quiz, preguntas } = await QuizRepository.crearConMazosYPreguntas(
+      {
+        curso_id,
+        titulo,
+        semana_corte,
+        fecha_creacion: new Date(),
+        fecha_apertura,
+        fecha_cierre,
+        tiempo_limite_min,
+        estado: 'programado',
+      },
+      mazoIdsUnicos,
+      datosPreguntas
+    );
 
-    const preguntasCreadas = [];
-    let orden = 1;
-    for (const tarjeta of tarjetasSeleccionadas) {
-      const datosPregunta = construirPregunta(tarjeta, poolAprobadas, orden);
-      const pregunta = await PreguntaQuizRepository.crear({ quiz_id: quiz.id_quiz, ...datosPregunta });
-      preguntasCreadas.push(pregunta);
-      orden += 1;
-    }
-
-    return { quiz: this.conEstadoEfectivo(quiz), preguntas: preguntasCreadas };
+    return { quiz: this.conEstadoEfectivo(quiz), preguntas };
   },
 };

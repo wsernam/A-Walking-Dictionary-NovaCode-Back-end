@@ -14,11 +14,14 @@ export const QuizMazoRepository = {
   /**
    * @brief Inserta una fila quiz_mazo nueva (asocia un mazo a un quiz).
    * @param {Object} datos - { quiz_id, mazo_id }.
+   * @param {import('pg').Pool|import('pg').PoolClient} [db=pool] - Conexión a usar; se pasa un
+   * cliente cuando la inserción forma parte de una transacción (ver
+   * QuizRepository.crearConMazosYPreguntas).
    * @return {Promise<QuizMazo>} La fila quiz_mazo recién creada.
    */
-  async crear(datos) {
+  async crear(datos, db = pool) {
     const { quiz_id, mazo_id } = datos;
-    const { rows } = await pool.query(
+    const { rows } = await db.query(
       `INSERT INTO quiz_mazo (quiz_id, mazo_id)
        VALUES ($1, $2)
        RETURNING *`,
