@@ -126,4 +126,20 @@ export const TarjetaRepository = {
     const { rows } = await pool.query('SELECT * FROM tarjeta WHERE mazo_id = $1', [mazo_id]);
     return rows.map((row) => new Tarjeta(row));
   },
+
+  /**
+   * @brief HU-3.1 (CA-3.1.1): lista las tarjetas "revisado_docente" que pertenecen a alguno de
+   * los mazos indicados. Es el pool exclusivo del que se generan las preguntas del quiz.
+   * @param {number[]} mazoIds - Ids de los mazos incluidos en el rango del quiz.
+   * @return {Promise<Tarjeta[]>} Tarjetas aprobadas de esos mazos.
+   */
+  async listarAprobadasPorMazos(mazoIds) {
+    const { rows } = await pool.query(
+      `SELECT * FROM tarjeta
+       WHERE estado = 'revisado_docente' AND mazo_id = ANY($1::int[])
+       ORDER BY id_tarjeta`,
+      [mazoIds]
+    );
+    return rows.map((row) => new Tarjeta(row));
+  },
 };
