@@ -7,15 +7,19 @@
 
 import { pool } from '../config/db.js';
 import { Quiz } from '../models/Quiz.js';
+import { QuizMazoRepository } from './QuizMazoRepository.js';
+import { PreguntaQuizRepository } from './PreguntaQuizRepository.js';
 
 export const QuizRepository = {
   /**
    * @brief Inserta un quiz nuevo en la base de datos.
    * @param {Object} datos - Campos de "quiz" (curso_id, titulo, semana_corte, fecha_creacion,
    * fecha_apertura, fecha_cierre, tiempo_limite_min, estado).
+   * @param {import('pg').Pool|import('pg').PoolClient} [db=pool] - Conexión a usar; se pasa un
+   * cliente cuando la inserción forma parte de una transacción (ver crearConMazosYPreguntas).
    * @return {Promise<Quiz>} El quiz recién creado, con su id_quiz asignado.
    */
-  async crear(datos) {
+  async crear(datos, db = pool) {
     const {
       curso_id,
       titulo,
@@ -26,13 +30,46 @@ export const QuizRepository = {
       tiempo_limite_min,
       estado,
     } = datos;
-    const { rows } = await pool.query(
+    const { rows } = await db.query(
       `INSERT INTO quiz (curso_id, titulo, semana_corte, fecha_creacion, fecha_apertura, fecha_cierre, tiempo_limite_min, estado)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
       [curso_id, titulo, semana_corte, fecha_creacion, fecha_apertura, fecha_cierre, tiempo_limite_min, estado]
     );
     return new Quiz(rows[0]);
+  },
+
+  /**
+   * @brief HU-3.1: guarda un quiz generado junto con sus filas de quiz_mazo y pregunta_quiz en
+   * una sola transacción. Si cualquier inserción falla, se revierte todo y no queda un quiz a
+   * medias (sin mazos o sin preguntas) en la base de datos.
+   * @param {Object} datosQuiz - Campos de "quiz" (ver crear).
+   * @param {number[]} mazo_ids - Mazos a asociar al quiz en quiz_mazo.
+   * @param {Object[]} preguntas - Datos de cada pregunta (ver PreguntaQuizRepository.crear), sin
+   * quiz_id: se asigna aquí con el id del quiz recién creado.
+   * @return {Promise<{quiz:Quiz, preguntas:import('../models/PreguntaQuiz.js').PreguntaQuiz[]}>}
+   * El quiz y las preguntas creadas.
+   */
+  async crearConMazosYPreguntas(datosQuiz, mazo_ids, preguntas) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const quiz = await this.crear(datosQuiz, client);
+      for (const mazo_id of mazo_ids) {
+        await QuizMazoRepository.crear({ quiz_id: quiz.id_quiz, mazo_id }, client);
+      }
+      const preguntasCreadas = [];
+      for (const pregunta of preguntas) {
+        preguntasCreadas.push(await PreguntaQuizRepository.crear({ quiz_id: quiz.id_quiz, ...pregunta }, client));
+      }
+      await client.query('COMMIT');
+      return { quiz, preguntas: preguntasCreadas };
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
   },
 
   /**

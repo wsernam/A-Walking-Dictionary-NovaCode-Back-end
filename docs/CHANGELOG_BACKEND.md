@@ -1,7 +1,28 @@
 # Changelog - Estructura Backend
 
 ## Fecha
-2026-09-30 (última actualización — ver historial de sesiones más abajo)
+2026-10-04 (última actualización — ver historial de sesiones más abajo)
+
+## Cambios aplicados en esta sesión (2026-10-04) — HU-3.1: validaciones y transacción al generar quiz
+
+Las pruebas de `POST /api/v1/quizzes/generate` contra Postgres mostraron que algunos datos
+inválidos dejaban quices a medias o vacíos en la base. Los CA-3.1.1/3.1.2/3.1.3 ya se cumplían; esto
+endurece la entrada sin cambiar el endpoint ni la forma de la respuesta.
+
+- `QuizService.generar` responde 400 (antes 500 o 201 con un quiz vacío) cuando: `fecha_apertura` o
+  `fecha_cierre` no son fechas válidas; `tiempo_limite_min` no es entero >= 1; `cantidad_preguntas`
+  se envía y no es entero >= 1 (antes `"abc"` creaba un quiz con 0 preguntas); `mazo_ids` trae
+  valores que no son ids.
+- `mazo_ids` repetidos (ej. `[5,5,6]`) se cuentan una vez; antes fallaba con 500 por la pk de
+  `quiz_mazo` y dejaba el quiz creado sin preguntas.
+- Nuevo `QuizRepository.crearConMazosYPreguntas`: guarda `quiz`, `quiz_mazo` y `pregunta_quiz` en
+  una sola transacción (BEGIN/COMMIT/ROLLBACK). Los `crear` de `QuizRepository`,
+  `QuizMazoRepository` y `PreguntaQuizRepository` aceptan un segundo parámetro opcional con la
+  conexión (por defecto `pool`, así que los demás llamadores no cambian).
+- Probado contra Postgres: los casos inválidos responden 400 sin crear filas; `[5,5,6]` crea el quiz
+  con mazos 5 y 6; un fallo forzado de llave foránea en `quiz_mazo` revierte el quiz insertado.
+- Pendiente de decidir (no implementado): `POST /quizzes/generate` no exige sesión ni rol docente;
+  HU-3.1 dice "como docente" pero el backlog no lo pide explícitamente para esta ruta.
 
 ## Cambios aplicados en esta sesión (2026-10-01) — HU-2.3: la analítica de participación ya no oculta estudiantes
 
