@@ -2,7 +2,7 @@
 
 Este documento le dice al frontend (React) **qué se implementó en el backend** y **cómo debe consumirlo** para la pantalla de "Responder quiz y recibir nota" del estudiante. Cubre únicamente HU-3.2 (CA-3.2.1, CA-3.2.2, CA-3.2.3). Última actualización: 2026-10-04.
 
-- Rama donde vive la implementación: **`feature/Sprint_2_HU_8`**. Depende de HU-3.1 (generar quiz, `feature/Sprint_2_HU_7`, contrato `docs/CONTRATO_FRONTEND_HU-3.1.md`): para responder un quiz, la docente primero tiene que generarlo.
+- Rama donde vive la implementación: **`feature/Sprint_3_HU_008`**. Depende de HU-3.1 (generar quiz, `feature/Sprint_3_HU_007`, contrato `docs/CONTRATO_FRONTEND_HU-3.1.md`): para responder un quiz, la docente primero tiene que generarlo.
 - Base URL: `/api/v1`.
 - Formato: JSON (`Content-Type: application/json`).
 - Errores: siempre `{ "error": "mensaje legible" }` con el status HTTP correspondiente. Mostrar `error` tal cual al usuario (salvo el `409`, ver más abajo).
