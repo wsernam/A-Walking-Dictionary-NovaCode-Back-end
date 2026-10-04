@@ -15,9 +15,12 @@ export const PreguntaQuizRepository = {
    * @brief Inserta una pregunta nueva en la base de datos.
    * @param {Object} datos - Campos de "pregunta_quiz" (quiz_id, tarjeta_id, tipo_pregunta,
    * enunciado, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta, orden).
+   * @param {import('pg').Pool|import('pg').PoolClient} [db=pool] - Conexión a usar; se pasa un
+   * cliente cuando la inserción forma parte de una transacción (ver
+   * QuizRepository.crearConMazosYPreguntas).
    * @return {Promise<PreguntaQuiz>} La pregunta recién creada, con su id_pregunta asignado.
    */
-  async crear(datos) {
+  async crear(datos, db = pool) {
     const {
       quiz_id,
       tarjeta_id,
@@ -30,7 +33,7 @@ export const PreguntaQuizRepository = {
       respuesta_correcta,
       orden,
     } = datos;
-    const { rows } = await pool.query(
+    const { rows } = await db.query(
       `INSERT INTO pregunta_quiz (quiz_id, tarjeta_id, tipo_pregunta, enunciado, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta, orden)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
