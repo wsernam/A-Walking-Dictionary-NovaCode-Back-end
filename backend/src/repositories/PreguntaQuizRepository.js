@@ -2,9 +2,9 @@
  * @file PreguntaQuizRepository.js
  * @brief Repositorio de PreguntaQuiz: acceso a datos para la tabla "pregunta_quiz" del DER
  * oficial.
- * @note Usado por QuizService (HU-3.1 para crear las preguntas generadas, HU-3.2 para
- * calificar el envío de un estudiante) y por ExportarPDFService (HU-3.3, hoja de preguntas y
- * hoja de respuestas del PDF del quiz).
+ * @note crear se usa al generar un quiz (HU-3.1), dentro de la transacción de
+ * QuizRepository.crearConMazosYPreguntas. listarPorQuiz es la consulta que usan las HU de HE-03
+ * que leen las preguntas de un quiz (responderlo y exportarlo a PDF).
  */
 
 import { pool } from '../config/db.js';
@@ -62,9 +62,7 @@ export const PreguntaQuizRepository = {
   },
 
   /**
-   * @brief HU-3.1 / HU-3.2 / HU-3.3: lista las preguntas de un quiz específico, en el orden en
-   * que fueron generadas. Usado para devolver el quiz recién generado, para calificar el envío
-   * de un estudiante y para exportar el PDF con hoja de preguntas y hoja de respuestas.
+   * @brief Lista las preguntas de un quiz específico, en el orden en que fueron generadas.
    * @param {number} quiz_id - Id del quiz.
    * @return {Promise<PreguntaQuiz[]>} Preguntas del quiz, ordenadas por "orden" ascendente.
    */

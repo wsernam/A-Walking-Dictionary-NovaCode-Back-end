@@ -1,8 +1,9 @@
 /**
  * @file QuizRepository.js
  * @brief Repositorio de Quiz: acceso a datos para la tabla "quiz" del DER oficial.
- * @note Usado por HU-3.1 (generación), HU-3.2 (envío de respuestas) y HU-3.3 (exportación a
- * PDF) a través de QuizService y ExportarPDFService — ver src/services/QuizService.js.
+ * @note Solo ejecuta SQL; las reglas de negocio de los quices (HE-03) viven en src/services/.
+ * crearConMazosYPreguntas guarda un quiz generado (HU-3.1) junto con sus mazos y preguntas en
+ * una sola transacción.
  */
 
 import { pool } from '../config/db.js';

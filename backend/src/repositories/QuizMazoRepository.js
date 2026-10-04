@@ -3,8 +3,8 @@
  * @brief Repositorio de QuizMazo: acceso a datos para la tabla puente "quiz_mazo" del DER
  * oficial. No tiene id propio: su llave es la pk compuesta (quiz_id, mazo_id), por lo que
  * obtenerPorQuizYMazo/actualizar/eliminar reciben ese par en vez de un id único.
- * @note Usado por QuizService.generar() (HU-3.1) para registrar qué mazos quedaron incluidos
- * en el rango de un quiz recién generado.
+ * @note crear se usa al generar un quiz (HU-3.1), dentro de la transacción de
+ * QuizRepository.crearConMazosYPreguntas, para registrar qué mazos cubre el quiz.
  */
 
 import { pool } from '../config/db.js';
@@ -54,9 +54,8 @@ export const QuizMazoRepository = {
   },
 
   /**
-   * @brief HU-3.1 / HU-3.3: lista los mazos incluidos en un quiz específico. Usado por
-   * QuizService.generar() al armar la respuesta y por ExportarPDFService para saber qué mazos
-   * cubre el quiz al exportarlo a PDF.
+   * @brief Lista los mazos incluidos en un quiz específico.
+   * @note Hoy ningún servicio lo usa; queda como consulta de apoyo.
    * @param {number} quiz_id - Id del quiz.
    * @return {Promise<QuizMazo[]>} Filas quiz_mazo asociadas a ese quiz.
    */
