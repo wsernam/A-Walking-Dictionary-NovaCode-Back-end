@@ -2,7 +2,7 @@
 
 Este documento le dice al frontend (React) **qué se implementó en el backend** y **cómo debe consumirlo** para los botones de "Exportar a PDF" de mazos y quices. Cubre únicamente HU-3.3 (CA-3.3.1, CA-3.3.2, CA-3.3.3). Última actualización: 2026-10-04.
 
-- Rama donde vive la implementación: **`feature/Sprint_2_HU_9`**. El PDF de quiz necesita un quiz generado con HU-3.1 (`feature/Sprint_2_HU_7`, contrato `docs/CONTRATO_FRONTEND_HU-3.1.md`).
+- Rama donde vive la implementación: **`feature/Sprint_3_HU_009`**. El PDF de quiz necesita un quiz generado con HU-3.1 (`feature/Sprint_3_HU_007`, contrato `docs/CONTRATO_FRONTEND_HU-3.1.md`).
 - Base URL: `/api/v1`.
 - Formato: los dos endpoints devuelven **el archivo PDF directamente** (`Content-Type: application/pdf`, `Content-Disposition: attachment`), **no JSON**. Solo los errores llegan en JSON: `{ "error": "mensaje legible" }`.
 
@@ -82,4 +82,4 @@ descargarPdf(`/api/v1/quizzes/${id}/export-pdf`, `quiz-${id}.pdf`);
 
 ## Referencia para pruebas
 
-Colección Postman `Sprint 2 (HE3).postman_collection.json` en la raíz del repo (rama `feature/Sprint_2_HU_9`). Cubre HU-3.1, HU-3.2 y HU-3.3.
+Colección Postman `Sprint 2 (HE3).postman_collection.json` en la raíz del repo (rama `feature/Sprint_3_HU_009`). Cubre HU-3.1, HU-3.2 y HU-3.3.
