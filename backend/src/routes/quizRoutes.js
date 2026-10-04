@@ -1,7 +1,7 @@
 /**
  * @file quizRoutes.js
  * @brief Rutas REST del recurso Quiz, montadas en app.js bajo el prefijo /api/v1/quizzes.
- * Combina los endpoints de negocio de HE-03 (generar, submit) con el CRUD genérico
+ * Combina los endpoints de negocio de HE-03 (generar, submit, export-pdf) con el CRUD genérico
  * de QuizController/ResultadoQuizController.
  */
 
@@ -35,6 +35,12 @@ router.get('/', QuizController.listar);
  * GET /api/v1/quizzes/:id
  */
 router.get('/:id', QuizController.obtenerPorId);
+
+/**
+ * @brief HU-3.3 (CA-3.3.2): exporta el quiz a PDF con hoja de preguntas y hoja de respuestas
+ * separada. GET /api/v1/quizzes/:id/export-pdf
+ */
+router.get('/:id/export-pdf', QuizController.exportarPdf);
 
 /**
  * @brief HU-3.2 (CA-3.2.1, CA-3.2.2, CA-3.2.3): registra las respuestas de un estudiante y

@@ -1,0 +1,1157 @@
+{
+  "info": {
+    "_postman_id": "b7f3d2a0-4c1e-4a9b-9e2d-1f6a8c3d5e7b",
+    "name": "Sprint 2 (HE3)",
+    "description": "Coleccion completa del Sprint 2 - A Walking Dictionary.\n\nHE-03 - Evaluacion Automatizada y Exportacion (HU-3.1, HU-3.2, HU-3.3): generar quiz acumulativo a partir de tarjetas revisado_docente (POST /quizzes/generate), responder el quiz y recibir calificacion (POST /quizzes/:id/submit), y exportar mazos/quices a PDF (GET /decks/:id/export-pdf, GET /quizzes/:id/export-pdf).\n\nRequiere el backend corriendo en {{base_url}} y la base de datos sembrada con seed.sql (docente_id=1, curso_id=1, inscripcion_id 1 = Juan (usuario_id 2), inscripcion_id 2 = Maria (usuario_id 3)).\n\nLas fechas se calculan dinamicamente en un script de pre-request a nivel de coleccion, asi que la coleccion se puede correr en cualquier fecha sin editar nada a mano.\n\nOrden de ejecucion: correr las carpetas en orden (Setup -> HU-3.1 -> HU-3.2 -> HU-3.3); varias pruebas dependen de variables que dejan las peticiones anteriores (he3_deck_id, he3_quiz_id, he3_preguntas_json, etc).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Calcula fechas relativas a \"ahora\" para que la coleccion no dependa de fechas fijas",
+          "// hardcodeadas (y por lo tanto no se rompa con el paso del tiempo).",
+          "const ahora = new Date();",
+          "",
+          "function iso(d) { return d.toISOString(); }",
+          "function soloFecha(d) { return iso(d).slice(0, 10); }",
+          "function addDias(base, dias) { return new Date(base.getTime() + dias * 24 * 60 * 60 * 1000); }",
+          "",
+          "pm.collectionVariables.set('he3_ahora', iso(ahora));",
+          "",
+          "// Fechas del mazo (columnas de \"mazo\", no de \"quiz\").",
+          "pm.collectionVariables.set('he3_mazo_fecha_apertura', soloFecha(addDias(ahora, -30)));",
+          "pm.collectionVariables.set('he3_mazo_fecha_cierre', soloFecha(addDias(ahora, 30)));",
+          "",
+          "// Quiz que debe quedar \"abierto\" ahora mismo (CA-3.1.3): apertura en el pasado, cierre en el futuro.",
+          "pm.collectionVariables.set('he3_quiz_fecha_apertura_pasada', iso(addDias(ahora, -1)));",
+          "pm.collectionVariables.set('he3_quiz_fecha_cierre_futura', iso(addDias(ahora, 30)));",
+          "",
+          "// Quiz que debe quedar \"programado\" (todavia no abre).",
+          "pm.collectionVariables.set('he3_quiz_fecha_apertura_futura', iso(addDias(ahora, 10)));",
+          "pm.collectionVariables.set('he3_quiz_fecha_cierre_futura2', iso(addDias(ahora, 40)));",
+          "",
+          "// fecha_cierre anterior a fecha_apertura, para la prueba de validacion (debe fallar 400).",
+          "pm.collectionVariables.set('he3_quiz_fecha_cierre_invalida', iso(addDias(ahora, -10)));"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Setup - Datos base para HE-03",
+      "item": [
+        {
+          "name": "Setup - Crear deck para pruebas HE-03",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 - deck creado', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('El deck se crea en estado \"abierto\"', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.estado).to.eql('abierto');",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('he3_deck_id', jsonData.id_mazo);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"curso_id\": 1,\n  \"docente_id\": 1,\n  \"nombre_lectura\": \"Things Fall Apart\",\n  \"autor\": \"Chinua Achebe\",\n  \"semana\": 5,\n  \"variante_regional_predeterminada\": \"nigeriano\",\n  \"fecha_apertura\": \"{{he3_mazo_fecha_apertura}}\",\n  \"fecha_cierre\": \"{{he3_mazo_fecha_cierre}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/decks",
+              "host": ["{{base_url}}"],
+              "path": ["decks"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CA-3.1.1 - Generar quiz sin tarjetas aprobadas (debe fallar 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 - no hay tarjetas revisado_docente todavia (CA-3.1.1)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('El mensaje explica que faltan tarjetas aprobadas', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error).to.include('revisado_docente');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"curso_id\": 1,\n  \"titulo\": \"Quiz sin tarjetas aprobadas (prueba CA-3.1.1)\",\n  \"mazo_ids\": [{{he3_deck_id}}],\n  \"fecha_apertura\": \"{{he3_quiz_fecha_apertura_pasada}}\",\n  \"fecha_cierre\": \"{{he3_quiz_fecha_cierre_futura}}\",\n  \"tiempo_limite_min\": 15\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/quizzes/generate",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "generate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Setup - Registrar tarjeta 1 (harvest)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 - tarjeta creada', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('he3_card1_id', jsonData.tarjeta.id_tarjeta);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"palabra\": \"harvest\",\n  \"traduccion\": \"cosecha\",\n  \"definicion\": \"el proceso de recolectar cultivos\",\n  \"ejemplo\": \"The harvest was good this year.\",\n  \"inscripcion_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/decks/{{he3_deck_id}}/cards",
+              "host": ["{{base_url}}"],
+              "path": ["decks", "{{he3_deck_id}}", "cards"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Setup - Registrar tarjeta 2 (yam)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 - tarjeta creada', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('he3_card2_id', jsonData.tarjeta.id_tarjeta);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"palabra\": \"yam\",\n  \"traduccion\": \"name\",\n  \"definicion\": \"un tuberculo rico en almidon\",\n  \"ejemplo\": \"Yam is a staple food.\",\n  \"inscripcion_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/decks/{{he3_deck_id}}/cards",
+              "host": ["{{base_url}}"],
+              "path": ["decks", "{{he3_deck_id}}", "cards"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Setup - Registrar tarjeta 3 (clan)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 - tarjeta creada', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('he3_card3_id', jsonData.tarjeta.id_tarjeta);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"palabra\": \"clan\",\n  \"traduccion\": \"clan\",\n  \"definicion\": \"un grupo de familias muy unidas\",\n  \"ejemplo\": \"He belongs to a powerful clan.\",\n  \"inscripcion_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/decks/{{he3_deck_id}}/cards",
+              "host": ["{{base_url}}"],
+              "path": ["decks", "{{he3_deck_id}}", "cards"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Setup - Registrar tarjeta 4 (wrestling)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 - tarjeta creada', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('he3_card4_id', jsonData.tarjeta.id_tarjeta);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"palabra\": \"wrestling\",\n  \"traduccion\": \"lucha\",\n  \"definicion\": \"un deporte de combate cuerpo a cuerpo\",\n  \"ejemplo\": \"Wrestling matches were common.\",\n  \"inscripcion_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/decks/{{he3_deck_id}}/cards",
+              "host": ["{{base_url}}"],
+              "path": ["decks", "{{he3_deck_id}}", "cards"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Setup - Aprobar tarjeta 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - aprobada', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Estado paso a revisado_docente', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.tarjeta.estado).to.eql('revisado_docente');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accion\": \"aprobar\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/cards/{{he3_card1_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["cards", "{{he3_card1_id}}", "approve"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Setup - Aprobar tarjeta 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - aprobada', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Estado paso a revisado_docente', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.tarjeta.estado).to.eql('revisado_docente');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accion\": \"aprobar\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/cards/{{he3_card2_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["cards", "{{he3_card2_id}}", "approve"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Setup - Aprobar tarjeta 3",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - aprobada', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Estado paso a revisado_docente', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.tarjeta.estado).to.eql('revisado_docente');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accion\": \"aprobar\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/cards/{{he3_card3_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["cards", "{{he3_card3_id}}", "approve"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Setup - Aprobar tarjeta 4",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 - aprobada', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Estado paso a revisado_docente', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.tarjeta.estado).to.eql('revisado_docente');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accion\": \"aprobar\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/cards/{{he3_card4_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["cards", "{{he3_card4_id}}", "approve"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "HU-3.1 - Generar quices acumulativos",
+      "item": [
+        {
+          "name": "HU-3.1 - Generar quiz con campos obligatorios faltantes (debe fallar 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('El mensaje lista los campos obligatorios faltantes', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error).to.include('curso_id');",
+                  "    pm.expect(jsonData.error).to.include('mazo_ids');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/quizzes/generate",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "generate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HU-3.1 - Generar quiz con mazo inexistente (debe fallar 404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('El mensaje menciona el id del mazo inexistente', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error).to.include('999999');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"curso_id\": 1,\n  \"titulo\": \"Quiz con mazo inexistente\",\n  \"mazo_ids\": [999999],\n  \"fecha_apertura\": \"{{he3_quiz_fecha_apertura_pasada}}\",\n  \"fecha_cierre\": \"{{he3_quiz_fecha_cierre_futura}}\",\n  \"tiempo_limite_min\": 15\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/quizzes/generate",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "generate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HU-3.1 - Generar quiz con fecha_cierre anterior a fecha_apertura (debe fallar 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('El mensaje explica el orden invalido de fechas', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error).to.include('fecha_cierre');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"curso_id\": 1,\n  \"titulo\": \"Quiz con fechas invertidas\",\n  \"mazo_ids\": [{{he3_deck_id}}],\n  \"fecha_apertura\": \"{{he3_ahora}}\",\n  \"fecha_cierre\": \"{{he3_quiz_fecha_cierre_invalida}}\",\n  \"tiempo_limite_min\": 15\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/quizzes/generate",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "generate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CA-3.1.1 / CA-3.1.2 / CA-3.1.3 - Generar quiz acumulativo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 - quiz generado', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Se genero una pregunta por cada tarjeta aprobada (CA-3.1.1)', function () {",
+                  "    pm.expect(jsonData.preguntas.length).to.eql(4);",
+                  "});",
+                  "",
+                  "pm.test('El quiz nace en estado \"programado\" en base de datos (CA-3.1.3)', function () {",
+                  "    pm.expect(jsonData.quiz.estado).to.eql('programado');",
+                  "});",
+                  "",
+                  "pm.test('estado_efectivo es \"abierto\" porque fecha_apertura ya paso (CA-3.1.3)', function () {",
+                  "    pm.expect(jsonData.quiz.estado_efectivo).to.eql('abierto');",
+                  "});",
+                  "",
+                  "pm.test('Cada pregunta tiene 4 opciones sin repetir, incluyendo la respuesta correcta (CA-3.1.2)', function () {",
+                  "    jsonData.preguntas.forEach(function (p) {",
+                  "        const opciones = [p.opcion_a, p.opcion_b, p.opcion_c, p.opcion_d];",
+                  "        const unicas = new Set(opciones);",
+                  "        pm.expect(unicas.size).to.eql(opciones.length);",
+                  "        pm.expect(opciones).to.include(p.respuesta_correcta);",
+                  "    });",
+                  "});",
+                  "",
+                  "if (jsonData.quiz && jsonData.quiz.id_quiz) {",
+                  "    pm.collectionVariables.set('he3_quiz_id', jsonData.quiz.id_quiz);",
+                  "    pm.collectionVariables.set('he3_preguntas_json', JSON.stringify(jsonData.preguntas));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"curso_id\": 1,\n  \"titulo\": \"Quiz Semana 5 - Things Fall Apart\",\n  \"mazo_ids\": [{{he3_deck_id}}],\n  \"fecha_apertura\": \"{{he3_quiz_fecha_apertura_pasada}}\",\n  \"fecha_cierre\": \"{{he3_quiz_fecha_cierre_futura}}\",\n  \"tiempo_limite_min\": 20\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/quizzes/generate",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "generate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HU-3.1 - Generar quiz con cantidad_preguntas parcial (seleccion aleatoria)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Se generaron solo 2 preguntas, no las 4 aprobadas (cantidad_preguntas)', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.preguntas.length).to.eql(2);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"curso_id\": 1,\n  \"titulo\": \"Quiz parcial - 2 preguntas\",\n  \"mazo_ids\": [{{he3_deck_id}}],\n  \"fecha_apertura\": \"{{he3_quiz_fecha_apertura_pasada}}\",\n  \"fecha_cierre\": \"{{he3_quiz_fecha_cierre_futura}}\",\n  \"tiempo_limite_min\": 10,\n  \"cantidad_preguntas\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/quizzes/generate",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "generate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CA-3.1.3 - Obtener el quiz generado (estado_efectivo)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('estado_efectivo sigue siendo \"abierto\"', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.estado_efectivo).to.eql('abierto');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/quizzes/{{he3_quiz_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "{{he3_quiz_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Setup - Generar segundo quiz programado a futuro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('estado_efectivo es \"programado\" porque fecha_apertura es futura', function () {",
+                  "    pm.expect(jsonData.quiz.estado_efectivo).to.eql('programado');",
+                  "});",
+                  "",
+                  "if (jsonData.quiz && jsonData.quiz.id_quiz) {",
+                  "    pm.collectionVariables.set('he3_quiz_futuro_id', jsonData.quiz.id_quiz);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"curso_id\": 1,\n  \"titulo\": \"Quiz futuro - prueba estado programado\",\n  \"mazo_ids\": [{{he3_deck_id}}],\n  \"fecha_apertura\": \"{{he3_quiz_fecha_apertura_futura}}\",\n  \"fecha_cierre\": \"{{he3_quiz_fecha_cierre_futura2}}\",\n  \"tiempo_limite_min\": 15\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/quizzes/generate",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "generate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CA-3.1.3 - Verificar estado_efectivo = programado para el quiz futuro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('estado_efectivo es \"programado\"', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.estado_efectivo).to.eql('programado');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/quizzes/{{he3_quiz_futuro_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "{{he3_quiz_futuro_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "HU-3.2 - Responder quiz y recibir nota",
+      "item": [
+        {
+          "name": "HU-3.2 - Responder un quiz que aun no abre (debe fallar 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('El mensaje explica que el quiz aun no abre', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error).to.include('abierto');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estudiante_id\": 2,\n  \"respuestas\": []\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/quizzes/{{he3_quiz_futuro_id}}/submit",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "{{he3_quiz_futuro_id}}", "submit"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HU-3.2 - Enviar respuestas a un quiz inexistente (debe fallar 404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estudiante_id\": 2,\n  \"respuestas\": []\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/quizzes/999999/submit",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "999999", "submit"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HU-3.2 - Enviar respuestas sin estudiante_id (debe fallar 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('El mensaje indica que falta estudiante_id', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error).to.include('estudiante_id');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"respuestas\": []\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/quizzes/{{he3_quiz_id}}/submit",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "{{he3_quiz_id}}", "submit"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CA-3.2.1 / CA-3.2.2 - Enviar respuestas correctas y recibir calificacion",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Arma el body de submit contestando TODO correcto, a partir de las preguntas",
+                  "// que dejo guardadas la peticion 'Generar quiz acumulativo' (he3_preguntas_json).",
+                  "// Asi la prueba no depende de conocer de antemano el orden aleatorio de las opciones.",
+                  "const preguntas = JSON.parse(pm.collectionVariables.get('he3_preguntas_json') || '[]');",
+                  "const respuestas = preguntas.map(function (p) {",
+                  "    return { pregunta_id: p.id_pregunta, respuesta_estudiante: p.respuesta_correcta };",
+                  "});",
+                  "const body = { estudiante_id: 2, tiempo_empleado_seg: 300, respuestas: respuestas };",
+                  "pm.collectionVariables.set('he3_submit_body_correcto', JSON.stringify(body));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 - respuestas registradas', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Calificacion perfecta al responder todo correcto (CA-3.2.2)', function () {",
+                  "    pm.expect(Number(jsonData.resultado.calificacion)).to.eql(5);",
+                  "});",
+                  "",
+                  "pm.test('puntaje_obtenido es igual a puntaje_maximo', function () {",
+                  "    pm.expect(Number(jsonData.resultado.puntaje_obtenido)).to.eql(Number(jsonData.resultado.puntaje_maximo));",
+                  "});",
+                  "",
+                  "pm.test('Se registro una respuesta por cada pregunta del quiz', function () {",
+                  "    pm.expect(jsonData.respuestas.length).to.eql(4);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{{he3_submit_body_correcto}}"
+            },
+            "url": {
+              "raw": "{{base_url}}/quizzes/{{he3_quiz_id}}/submit",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "{{he3_quiz_id}}", "submit"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CA-3.2.3 - Reintentar el mismo quiz (debe fallar 409 con resumen previo)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 409 - reintento bloqueado (CA-3.2.3)', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Devuelve el resumen del resultado previo', function () {",
+                  "    pm.expect(jsonData.resultado).to.not.be.undefined;",
+                  "    pm.expect(Number(jsonData.resultado.calificacion)).to.eql(5);",
+                  "});",
+                  "",
+                  "pm.test('Devuelve el desglose de respuestas previo', function () {",
+                  "    pm.expect(jsonData.respuestas.length).to.eql(4);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estudiante_id\": 2,\n  \"respuestas\": []\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/quizzes/{{he3_quiz_id}}/submit",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "{{he3_quiz_id}}", "submit"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "HU-3.3 - Exportar mazos y quices a PDF",
+      "item": [
+        {
+          "name": "Setup - Crear quiz vacio via CRUD generico (sin preguntas)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('he3_quiz_vacio_id', jsonData.id_quiz);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"curso_id\": 1,\n  \"titulo\": \"Quiz vacio para prueba export-pdf\",\n  \"semana_corte\": 1,\n  \"fecha_creacion\": \"{{he3_ahora}}\",\n  \"estado\": \"programado\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/quizzes",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CA-3.3.1 / CA-3.3.3 - Exportar mazo a PDF",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type es application/pdf', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/pdf');",
+                  "});",
+                  "",
+                  "pm.test('El PDF generado no esta vacio', function () {",
+                  "    pm.expect(pm.response.responseSize).to.be.above(100);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/decks/{{he3_deck_id}}/export-pdf",
+              "host": ["{{base_url}}"],
+              "path": ["decks", "{{he3_deck_id}}", "export-pdf"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CA-3.3.2 - Exportar quiz a PDF con hoja de respuestas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type es application/pdf', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/pdf');",
+                  "});",
+                  "",
+                  "pm.test('El PDF generado no esta vacio', function () {",
+                  "    pm.expect(pm.response.responseSize).to.be.above(100);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/quizzes/{{he3_quiz_id}}/export-pdf",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "{{he3_quiz_id}}", "export-pdf"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HU-3.3 - Exportar PDF de un mazo inexistente (debe fallar 404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/decks/999999/export-pdf",
+              "host": ["{{base_url}}"],
+              "path": ["decks", "999999", "export-pdf"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HU-3.3 - Exportar PDF de un quiz inexistente (debe fallar 404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/quizzes/999999/export-pdf",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "999999", "export-pdf"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HU-3.3 - Exportar PDF de un quiz sin preguntas generadas (debe fallar 404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('El mensaje explica que faltan preguntas', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error).to.include('preguntas');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/quizzes/{{he3_quiz_vacio_id}}/export-pdf",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "{{he3_quiz_vacio_id}}", "export-pdf"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000/api/v1" },
+    { "key": "he3_deck_id", "value": "" },
+    { "key": "he3_card1_id", "value": "" },
+    { "key": "he3_card2_id", "value": "" },
+    { "key": "he3_card3_id", "value": "" },
+    { "key": "he3_card4_id", "value": "" },
+    { "key": "he3_quiz_id", "value": "" },
+    { "key": "he3_quiz_futuro_id", "value": "" },
+    { "key": "he3_quiz_vacio_id", "value": "" },
+    { "key": "he3_preguntas_json", "value": "" },
+    { "key": "he3_submit_body_correcto", "value": "" }
+  ]
+}

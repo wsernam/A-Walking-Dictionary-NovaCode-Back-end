@@ -1,7 +1,7 @@
 /**
  * @file QuizController.js
- * @brief Controlador REST de Quiz. El método `generar` implementa la lógica de negocio de
- * HE-03 (HU-3.1) delegando en QuizService; el resto
+ * @brief Controlador REST de Quiz. Los métodos `generar` y `exportarPdf` implementan la lógica
+ * de negocio de HE-03 (HU-3.1, HU-3.3) delegando en QuizService/ExportarPDFService; el resto
  * (`crear`, `obtenerPorId`, `listar`, `actualizar`, `eliminar`) es CRUD genérico que llama
  * directamente al repositorio (QuizRepository), en el mismo patrón que el resto de
  * controladores del proyecto.
@@ -9,6 +9,7 @@
 
 import { QuizRepository } from '../repositories/QuizRepository.js';
 import { QuizService } from '../services/QuizService.js';
+import { ExportarPDFService } from '../services/ExportarPDFService.js';
 
 export const QuizController = {
   /**
@@ -25,6 +26,32 @@ export const QuizController = {
     try {
       const resultado = await QuizService.generar(req.body);
       res.status(201).json(resultado);
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  },
+
+  /**
+   * @brief HU-3.3 (CA-3.3.2): exporta el quiz a PDF con hoja de preguntas y hoja de respuestas
+   * separada. GET /api/v1/quizzes/:id/export-pdf
+   * @param {import('express').Request} req - req.params.id es el id_quiz.
+   * @param {import('express').Response} res - 200 con el PDF como `application/pdf`
+   * (`Content-Disposition: attachment`), 400 si el id no es numérico, 404 si el quiz no existe
+   * o no tiene preguntas generadas, 500 ante error inesperado.
+   */
+  async exportarPdf(req, res) {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ error: 'id inválido' });
+      }
+      const pdfBytes = await ExportarPDFService.generarPdfQuiz(id);
+      res.status(200);
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="quiz-${id}.pdf"`,
+      });
+      res.send(Buffer.from(pdfBytes));
     } catch (err) {
       res.status(err.status || 500).json({ error: err.message });
     }
