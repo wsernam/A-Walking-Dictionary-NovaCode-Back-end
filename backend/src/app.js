@@ -36,7 +36,7 @@
  *   - GET  /api/v1/quizzes/:id                    (idem)
  *   - POST /api/v1/quizzes/:id/submit             (CA-3.2.1, CA-3.2.2, CA-3.2.3)
  *   - GET  /api/v1/quizzes/:id/export-pdf         (CA-3.3.2, endpoint adicional — el backlog
- *     solo documenta export-pdf para mazos, no para quizzes; ver doc/CHANGELOG_BACKEND.md)
+ *     solo documenta export-pdf para mazos, no para quizzes; ver docs/CHANGELOG_BACKEND.md)
  *   - GET  /api/v1/decks/:id/export-pdf           (CA-3.3.1, CA-3.3.3)
  *
  *   HE-05 (HU-5.4 — login con Google/OAuth y control de roles; HU-5.2 — configurar perfil
