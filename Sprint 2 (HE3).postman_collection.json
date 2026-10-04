@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "b7f3d2a0-4c1e-4a9b-9e2d-1f6a8c3d5e7b",
     "name": "Sprint 2 (HE3)",
-    "description": "Coleccion completa del Sprint 2 - A Walking Dictionary.\n\nHE-03 - Evaluacion Automatizada y Exportacion (HU-3.1, HU-3.2, HU-3.3): generar quiz acumulativo a partir de tarjetas revisado_docente (POST /quizzes/generate), responder el quiz y recibir calificacion (POST /quizzes/:id/submit), y exportar mazos/quices a PDF (GET /decks/:id/export-pdf, GET /quizzes/:id/export-pdf).\n\nRequiere el backend corriendo en {{base_url}} y la base de datos sembrada con seed.sql (docente_id=1, curso_id=1, inscripcion_id 1 = Juan (usuario_id 2), inscripcion_id 2 = Maria (usuario_id 3)).\n\nLas fechas se calculan dinamicamente en un script de pre-request a nivel de coleccion, asi que la coleccion se puede correr en cualquier fecha sin editar nada a mano.\n\nOrden de ejecucion: correr las carpetas en orden (Setup -> HU-3.1 -> HU-3.2 -> HU-3.3); varias pruebas dependen de variables que dejan las peticiones anteriores (he3_deck_id, he3_quiz_id, he3_preguntas_json, etc).",
+    "description": "Coleccion completa del Sprint 2 - A Walking Dictionary.\n\nHE-03 - Evaluacion Automatizada y Exportacion (HU-3.1, HU-3.2, HU-3.3): generar quiz acumulativo a partir de tarjetas revisado_docente (POST /quizzes/generate), responder el quiz y recibir calificacion (POST /quizzes/:id/submit), y exportar mazos/quices a PDF (GET /decks/:id/export-pdf, GET /quizzes/:id/export-pdf).\n\nRequiere el backend corriendo en {{base_url}} y la base de datos sembrada con seed.sql (docente_id=1, curso_id=1, inscripcion_id 1 = Juan (usuario_id 2), inscripcion_id 2 = Maria (usuario_id 3)).\n\nAUTENTICACION (HU-5.4): crear el mazo y aprobar tarjetas exige token de docente, y crear tarjetas exige token de un estudiante inscrito en el curso 1. Las requests de quiz y PDF no piden token. Hay dos formas de correr la coleccion:\n  A) Rapida, solo en desarrollo local: levantar el backend con DISABLE_AUTH=true (ver backend/.env.example). Los tokens se ignoran y las tarjetas usan el inscripcion_id del body.\n  B) Con login real: iniciar sesion desde el frontend con una cuenta de docente y otra de estudiante inscrito en el curso 1, copiar el \"token\" que devuelve POST /api/v1/auth/google y pegarlo en las variables docente_token y estudiante_token (igual que en la coleccion \"HU-5.4 - Autenticacion y Roles\"). En este modo las 4 tarjetas quedan a nombre del estudiante del token.\n\nLas fechas se calculan dinamicamente en un script de pre-request a nivel de coleccion, asi que la coleccion se puede correr en cualquier fecha sin editar nada a mano.\n\nOrden de ejecucion: correr las carpetas en orden (Setup -> HU-3.1 -> HU-3.2 -> HU-3.3); varias pruebas dependen de variables que dejan las peticiones anteriores (he3_deck_id, he3_quiz_id, he3_preguntas_json, etc).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -71,7 +71,8 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{docente_token}}" }
             ],
             "body": {
               "mode": "raw",
@@ -144,7 +145,8 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{estudiante_token}}" }
             ],
             "body": {
               "mode": "raw",
@@ -180,7 +182,8 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{estudiante_token}}" }
             ],
             "body": {
               "mode": "raw",
@@ -216,7 +219,8 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{estudiante_token}}" }
             ],
             "body": {
               "mode": "raw",
@@ -252,7 +256,8 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{estudiante_token}}" }
             ],
             "body": {
               "mode": "raw",
@@ -288,7 +293,8 @@
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{docente_token}}" }
             ],
             "body": {
               "mode": "raw",
@@ -324,7 +330,8 @@
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{docente_token}}" }
             ],
             "body": {
               "mode": "raw",
@@ -360,7 +367,8 @@
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{docente_token}}" }
             ],
             "body": {
               "mode": "raw",
@@ -396,7 +404,8 @@
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{docente_token}}" }
             ],
             "body": {
               "mode": "raw",
@@ -1143,6 +1152,8 @@
   ],
   "variable": [
     { "key": "base_url", "value": "http://localhost:5000/api/v1" },
+    { "key": "docente_token", "value": "" },
+    { "key": "estudiante_token", "value": "" },
     { "key": "he3_deck_id", "value": "" },
     { "key": "he3_card1_id", "value": "" },
     { "key": "he3_card2_id", "value": "" },
