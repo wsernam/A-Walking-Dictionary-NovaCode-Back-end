@@ -2,7 +2,7 @@
 
 Este documento le dice al frontend (React) **qué se implementó en el backend** y **cómo debe consumirlo** para la pantalla de "Generar quiz acumulativo" de la docente. Cubre únicamente HU-3.1 (CA-3.1.1, CA-3.1.2, CA-3.1.3). Última actualización: 2026-10-04.
 
-- Rama donde vive la implementación: **`feature/Sprint_2_HU_7`**. HU-3.2 (responder quiz) está en `feature/Sprint_2_HU_8` con su contrato `docs/CONTRATO_FRONTEND_HU-3.2.md`, y HU-3.3 (PDF) en `feature/Sprint_2_HU_9` con `docs/CONTRATO_FRONTEND_HU-3.3.md`.
+- Rama donde vive la implementación: **`feature/Sprint_3_HU_007`**. HU-3.2 (responder quiz) está en `feature/Sprint_3_HU_008` con su contrato `docs/CONTRATO_FRONTEND_HU-3.2.md`, y HU-3.3 (PDF) en `feature/Sprint_3_HU_009` con `docs/CONTRATO_FRONTEND_HU-3.3.md`.
 - Base URL: `/api/v1`.
 - Formato: JSON (`Content-Type: application/json`).
 - Errores: siempre `{ "error": "mensaje legible" }` con el status HTTP correspondiente. Mostrar `error` tal cual al usuario.
@@ -168,4 +168,4 @@ El quiz se guarda con `estado: "programado"`. No hay tarea programada que lo cam
 
 1. **Autenticación:** `POST /quizzes/generate` no exige sesión ni rol docente (ver la advertencia del inicio). Pendiente de que el equipo decida protegerlo.
 2. **Variante "asociación término-definición"** de CA-3.1.2: no implementada; solo hay opción múltiple de traducción.
-3. **Preguntas para el estudiante:** `GET /quizzes/:id` no trae preguntas y no hay un endpoint que las devuelva sin `respuesta_correcta`. No afecta a la pantalla de la docente (HU-3.1), pero sí a la del estudiante (HU-3.2): ver `docs/CONTRATO_FRONTEND_HU-3.2.md` en `feature/Sprint_2_HU_8`.
+3. **Preguntas para el estudiante:** `GET /quizzes/:id` no trae preguntas y no hay un endpoint que las devuelva sin `respuesta_correcta`. No afecta a la pantalla de la docente (HU-3.1), pero sí a la del estudiante (HU-3.2): ver `docs/CONTRATO_FRONTEND_HU-3.2.md` en `feature/Sprint_3_HU_008`.
