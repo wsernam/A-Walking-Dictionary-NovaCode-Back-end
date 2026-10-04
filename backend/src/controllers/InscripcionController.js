@@ -13,7 +13,9 @@ export const InscripcionController = {
       // estado es el único varchar de "inscripcion" y es NOT NULL en el DER
       // (curso_id, estudiante_id son int; fecha_inscripcion es date).
       if (!estado) {
-        return res.status(400).json({ error: 'El campo estado es obligatorio' });
+        return res.status(400).json({
+          error: 'El campo estado es obligatorio',
+        });
       }
 
       // Longitud máxima según el DER: estado varchar(30).
@@ -23,70 +25,115 @@ export const InscripcionController = {
         });
       }
 
-      const inscripcion = await InscripcionRepository.crear(req.body);
+      const inscripcion =
+        await InscripcionRepository.crear(req.body);
+
       res.status(201).json(inscripcion);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({
+        error: error.message,
+      });
     }
   },
 
   async obtenerPorId(req, res) {
     try {
       const id = Number(req.params.id);
+
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({
+          error: 'id inválido',
+        });
       }
-      const inscripcion = await InscripcionRepository.obtenerPorId(id);
+
+      const inscripcion =
+        await InscripcionRepository.obtenerPorId(id);
+
       if (!inscripcion) {
-        return res.status(404).json({ error: 'Inscripcion no encontrada' });
+        return res.status(404).json({
+          error: 'Inscripcion no encontrada',
+        });
       }
+
       res.status(200).json(inscripcion);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({
+        error: error.message,
+      });
     }
   },
 
   async listar(req, res) {
     try {
-      const inscripciones = await InscripcionRepository.listar();
+      const inscripciones =
+        await InscripcionRepository.listar();
+
       res.status(200).json(inscripciones);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({
+        error: error.message,
+      });
     }
   },
 
   async actualizar(req, res) {
     try {
       const id = Number(req.params.id);
+
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({
+          error: 'id inválido',
+        });
       }
-      const inscripcion = await InscripcionRepository.actualizar(id, req.body);
+
+      const inscripcion =
+        await InscripcionRepository.actualizar(
+          id,
+          req.body
+        );
+
       if (!inscripcion) {
-        return res.status(404).json({ error: 'Inscripcion no encontrada' });
+        return res.status(404).json({
+          error: 'Inscripcion no encontrada',
+        });
       }
+
       res.status(200).json(inscripcion);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({
+        error: error.message,
+      });
     }
   },
 
   async eliminar(req, res) {
     try {
       const id = Number(req.params.id);
+
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({
+          error: 'id inválido',
+        });
       }
-      const eliminado = await InscripcionRepository.eliminar(id);
+
+      const eliminado =
+        await InscripcionRepository.eliminar(id);
+
       if (!eliminado) {
-        return res.status(404).json({ error: 'Inscripcion no encontrada' });
+        return res.status(404).json({
+          error: 'Inscripcion no encontrada',
+        });
       }
-      res.status(200).json({ eliminado: true });
+
+      res.status(200).json({
+        eliminado: true,
+      });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({
+        error: error.message,
+      });
     }
   },
-
 
   async generarCodigoAcceso(req, res) {
     try {
@@ -99,7 +146,9 @@ export const InscripcionController = {
       }
 
       const resultado =
-        await InscripcionService.generarCodigoAcceso(id_curso);
+        await InscripcionService.generarCodigoAcceso(
+          id_curso
+        );
 
       res.status(200).json(resultado);
     } catch (error) {
@@ -109,10 +158,12 @@ export const InscripcionController = {
     }
   },
 
-
   async inscribirsePorCodigo(req, res) {
     try {
-      const { estudiante_id, codigo_acceso } = req.body;
+      const {
+        estudiante_id,
+        codigo_acceso,
+      } = req.body;
 
       if (
         estudiante_id === undefined ||
@@ -120,7 +171,8 @@ export const InscripcionController = {
         !codigo_acceso
       ) {
         return res.status(400).json({
-          error: 'estudiante_id y codigo_acceso son obligatorios',
+          error:
+            'estudiante_id y codigo_acceso son obligatorios',
         });
       }
 
@@ -137,8 +189,6 @@ export const InscripcionController = {
       });
     }
   },
-
-
 
   async asignarPorCorreo(req, res) {
     try {
@@ -172,5 +222,26 @@ export const InscripcionController = {
     }
   },
 
+  async listarEstudiantesPorCurso(req, res) {
+    try {
+      const id_curso = Number(req.params.id);
 
+      if (Number.isNaN(id_curso)) {
+        return res.status(400).json({
+          error: 'id de curso inválido',
+        });
+      }
+
+      const estudiantes =
+        await InscripcionRepository.listarEstudiantesPorCurso(
+          id_curso
+        );
+
+      res.status(200).json(estudiantes);
+    } catch (error) {
+      res.status(500).json({
+        error: error.message,
+      });
+    }
+  },
 };

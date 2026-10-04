@@ -1,5 +1,4 @@
 // Rutas REST del recurso Inscripcion.
-
 import { Router } from 'express';
 import { InscripcionController } from '../controllers/InscripcionController.js';
 
