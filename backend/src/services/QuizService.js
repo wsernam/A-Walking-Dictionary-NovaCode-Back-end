@@ -1,10 +1,11 @@
 /**
  * @file QuizService.js
  * @brief HU-3.1: generación automática de quices acumulativos a partir de las tarjetas
- * aprobadas ("revisado_docente") de un rango de mazos elegido por la docente.
+ * aprobadas ("revisado_docente") de un rango de mazos elegido por la docente. HU-3.2: envío y
+ * calificación de las respuestas de un estudiante.
  *
- * Endpoints relacionados: POST /api/v1/quizzes/generate
- * Almacenamiento: tablas quiz, quiz_mazo, pregunta_quiz
+ * Endpoints relacionados: POST /api/v1/quizzes/generate, POST /api/v1/quizzes/:id/submit
+ * Almacenamiento: tablas quiz, quiz_mazo, pregunta_quiz, resultado_quiz, respuesta_quiz
  *
  * @note ALCANCE (no documentado explícitamente en el backlog, dejar constancia en vez de
  * asumir en silencio):
@@ -20,13 +21,20 @@
  * - El texto de "enunciado" y el número de opciones (1 correcta + hasta 3 distractores, según
  *   cuántas tarjetas aprobadas haya disponibles) son una interpretación razonable de "quiz de
  *   opción múltiple", no vienen especificados literalmente en el backlog.
+ * - "calificacion" usa escala 0.0-5.0 (convención académica colombiana estándar) — el backlog
+ *   no especifica ninguna escala. Supuesto pendiente de validar con la docente.
  */
 
 import { MazoRepository } from '../repositories/MazoRepository.js';
 import { QuizRepository } from '../repositories/QuizRepository.js';
 import { QuizMazoRepository } from '../repositories/QuizMazoRepository.js';
 import { PreguntaQuizRepository } from '../repositories/PreguntaQuizRepository.js';
+import { ResultadoQuizRepository } from '../repositories/ResultadoQuizRepository.js';
+import { RespuestaQuizRepository } from '../repositories/RespuestaQuizRepository.js';
 import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
+
+/** @brief Margen (ms) que se tolera al recibir un envío tras vencer el tiempo/cierre (latencia). */
+const MARGEN_ENVIO_MS = 30 * 1000;
 
 /**
  * @brief Crea un Error con un código HTTP adjunto, para que el controlador que atrapa la
@@ -224,5 +232,137 @@ export const QuizService = {
     }
 
     return { quiz: this.conEstadoEfectivo(quiz), preguntas: preguntasCreadas };
+  },
+
+  /**
+   * @brief HU-3.2 (CA-3.2.1, CA-3.2.2, CA-3.2.3): registra el envío de respuestas de un
+   * estudiante para un quiz y calcula su calificación.
+   * @param {number} quiz_id - Id del quiz que se está respondiendo.
+   * @param {Object} datos
+   * @param {number} datos.estudiante_id - Id del estudiante (usuario) que envía.
+   * @param {Array<{pregunta_id:number, respuesta_estudiante:?string}>} datos.respuestas -
+   * Respuestas marcadas por el estudiante; las preguntas ausentes del arreglo (o con valor
+   * null, ej. por agotarse el tiempo — CA-3.2.1) se califican como incorrectas.
+   * @param {number} [datos.tiempo_empleado_seg] - Segundos que tardó el estudiante.
+   * @param {string} [datos.fecha_inicio] - Momento en que empezó a responder; si se omite, se
+   * calcula restando tiempo_empleado_seg a la fecha de envío.
+   * @return {Promise<{resultado:import('../models/ResultadoQuiz.js').ResultadoQuiz,
+   * respuestas:import('../models/RespuestaQuiz.js').RespuestaQuiz[]}>} El resultado calculado
+   * y el desglose de respuestas guardadas (CA-3.2.2).
+   * @throws {Error} status 400 si falta estudiante_id/respuestas, si el quiz todavía no abre o
+   * ya cerró (según `calcularEstadoEfectivo`); status 404 si el quiz no existe o no tiene
+   * preguntas generadas; status 409 —con `err.resultado` y `err.respuestas` adjuntos, el
+   * resumen del intento previo— si el estudiante ya había enviado este quiz (CA-3.2.3).
+   */
+  async enviarRespuestas(quiz_id, datos) {
+    const { estudiante_id, respuestas, tiempo_empleado_seg, fecha_inicio } = datos;
+
+    if (!estudiante_id) {
+      throw error(400, 'estudiante_id es obligatorio');
+    }
+    if (!Array.isArray(respuestas)) {
+      throw error(400, 'respuestas debe ser un arreglo de { pregunta_id, respuesta_estudiante }');
+    }
+
+    const quiz = await QuizRepository.obtenerPorId(quiz_id);
+    if (!quiz) {
+      throw error(404, 'Quiz no encontrado');
+    }
+
+    const ahora = new Date();
+    const estadoEfectivo = this.calcularEstadoEfectivo(quiz);
+    if (estadoEfectivo === 'programado') {
+      throw error(400, 'El quiz aún no está abierto (fecha_apertura no ha llegado)');
+    }
+    // CA-3.2.1: el autoenvío por fin de tiempo puede llegar unos segundos después de
+    // fecha_cierre (latencia de red); se tolera un margen solo si el cierre es el derivado de la
+    // fecha, no si alguien cerró el quiz manualmente.
+    const dentroDeGraciaDeCierre =
+      quiz.estado === 'programado' &&
+      quiz.fecha_cierre &&
+      ahora.getTime() <= new Date(quiz.fecha_cierre).getTime() + MARGEN_ENVIO_MS;
+    if (estadoEfectivo === 'cerrado' && !dentroDeGraciaDeCierre) {
+      throw error(400, 'El quiz ya cerró y no acepta más respuestas');
+    }
+
+    // CA-3.2.3: si ya finalizó y envió, se deniega el reintento y se muestra el resumen previo.
+    const resultadoExistente = await ResultadoQuizRepository.obtenerPorQuizYEstudiante(quiz_id, estudiante_id);
+    if (resultadoExistente) {
+      const respuestasPrevias = await RespuestaQuizRepository.listarPorResultado(resultadoExistente.id_resultado);
+      const err = error(409, 'Ya enviaste este quiz. No se permite un nuevo intento.');
+      err.resultado = resultadoExistente;
+      err.respuestas = respuestasPrevias;
+      throw err;
+    }
+
+    const preguntas = await PreguntaQuizRepository.listarPorQuiz(quiz_id);
+    if (preguntas.length === 0) {
+      throw error(404, 'El quiz no tiene preguntas generadas todavía');
+    }
+
+    // CA-3.2.1: el temporizador vive en el frontend; aquí simplemente se califica lo que haya
+    // llegado (las preguntas sin respuesta contestada a tiempo cuentan como incorrectas).
+    let aciertos = 0;
+    const detalle = preguntas.map((pregunta) => {
+      const respuestaCliente = respuestas.find((r) => Number(r.pregunta_id) === pregunta.id_pregunta);
+      const respuesta_estudiante = respuestaCliente?.respuesta_estudiante ?? null;
+      const es_correcta = respuesta_estudiante !== null && respuesta_estudiante === pregunta.respuesta_correcta;
+      if (es_correcta) aciertos += 1;
+      return { pregunta_id: pregunta.id_pregunta, respuesta_estudiante, es_correcta };
+    });
+
+    const puntaje_maximo = preguntas.length;
+    const puntaje_obtenido = aciertos;
+    // NOTA (supuesto pendiente de validar con la docente): el backlog no especifica la escala
+    // de "calificacion". Se usa 0.0-5.0 (convención académica colombiana estándar) hasta que se
+    // confirme otra escala.
+    const calificacion = Number(((puntaje_obtenido / puntaje_maximo) * 5).toFixed(2));
+
+    const fecha_envio = ahora;
+    const fecha_inicio_final = fecha_inicio
+      ? new Date(fecha_inicio)
+      : new Date(fecha_envio.getTime() - (Number(tiempo_empleado_seg) || 0) * 1000);
+
+    // CA-3.2.1: control de tiempo del lado del servidor. Si el quiz tiene tiempo límite y el
+    // cliente informa cuándo empezó (fecha_inicio) o cuánto tardó (tiempo_empleado_seg), se
+    // rechaza el envío que exceda el límite más el margen de red. Un envío dentro del margen
+    // (el autoenvío al agotarse el tiempo) se califica con lo contestado hasta el momento.
+    // Limitación: fecha_inicio / tiempo_empleado_seg los informa el cliente; sin un registro de
+    // inicio en servidor (el backlog solo documenta POST /quizzes/:id/submit) no se pueden
+    // verificar de forma inviolable. Supuesto pendiente de validar con el equipo.
+    let tiempoEmpleadoFinal = tiempo_empleado_seg ?? null;
+    if (quiz.tiempo_limite_min && (fecha_inicio || tiempo_empleado_seg != null)) {
+      const limiteMs = quiz.tiempo_limite_min * 60 * 1000;
+      const transcurridoMs = fecha_envio.getTime() - fecha_inicio_final.getTime();
+      if (transcurridoMs > limiteMs + MARGEN_ENVIO_MS) {
+        throw error(400, `Se agotó el tiempo límite de ${quiz.tiempo_limite_min} minutos; el envío fue rechazado`);
+      }
+      tiempoEmpleadoFinal = Math.min(Math.round(transcurridoMs / 1000), quiz.tiempo_limite_min * 60);
+    }
+
+    const resultado = await ResultadoQuizRepository.crear({
+      quiz_id,
+      estudiante_id,
+      fecha_inicio: fecha_inicio_final,
+      fecha_envio,
+      puntaje_obtenido,
+      puntaje_maximo,
+      calificacion,
+      tiempo_empleado_seg: tiempoEmpleadoFinal,
+    });
+
+    const respuestasGuardadas = [];
+    for (const item of detalle) {
+      const respuestaGuardada = await RespuestaQuizRepository.crear({
+        resultado_id: resultado.id_resultado,
+        pregunta_id: item.pregunta_id,
+        respuesta_estudiante: item.respuesta_estudiante,
+        es_correcta: item.es_correcta,
+        puntaje_obtenido: item.es_correcta ? 1 : 0,
+      });
+      respuestasGuardadas.push(respuestaGuardada);
+    }
+
+    return { resultado, respuestas: respuestasGuardadas };
   },
 };

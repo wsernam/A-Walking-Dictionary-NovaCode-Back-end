@@ -1,12 +1,13 @@
 /**
  * @file quizRoutes.js
  * @brief Rutas REST del recurso Quiz, montadas en app.js bajo el prefijo /api/v1/quizzes.
- * Combina el endpoint de negocio de HE-03 HU-3.1 (generar) con el CRUD genérico de
- * QuizController.
+ * Combina los endpoints de negocio de HE-03 (generar, submit) con el CRUD genérico
+ * de QuizController/ResultadoQuizController.
  */
 
 import { Router } from 'express';
 import { QuizController } from '../controllers/QuizController.js';
+import { ResultadoQuizController } from '../controllers/ResultadoQuizController.js';
 
 const router = Router();
 
@@ -34,6 +35,12 @@ router.get('/', QuizController.listar);
  * GET /api/v1/quizzes/:id
  */
 router.get('/:id', QuizController.obtenerPorId);
+
+/**
+ * @brief HU-3.2 (CA-3.2.1, CA-3.2.2, CA-3.2.3): registra las respuestas de un estudiante y
+ * calcula su calificación. POST /api/v1/quizzes/:id/submit
+ */
+router.post('/:id/submit', ResultadoQuizController.submit);
 
 /**
  * @brief Reemplaza todos los campos de un quiz existente (CRUD genérico).
