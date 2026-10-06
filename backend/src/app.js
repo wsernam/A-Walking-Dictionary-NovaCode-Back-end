@@ -22,8 +22,6 @@
  *   - PUT  /api/v1/cards/:id/context                    (CA-2.2.1)
  *   - PATCH /api/v1/decks/:id/default-variant           (CA-2.2.2, asignación masiva)
  *   - GET  /api/v1/teacher/analytics/deck/:id           (CA-2.3.1/CA-2.3.2)
- *   - DELETE /api/v1/contributions/:id                  (rechazo de coautoría/acepción nueva,
- *     ÚNICO punto de rechazo del sistema — ver rechazoAporteRoutes en aporteRoutes.js)
  *
  *   Cursos, requeridos por el frontend:
  *   - POST /api/v1/courses
@@ -70,7 +68,7 @@ import autenticacionRoutes from './routes/autenticacionRoutes.js';
 import estudioRoutes from './routes/estudioRoutes.js';
 import usuarioRoutes from './routes/usuarioRoutes.js';
 import estudianteRoutes from './routes/estudianteRoutes.js';
-import aporteRoutes, { rechazoAporteRoutes } from './routes/aporteRoutes.js';
+import aporteRoutes from './routes/aporteRoutes.js';
 
 /** @brief Instancia principal de la aplicación Express. */
 const app = express();
@@ -92,7 +90,6 @@ app.use('/api/v1/auth', autenticacionRoutes);
 app.use('/api/v1/decks', mazoRoutes);
 app.use('/api/v1/cards', tarjetaRoutes);
 app.use('/api/v1/courses', cursoRoutes);
-app.use('/api/v1/contributions', rechazoAporteRoutes);
 app.use('/api/v1/teacher/analytics', analiticaRoutes);
 app.use('/api/v1/study', estudioRoutes);
 app.use('/api/v1/users', usuarioRoutes);
