@@ -8,19 +8,21 @@
 
 import { pool } from '../config/db.js';
 import { ResultadoQuiz } from '../models/ResultadoQuiz.js';
+import { RespuestaQuizRepository } from './RespuestaQuizRepository.js';
 
 export const ResultadoQuizRepository = {
   /**
    * @brief Inserta un resultado_quiz nuevo en la base de datos.
    * @param {Object} datos - Campos de "resultado_quiz" (quiz_id, estudiante_id, fecha_inicio,
    * fecha_envio, puntaje_obtenido, puntaje_maximo, calificacion, tiempo_empleado_seg).
+   * @param {import('pg').Pool|import('pg').PoolClient} [db=pool] - Conexión a usar; se pasa un
+   * cliente cuando la inserción forma parte de una transacción (ver crearConRespuestas).
    * @return {Promise<ResultadoQuiz>} El resultado recién creado, con su id_resultado asignado.
-   * @note Falla (rechaza la promesa) si ya existe un resultado para ese (quiz_id,
-   * estudiante_id) — índice único del DER; QuizService.enviarRespuestas() verifica esto antes
-   * de llamar aquí para poder devolver un 409 con el resumen previo (CA-3.2.3) en vez de dejar
-   * que la base de datos lance el error.
+   * @note Falla (rechaza la promesa, código Postgres 23505) si ya existe un resultado para ese
+   * (quiz_id, estudiante_id) — índice único del DER; QuizService.enviarRespuestas() traduce ese
+   * error a un 409 con el resumen previo (CA-3.2.3).
    */
-  async crear(datos) {
+  async crear(datos, db = pool) {
     const {
       quiz_id,
       estudiante_id,
@@ -31,13 +33,45 @@ export const ResultadoQuizRepository = {
       calificacion,
       tiempo_empleado_seg,
     } = datos;
-    const { rows } = await pool.query(
+    const { rows } = await db.query(
       `INSERT INTO resultado_quiz (quiz_id, estudiante_id, fecha_inicio, fecha_envio, puntaje_obtenido, puntaje_maximo, calificacion, tiempo_empleado_seg)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
       [quiz_id, estudiante_id, fecha_inicio, fecha_envio, puntaje_obtenido, puntaje_maximo, calificacion, tiempo_empleado_seg]
     );
     return new ResultadoQuiz(rows[0]);
+  },
+
+  /**
+   * @brief HU-3.2 (CA-3.2.2): guarda el resultado_quiz de un estudiante junto con sus filas de
+   * respuesta_quiz en una sola transacción. Si cualquier inserción falla, se revierte todo y no
+   * queda un resultado sin desglose que bloquee un nuevo envío (CA-3.2.3) sin haberse calificado.
+   * @param {Object} datosResultado - Campos de "resultado_quiz" (ver crear).
+   * @param {Object[]} respuestas - Datos de cada respuesta (ver RespuestaQuizRepository.crear),
+   * sin resultado_id: se asigna aquí con el id del resultado recién creado.
+   * @return {Promise<{resultado:ResultadoQuiz,
+   * respuestas:import('../models/RespuestaQuiz.js').RespuestaQuiz[]}>} El resultado y las
+   * respuestas creadas.
+   */
+  async crearConRespuestas(datosResultado, respuestas) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const resultado = await this.crear(datosResultado, client);
+      const respuestasCreadas = [];
+      for (const respuesta of respuestas) {
+        respuestasCreadas.push(
+          await RespuestaQuizRepository.crear({ resultado_id: resultado.id_resultado, ...respuesta }, client)
+        );
+      }
+      await client.query('COMMIT');
+      return { resultado, respuestas: respuestasCreadas };
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
   },
 
   /**

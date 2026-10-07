@@ -102,6 +102,29 @@ export const QuizController = {
   },
 
   /**
+   * @brief HU-3.2: preguntas de un quiz para que el estudiante lo responda, sin
+   * `respuesta_correcta`. GET /api/v1/quizzes/:id/preguntas (endpoint adicional aprobado por el
+   * equipo, ver QuizService.obtenerPreguntasParaEstudiante).
+   * @param {import('express').Request} req - req.params.id es el id_quiz; req.usuario (del
+   * JWT) identifica al estudiante.
+   * @param {import('express').Response} res - 200 con { quiz, preguntas }, 400 si el id no es
+   * numérico o el quiz no está abierto, 403 si no está inscrito en el curso del quiz, 404 si el
+   * quiz no existe o no tiene preguntas, 500 ante error inesperado.
+   */
+  async obtenerPreguntas(req, res) {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ error: 'id inválido' });
+      }
+      const resultado = await QuizService.obtenerPreguntasParaEstudiante(id, req.usuario.id_usuario);
+      res.status(200).json(resultado);
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  },
+
+  /**
    * @brief Lista todos los quices existentes, sin filtros, cada uno con `estado_efectivo`
    * calculado (CA-3.1.3). GET /api/v1/quizzes
    * @param {import('express').Request} req - No se usa (sin filtros ni paginación implementados).
