@@ -1,7 +1,20 @@
 # Changelog - Estructura Backend
 
 ## Fecha
-2026-10-07 (última actualización — ver historial de sesiones más abajo)
+2026-10-08 (última actualización — ver historial de sesiones más abajo)
+
+## Cambios aplicados en esta sesión (2026-10-08) — HU-3.1: alinear con el contrato del front
+
+Solo cambia `QuizService.generar`; mismo endpoint, body y respuesta 201. Cumple los pendientes P2-P5
+de `docs/contrato-quiz.md` del frontend (P1, token + rol docente, ya estaba).
+
+- Mínimo 4 traducciones distintas entre las tarjetas aprobadas (antes 2 tarjetas): toda pregunta
+  trae 4 opciones. El 400 dice cuántas se encontraron.
+- 400 si la ventana entre `fecha_apertura` y `fecha_cierre` es menor que `tiempo_limite_min`.
+- 400 si `titulo` supera 200 caracteres o `curso_id` no es entero ≥ 1.
+- 404 si el curso no existe o si un mazo no pertenece a `curso_id`.
+- Contrato docs/CONTRATO_FRONTEND_HU-3.1.md actualizado (también la nota de autenticación).
+- Probado con repositorios simulados. Pendiente: probar contra Postgres.
 
 ## Cambios aplicados en esta sesión (2026-10-07) — HU-3.3: nuevo diseño de los PDF (CA-3.3.3)
 

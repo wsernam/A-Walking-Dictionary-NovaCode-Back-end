@@ -1,14 +1,16 @@
 # Contrato Backend → Frontend — HU-3.1 (HU-007 en la numeración de sprint del equipo)
 
-Este documento le dice al frontend (React) **qué se implementó en el backend** y **cómo debe consumirlo** para la pantalla de "Generar quiz acumulativo" de la docente. Cubre únicamente HU-3.1 (CA-3.1.1, CA-3.1.2, CA-3.1.3). Última actualización: 2026-10-04.
+Este documento le dice al frontend (React) **qué se implementó en el backend** y **cómo debe consumirlo** para la pantalla de "Generar quiz acumulativo" de la docente. Cubre únicamente HU-3.1 (CA-3.1.1, CA-3.1.2, CA-3.1.3). Última actualización: 2026-10-08.
 
-- Rama donde vive la implementación: **`feature/Sprint_3_HU_007`**. HU-3.2 (responder quiz) está en `feature/Sprint_3_HU_008` con su contrato `docs/CONTRATO_FRONTEND_HU-3.2.md`, y HU-3.3 (PDF) en `feature/Sprint_3_HU_009` con `docs/CONTRATO_FRONTEND_HU-3.3.md`.
+Queda alineado con el contrato del frontend (`docs/contrato-quiz.md`, rama `feature/HU-3.1-generar-quiz-front`): los pendientes P1 a P5 de ese documento ya están implementados (ver «Cambios del 2026-10-08» al final).
+
+- Implementación fusionada en **`develop`** (venía de `feature/Sprint_3_HU_007`). HU-3.2 (responder quiz) está en `feature/Sprint_3_HU_008` con su contrato `docs/CONTRATO_FRONTEND_HU-3.2.md`, y HU-3.3 (PDF) en `feature/Sprint_3_HU_009` con `docs/CONTRATO_FRONTEND_HU-3.3.md`.
 - Base URL: `/api/v1`.
 - Formato: JSON (`Content-Type: application/json`).
 - Errores: siempre `{ "error": "mensaje legible" }` con el status HTTP correspondiente. Mostrar `error` tal cual al usuario.
 - Fechas: enviar en ISO 8601 con zona horaria (`new Date(...).toISOString()` → `2026-10-01T13:00:00.000Z`).
 
-> ⚠️ **Autenticación:** el login (HU-5.4, Google + JWT) ya existe en el backend, pero **los endpoints de quiz todavía no piden token ni rol**. Cualquiera que conozca la URL puede generar un quiz. El frontend debe mostrar esta pantalla solo a la docente (ruta protegida) hasta que el equipo decida protegerlos en el back. Enviar el header `Authorization` no rompe nada.
+> 🔒 **Autenticación:** `POST /quizzes/generate` exige `Authorization: Bearer <token>` con rol **docente** (`authenticate` + `requireRole('docente')`). Sin token o con token inválido responde `401`; con otro rol, `403`. `GET /quizzes` y `GET /quizzes/:id` todavía no piden token.
 
 ---
 
@@ -37,12 +39,12 @@ Genera el quiz a partir de las tarjetas aprobadas de los mazos elegidos y lo gua
 
 | Campo | Tipo | Obligatorio | Reglas |
 |---|---|---|---|
-| `curso_id` | number | sí | |
-| `titulo` | string | sí | Máximo 200 caracteres (columna de la BD). |
-| `mazo_ids` | number[] | sí | Al menos un mazo. Cada valor debe ser un id entero ≥ 1. Si un mazo viene repetido se cuenta una sola vez. |
+| `curso_id` | number | sí | Entero ≥ 1. El curso debe existir. |
+| `titulo` | string | sí | Máximo 200 caracteres (el back lo valida y responde `400`). |
+| `mazo_ids` | number[] | sí | Al menos un mazo. Cada valor debe ser un id entero ≥ 1. Si un mazo viene repetido se cuenta una sola vez. Todos los mazos deben existir y **pertenecer a `curso_id`**. |
 | `fecha_apertura` | string ISO | sí | Debe ser una fecha válida. |
 | `fecha_cierre` | string ISO | sí | Debe ser una fecha válida y **posterior** a `fecha_apertura`. |
-| `tiempo_limite_min` | number | sí | Entero ≥ 1 (minutos). |
+| `tiempo_limite_min` | number | sí | Entero ≥ 1 (minutos). La ventana `fecha_cierre − fecha_apertura` (en minutos) debe ser **≥ `tiempo_limite_min`**. |
 | `cantidad_preguntas` | number | no | Entero ≥ 1. Si se omite, se genera **una pregunta por cada tarjeta aprobada**. Si es mayor que las tarjetas disponibles, se recorta a ese total. Las tarjetas se eligen al azar. |
 
 El backend **no** recibe "rango de semanas": el front convierte la selección de semanas en la lista de `mazo_ids`.
@@ -100,13 +102,20 @@ El backend **no** recibe "rango de semanas": el front convierte la selección de
 | Status | Mensaje (`error`) | Cuándo / qué hacer en el front |
 |---|---|---|
 | `400` | `Los siguientes campos son obligatorios: titulo, mazo_ids, …` | Faltan campos; el mensaje lista cuáles. Marcar esos campos en el formulario. |
+| `400` | `curso_id debe ser un número entero mayor o igual a 1` | `curso_id` no es un id. |
+| `400` | `titulo debe tener máximo 200 caracteres` | Título demasiado largo. |
 | `400` | `fecha_apertura no es una fecha válida` / `fecha_cierre no es una fecha válida` | La fecha no se pudo interpretar. |
 | `400` | `fecha_cierre debe ser posterior a fecha_apertura` | Fechas invertidas o iguales. |
 | `400` | `tiempo_limite_min debe ser un número entero mayor o igual a 1` | Tiempo vacío, 0, negativo, con decimales o texto. |
+| `400` | `La ventana entre fecha_apertura y fecha_cierre (25 min) debe ser mayor o igual a tiempo_limite_min (30 min)` | El quiz cerraría antes de poder completarse. |
 | `400` | `cantidad_preguntas debe ser un número entero mayor o igual a 1` | Solo si se envía el campo. Para "usar todas", **no enviar el campo** (o enviarlo como `null`). |
 | `400` | `mazo_ids debe contener solo ids de mazo (enteros mayores o iguales a 1)` | Algún valor del arreglo no es un id. |
-| `400` | `Se necesitan al menos 2 tarjetas en estado revisado_docente en los mazos seleccionados para generar un quiz` | Los mazos elegidos no tienen suficientes tarjetas aprobadas. Sugerencia: invitar a ir al panel de curaduría (HU-2.1). |
+| `400` | `Se encontraron 3 traducciones distintas entre las tarjetas revisado_docente de los mazos seleccionados; se requieren al menos 4.` | No hay suficientes traducciones distintas aprobadas para armar 4 opciones. Sugerencia: elegir más mazos o ir al panel de curaduría (HU-2.1). |
+| `401` | `Token de autenticación no proporcionado` / `Token inválido o expirado` | Sin sesión o sesión vencida: cerrar sesión y llevar al login. |
+| `403` | `No tiene permisos para acceder a este recurso` | El usuario no es docente. |
+| `404` | `El curso 3 no existe` | `curso_id` no existe. |
 | `404` | `El mazo 7 no existe` | Algún `mazo_id` no existe. |
+| `404` | `El mazo 9 no pertenece al curso 1` | Se eligió un mazo de otro curso. |
 | `500` | (mensaje técnico) | Error inesperado del servidor. Mostrar un mensaje genérico. |
 
 Si la respuesta es un error, **no se guarda nada**: el quiz, sus mazos y sus preguntas se crean juntos en una transacción.
@@ -115,7 +124,7 @@ Si la respuesta es un error, **no se guarda nada**: el quiz, sus mazos y sus pre
 
 - **CA-3.1.1:** solo entran tarjetas en estado `revisado_docente` de los mazos elegidos. Las tarjetas `pendiente_revision` o `rechazada` no aparecen ni como pregunta ni como opción.
 - **CA-3.1.2:** todas las preguntas son de **opción múltiple**: "¿Cuál es la traducción correcta de X?". La respuesta correcta es la traducción de la tarjeta; los distractores son traducciones de otras tarjetas aprobadas y no se repiten (se comparan sin distinguir mayúsculas ni espacios).
-  - Si hay pocas traducciones distintas, una pregunta puede traer **2 o 3 opciones: las opciones `null` no se pintan**.
+  - Se exigen al menos **4 traducciones distintas** entre las tarjetas aprobadas de los mazos elegidos, así que **toda pregunta trae siempre 4 opciones** (`opcion_a` a `opcion_d`, ninguna `null`).
   - El orden de las opciones ya viene barajado: pintarlas en el orden `opcion_a` → `opcion_d`. Las preguntas se ordenan por `orden`.
   - La variante "asociación término-definición" que menciona el CA **no está implementada**.
 - **CA-3.1.3:** el quiz queda en estado `programado` con su fecha de apertura, de cierre y tiempo límite (ver la sección siguiente).
@@ -158,7 +167,7 @@ El quiz se guarda con `estado: "programado"`. No hay tarea programada que lo cam
 2. **Selector múltiple de mazos** con `GET /decks`, filtrado por el `curso_id` elegido. Mostrar `nombre_lectura` y `semana`.
 3. Campos de **título**, **fecha/hora de apertura**, **fecha/hora de cierre** y **tiempo límite en minutos**. Convertir las fechas con `toISOString()` antes de enviar.
 4. Campo opcional de **cantidad de preguntas**. Si queda vacío, **no enviar** `cantidad_preguntas`.
-5. Validar en el front lo mismo que el back (campos obligatorios, cierre posterior a apertura, enteros ≥ 1) para dar feedback inmediato. El back valida igual, así que siempre mostrar el `error` que responda.
+5. Validar en el front lo mismo que el back (campos obligatorios, título ≤ 200, cierre posterior a apertura, ventana ≥ tiempo límite, enteros ≥ 1) para dar feedback inmediato. El back valida igual, así que siempre mostrar el `error` que responda.
 6. Botón **"Generar quiz"** → `POST /quizzes/generate`. Deshabilitarlo mientras la petición está en curso para no crear dos quices.
 7. Con `201`, mostrar una **vista previa** de las preguntas (solo para la docente) con la respuesta correcta resaltada, y el `estado_efectivo`.
 
@@ -166,6 +175,21 @@ El quiz se guarda con `estado: "programado"`. No hay tarea programada que lo cam
 
 ## Supuestos pendientes de validar (afectan al front)
 
-1. **Autenticación:** `POST /quizzes/generate` no exige sesión ni rol docente (ver la advertencia del inicio). Pendiente de que el equipo decida protegerlo.
-2. **Variante "asociación término-definición"** de CA-3.1.2: no implementada; solo hay opción múltiple de traducción.
-3. **Preguntas para el estudiante:** `GET /quizzes/:id` no trae preguntas y no hay un endpoint que las devuelva sin `respuesta_correcta`. No afecta a la pantalla de la docente (HU-3.1), pero sí a la del estudiante (HU-3.2): ver `docs/CONTRATO_FRONTEND_HU-3.2.md` en `feature/Sprint_3_HU_008`.
+1. **Variante "asociación término-definición"** de CA-3.1.2: no implementada; solo hay opción múltiple de traducción.
+2. **Preguntas para el estudiante:** `GET /quizzes/:id` no trae preguntas y no hay un endpoint que las devuelva sin `respuesta_correcta`. No afecta a la pantalla de la docente (HU-3.1), pero sí a la del estudiante (HU-3.2): ver `docs/CONTRATO_FRONTEND_HU-3.2.md` en `feature/Sprint_3_HU_008`.
+
+---
+
+## Cambios del 2026-10-08 (alineación con el contrato del frontend)
+
+Pendientes P1 a P5 de `docs/contrato-quiz.md` (frontend), todos en `QuizService.generar` salvo P1:
+
+| # | Cambio | Antes |
+|---|---|---|
+| P1 | `POST /quizzes/generate` exige token y rol docente (`401` / `403`). | Sin protección. |
+| P2 | Mínimo **4 traducciones distintas** (sin distinguir mayúsculas ni espacios) entre las tarjetas aprobadas; el mensaje dice cuántas se encontraron. Toda pregunta trae 4 opciones. Sigue siendo `400`. | Mínimo 2 tarjetas; preguntas de 2 o 3 opciones. |
+| P3 | `400` si la ventana entre apertura y cierre (minutos) es menor que `tiempo_limite_min`. | Solo exigía cierre posterior a apertura. |
+| P4 | `404` si `curso_id` no existe o si algún mazo no pertenece a ese curso; `400` si `curso_id` no es un entero ≥ 1. | Solo validaba que el mazo existiera. |
+| P5 | `400` si `titulo` supera 200 caracteres. | Lo frenaba la base de datos (`500`). |
+
+Sin cambios en el body ni en la respuesta `201`.

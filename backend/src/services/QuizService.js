@@ -19,13 +19,15 @@
  *   si no se envía, se usan todas las tarjetas aprobadas del rango.
  * - "semana_corte" (columna NOT NULL de "quiz") se calcula como la semana más alta entre los
  *   mazos incluidos, representando el corte acumulativo del quiz.
- * - El texto de "enunciado" y el número de opciones (1 correcta + hasta 3 distractores, según
- *   cuántas tarjetas aprobadas haya disponibles) son una interpretación razonable de "quiz de
- *   opción múltiple", no vienen especificados literalmente en el backlog.
+ * - El texto de "enunciado" y el número de opciones (1 correcta + 3 distractores) son una
+ *   interpretación razonable de "quiz de opción múltiple", no vienen especificados literalmente
+ *   en el backlog. Para garantizar siempre 4 opciones distintas se exigen al menos
+ *   MIN_TRADUCCIONES_DISTINTAS traducciones distintas en el pool (contrato del front, P2).
  * - "calificacion" usa escala 0.0-5.0 (convención académica colombiana estándar) — el backlog
  *   no especifica ninguna escala. Supuesto pendiente de validar con la docente.
  */
 
+import { CursoRepository } from '../repositories/CursoRepository.js';
 import { InscripcionRepository } from '../repositories/InscripcionRepository.js';
 import { MazoRepository } from '../repositories/MazoRepository.js';
 import { QuizRepository } from '../repositories/QuizRepository.js';
@@ -36,6 +38,12 @@ import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
 
 /** @brief Margen (ms) que se tolera al recibir un envío tras vencer el tiempo/cierre (latencia). */
 const MARGEN_ENVIO_MS = 30 * 1000;
+
+/** @brief Máximo de caracteres de quiz.titulo (columna VARCHAR(200)). */
+const MAX_TITULO = 200;
+
+/** @brief Traducciones distintas mínimas para que toda pregunta tenga 1 correcta + 3 distractores. */
+const MIN_TRADUCCIONES_DISTINTAS = 4;
 
 /**
  * @brief Crea un Error con un código HTTP adjunto, para que el controlador que atrapa la
@@ -104,6 +112,15 @@ function barajar(arreglo) {
 }
 
 /**
+ * @brief Normaliza una traducción para compararla sin distinguir mayúsculas ni espacios sobrantes.
+ * @param {string} texto - Traducción a normalizar.
+ * @return {string} Texto en minúsculas y sin espacios al inicio ni al final.
+ */
+function normalizar(texto) {
+  return String(texto).trim().toLowerCase();
+}
+
+/**
  * @brief Construye una pregunta de opción múltiple para una tarjeta, con distractores
  * aleatorios tomados del resto del pool de tarjetas aprobadas (CA-3.1.2), sin repetir opciones.
  * @param {import('../models/Tarjeta.js').Tarjeta} tarjetaObjetivo - Tarjeta sobre la que se
@@ -116,8 +133,6 @@ function barajar(arreglo) {
  * respuesta_correcta, orden }.
  */
 function construirPregunta(tarjetaObjetivo, poolCompleto, orden) {
-  const normalizar = (texto) => String(texto).trim().toLowerCase();
-
   // CA-3.1.2 "sin repetir opciones": se descartan traducciones iguales a la correcta y también
   // iguales entre sí (dos tarjetas distintas pueden compartir traducción).
   const vistas = new Set([normalizar(tarjetaObjetivo.traduccion)]);
@@ -197,8 +212,10 @@ export const QuizService = {
    * El quiz creado (con `estado_efectivo`) y las preguntas generadas.
    * @throws {Error} status 400 si faltan campos obligatorios, si las fechas no son válidas, si
    * mazo_ids/tiempo_limite_min/cantidad_preguntas no son enteros >= 1, si fecha_cierre no es
-   * posterior a fecha_apertura, o si hay menos de 2 tarjetas revisado_docente disponibles en los mazos
-   * elegidos (CA-3.1.1); status 404 si algún mazo_id no existe.
+   * posterior a fecha_apertura, si la ventana entre apertura y cierre es menor que
+   * tiempo_limite_min, si titulo supera 200 caracteres, o si hay menos de 4 traducciones distintas
+   * entre las tarjetas revisado_docente de los mazos elegidos (CA-3.1.1, CA-3.1.2); status 404 si
+   * el curso o algún mazo_id no existe, o si un mazo no pertenece al curso.
    */
   async generar(datos) {
     const {
@@ -222,6 +239,12 @@ export const QuizService = {
       throw error(400, `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`);
     }
 
+    if (!esEnteroPositivo(curso_id)) {
+      throw error(400, 'curso_id debe ser un número entero mayor o igual a 1');
+    }
+    if (String(titulo).length > MAX_TITULO) {
+      throw error(400, `titulo debe tener máximo ${MAX_TITULO} caracteres`);
+    }
     if (Number.isNaN(new Date(fecha_apertura).getTime())) {
       throw error(400, 'fecha_apertura no es una fecha válida');
     }
@@ -234,6 +257,14 @@ export const QuizService = {
     if (!esEnteroPositivo(tiempo_limite_min)) {
       throw error(400, 'tiempo_limite_min debe ser un número entero mayor o igual a 1');
     }
+    // La ventana se valida después de tiempo_limite_min para comparar contra un entero válido.
+    const ventanaMin = (new Date(fecha_cierre) - new Date(fecha_apertura)) / 60000;
+    if (ventanaMin < Number(tiempo_limite_min)) {
+      throw error(
+        400,
+        `La ventana entre fecha_apertura y fecha_cierre (${Math.floor(ventanaMin)} min) debe ser mayor o igual a tiempo_limite_min (${tiempo_limite_min} min)`
+      );
+    }
     if (cantidad_preguntas !== undefined && cantidad_preguntas !== null && !esEnteroPositivo(cantidad_preguntas)) {
       throw error(400, 'cantidad_preguntas debe ser un número entero mayor o igual a 1');
     }
@@ -244,18 +275,29 @@ export const QuizService = {
     // Un mismo mazo repetido en mazo_ids se cuenta una sola vez (quiz_mazo tiene pk (quiz_id, mazo_id)).
     const mazoIdsUnicos = [...new Set(mazo_ids.map(Number))];
 
+    const curso = await CursoRepository.obtenerPorId(Number(curso_id));
+    if (!curso) {
+      throw error(404, `El curso ${curso_id} no existe`);
+    }
+
     const mazos = await Promise.all(mazoIdsUnicos.map((id) => MazoRepository.obtenerPorId(id)));
     const mazoInexistente = mazoIdsUnicos.find((id, idx) => !mazos[idx]);
     if (mazoInexistente !== undefined) {
       throw error(404, `El mazo ${mazoInexistente} no existe`);
     }
+    const mazoAjeno = mazos.find((m) => Number(m.curso_id) !== Number(curso_id));
+    if (mazoAjeno) {
+      throw error(404, `El mazo ${mazoAjeno.id_mazo} no pertenece al curso ${curso_id}`);
+    }
 
     // CA-3.1.1: exclusivamente tarjetas revisado_docente de los mazos elegidos.
     const poolAprobadas = await TarjetaRepository.listarAprobadasPorMazos(mazoIdsUnicos);
-    if (poolAprobadas.length < 2) {
+    // CA-3.1.2: con al menos 4 traducciones distintas toda tarjeta tiene 3 distractores posibles.
+    const traduccionesDistintas = new Set(poolAprobadas.map((t) => normalizar(t.traduccion))).size;
+    if (traduccionesDistintas < MIN_TRADUCCIONES_DISTINTAS) {
       throw error(
         400,
-        'Se necesitan al menos 2 tarjetas en estado revisado_docente en los mazos seleccionados para generar un quiz'
+        `Se encontraron ${traduccionesDistintas} traducciones distintas entre las tarjetas revisado_docente de los mazos seleccionados; se requieren al menos ${MIN_TRADUCCIONES_DISTINTAS}.`
       );
     }
 
