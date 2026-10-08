@@ -22,17 +22,24 @@ router.post('/', authenticate, requireRole('docente'), MazoController.crear);
 
 /**
  * @brief Lista los mazos. GET /api/v1/decks
- * @note No viene de un CA específico; es consulta de apoyo para probar/usar lo ya creado
- * con POST /decks. Token opcional: sin token (Invitado, CA-5.4.3) o como docente devuelve todos;
- * con token de estudiante devuelve solo los de sus cursos con inscripción activa (CA-1.2.1).
+ * Usada por la vista "Mazos de estudio" de los tres roles. Token opcional: sin token (Invitado,
+ * CA-5.4.3) o como docente devuelve todos; con token de estudiante devuelve solo los de sus
+ * cursos con inscripción activa (CA-1.2.1).
  */
 router.get('/', autenticacionOpcional, MazoController.listar);
 
 /**
  * @brief Busca un mazo por su id_mazo. GET /api/v1/decks/:id
- * @note No viene de un CA específico; es consulta de apoyo. Sin autenticación (CA-5.4.3).
+ * @note Consulta de apoyo. Sin autenticación (CA-5.4.3).
  */
 router.get('/:id', MazoController.obtenerPorId);
+
+/**
+ * @brief Edita los datos de un mazo (nombre, autor, semana, fechas, variante). PUT /api/v1/decks/:id
+ * Acción de docente (CA-5.4.2); además el controlador exige que sea el docente dueño del mazo.
+ * No modifica el estado (para eso está PATCH /:id/estado).
+ */
+router.put('/:id', authenticate, requireRole('docente'), MazoController.actualizar);
 
 /**
  * @brief CA-1.1.3: cambia el estado del mazo (ej. a "cerrado"). PATCH /api/v1/decks/:id/estado
@@ -66,9 +73,9 @@ router.post('/:id/cards', authenticate, TarjetaController.crear);
 
 /**
  * @brief Elimina un mazo por su id_mazo. DELETE /api/v1/decks/:id
- * @note No viene de un CA específico; es consulta/limpieza de apoyo para pruebas. Falla con
- * 500 (violación de foreign key) si el mazo todavía tiene tarjetas asociadas.
+ * @note Acción de docente (antes solo exigía sesión, lo que permitía a un estudiante borrar
+ * mazos). Falla con 500 (violación de foreign key) si el mazo todavía tiene tarjetas asociadas.
  */
-router.delete('/:id', authenticate, MazoController.eliminar);
+router.delete('/:id', authenticate, requireRole('docente'), MazoController.eliminar);
 
 export default router;
