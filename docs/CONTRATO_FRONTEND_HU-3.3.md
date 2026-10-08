@@ -21,12 +21,12 @@ Este documento le dice al frontend (React) **qué se implementó en el backend**
 
 ## Qué contiene cada PDF
 
-El PDF ya sale maquetado para impresión (márgenes académicos, tipografía legible, sin elementos web, CA-3.3.3): el front solo lo descarga.
+El PDF ya sale maquetado para impresión (márgenes académicos, tipografía legible, sin elementos web, CA-3.3.3): el front solo lo descarga. Usa los colores de la app (azul marino y rojo Unicauca) solo como acentos, así que también se lee bien fotocopiado en blanco y negro. Cada página lleva pie con "Página X de Y".
 
 | Endpoint | Archivo | Contenido |
 |---|---|---|
 | `GET /api/v1/decks/:id/export-pdf` | `mazo-{id}.pdf` | Encabezado con nombre de la lectura, autor, semana y variante regional (si tiene). Por cada tarjeta: término, traducción, definición y, si los tiene, ejemplo y contexto (registro / variante). **Solo tarjetas `revisado_docente`.** (CA-3.3.1) |
-| `GET /api/v1/quizzes/:id/export-pdf` | `quiz-{id}.pdf` | Página de preguntas (título, tiempo límite, cantidad de preguntas, línea para el nombre del estudiante y las preguntas con sus opciones A–D) y, en **página separada**, la hoja de respuestas con la clave. (CA-3.3.2) |
+| `GET /api/v1/quizzes/:id/export-pdf` | `quiz-{id}.pdf` | Página de preguntas (título, tiempo límite, cantidad de preguntas, recuadro para Nombre / Código / Fecha / Nota y las preguntas con sus opciones A–D para marcar) y, en **página separada**, la hoja de respuestas "Solo docente" en tabla con la letra correcta. (CA-3.3.2) |
 
 Un mazo sin tarjetas aprobadas **no da error**: se genera un PDF con el aviso "Este mazo todavía no tiene tarjetas revisado_docente para exportar". Si el front ya sabe que no hay aprobadas, conviene deshabilitar el botón.
 
