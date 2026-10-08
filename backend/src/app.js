@@ -28,10 +28,11 @@
  *   - GET  /api/v1/courses
  *   - GET  /api/v1/courses/:id
  *
- *   HE-03 (HU-3.1 generación de quiz):
+ *   HE-03 (HU-3.1 generación de quiz, HU-3.2 envío de respuestas):
  *   - POST /api/v1/quizzes/generate              (CA-3.1.1, CA-3.1.2, CA-3.1.3)
  *   - GET  /api/v1/quizzes                        (estado_efectivo calculado en cada consulta)
  *   - GET  /api/v1/quizzes/:id                    (idem)
+ *   - POST /api/v1/quizzes/:id/submit             (CA-3.2.1, CA-3.2.2, CA-3.2.3)
  *
  *   HE-05 (HU-5.4 — login con Google/OAuth y control de roles; HU-5.2 — configurar perfil
  *   académico; HU-5.1/5.3 quedan fuera de esta rama):
