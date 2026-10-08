@@ -1,10 +1,26 @@
-// Repositorio de PreguntaQuiz: acceso a datos para la tabla "pregunta_quiz" del DER oficial.
+/**
+ * @file PreguntaQuizRepository.js
+ * @brief Repositorio de PreguntaQuiz: acceso a datos para la tabla "pregunta_quiz" del DER
+ * oficial.
+ * @note crear se usa al generar un quiz (HU-3.1), dentro de la transacción de
+ * QuizRepository.crearConMazosYPreguntas. listarPorQuiz es la consulta que usan las HU de HE-03
+ * que leen las preguntas de un quiz (responderlo y exportarlo a PDF).
+ */
 
 import { pool } from '../config/db.js';
 import { PreguntaQuiz } from '../models/PreguntaQuiz.js';
 
 export const PreguntaQuizRepository = {
-  async crear(datos) {
+  /**
+   * @brief Inserta una pregunta nueva en la base de datos.
+   * @param {Object} datos - Campos de "pregunta_quiz" (quiz_id, tarjeta_id, tipo_pregunta,
+   * enunciado, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta, orden).
+   * @param {import('pg').Pool|import('pg').PoolClient} [db=pool] - Conexión a usar; se pasa un
+   * cliente cuando la inserción forma parte de una transacción (ver
+   * QuizRepository.crearConMazosYPreguntas).
+   * @return {Promise<PreguntaQuiz>} La pregunta recién creada, con su id_pregunta asignado.
+   */
+  async crear(datos, db = pool) {
     const {
       quiz_id,
       tarjeta_id,
@@ -17,7 +33,7 @@ export const PreguntaQuizRepository = {
       respuesta_correcta,
       orden,
     } = datos;
-    const { rows } = await pool.query(
+    const { rows } = await db.query(
       `INSERT INTO pregunta_quiz (quiz_id, tarjeta_id, tipo_pregunta, enunciado, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta, orden)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
@@ -26,16 +42,44 @@ export const PreguntaQuizRepository = {
     return new PreguntaQuiz(rows[0]);
   },
 
+  /**
+   * @brief Busca una pregunta por su id_pregunta.
+   * @param {number} id_pregunta - Id de la pregunta a buscar.
+   * @return {Promise<PreguntaQuiz|null>} La pregunta encontrada, o null si no existe.
+   */
   async obtenerPorId(id_pregunta) {
     const { rows } = await pool.query('SELECT * FROM pregunta_quiz WHERE id_pregunta = $1', [id_pregunta]);
     return rows[0] ? new PreguntaQuiz(rows[0]) : null;
   },
 
+  /**
+   * @brief Lista todas las preguntas existentes, sin filtros.
+   * @return {Promise<PreguntaQuiz[]>} Arreglo con todas las preguntas existentes.
+   */
   async listar() {
     const { rows } = await pool.query('SELECT * FROM pregunta_quiz');
     return rows.map((row) => new PreguntaQuiz(row));
   },
 
+  /**
+   * @brief Lista las preguntas de un quiz específico, en el orden en que fueron generadas.
+   * @param {number} quiz_id - Id del quiz.
+   * @return {Promise<PreguntaQuiz[]>} Preguntas del quiz, ordenadas por "orden" ascendente.
+   */
+  async listarPorQuiz(quiz_id) {
+    const { rows } = await pool.query(
+      'SELECT * FROM pregunta_quiz WHERE quiz_id = $1 ORDER BY orden ASC, id_pregunta ASC',
+      [quiz_id]
+    );
+    return rows.map((row) => new PreguntaQuiz(row));
+  },
+
+  /**
+   * @brief Reemplaza todos los campos de una pregunta existente (UPDATE completo).
+   * @param {number} id_pregunta - Id de la pregunta a actualizar.
+   * @param {Object} datos - Nuevos valores de todas las columnas de "pregunta_quiz".
+   * @return {Promise<PreguntaQuiz|null>} La pregunta actualizada, o null si el id no existe.
+   */
   async actualizar(id_pregunta, datos) {
     const {
       quiz_id,
@@ -60,6 +104,11 @@ export const PreguntaQuizRepository = {
     return rows[0] ? new PreguntaQuiz(rows[0]) : null;
   },
 
+  /**
+   * @brief Elimina una pregunta por su id_pregunta.
+   * @param {number} id_pregunta - Id de la pregunta a eliminar.
+   * @return {Promise<boolean>} true si se eliminó una fila, false si el id no existía.
+   */
   async eliminar(id_pregunta) {
     const { rowCount } = await pool.query('DELETE FROM pregunta_quiz WHERE id_pregunta = $1', [id_pregunta]);
     return rowCount > 0;

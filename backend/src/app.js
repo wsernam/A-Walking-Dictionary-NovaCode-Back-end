@@ -28,6 +28,11 @@
  *   - GET  /api/v1/courses
  *   - GET  /api/v1/courses/:id
  *
+ *   HE-03 (HU-3.1 generación de quiz):
+ *   - POST /api/v1/quizzes/generate              (CA-3.1.1, CA-3.1.2, CA-3.1.3)
+ *   - GET  /api/v1/quizzes                        (estado_efectivo calculado en cada consulta)
+ *   - GET  /api/v1/quizzes/:id                    (idem)
+ *
  *   HE-05 (HU-5.4 — login con Google/OAuth y control de roles; HU-5.2 — configurar perfil
  *   académico; HU-5.1/5.3 quedan fuera de esta rama):
  *   - POST /api/v1/auth/google                          (CA-5.4.1, login vía Google/OAuth)
@@ -53,7 +58,7 @@
  *   primera entrega. Ver docs/FLUJO_AUTENTICACION.md para el detalle completo del cambio.
  *
  * @note El resto de controladores/rutas de las entidades genéricas (inscripcion,
- * etiqueta_contexto vía CRUD directo, progreso_estudio, quiz, quiz_mazo, pregunta_quiz,
+ * etiqueta_contexto vía CRUD directo, progreso_estudio, quiz_mazo, pregunta_quiz,
  * resultado_quiz, respuesta_quiz, y actualizar/eliminar curso/aporte) ya existen en
  * src/controllers/ y src/repositories/, pero NO se montan aquí todavía.
  */
@@ -69,6 +74,7 @@ import estudioRoutes from './routes/estudioRoutes.js';
 import usuarioRoutes from './routes/usuarioRoutes.js';
 import estudianteRoutes from './routes/estudianteRoutes.js';
 import aporteRoutes from './routes/aporteRoutes.js';
+import quizRoutes from './routes/quizRoutes.js';
 
 /** @brief Instancia principal de la aplicación Express. */
 const app = express();
@@ -95,5 +101,6 @@ app.use('/api/v1/study', estudioRoutes);
 app.use('/api/v1/users', usuarioRoutes);
 app.use('/api/v1/students', estudianteRoutes);
 app.use('/api/v1/aportes', aporteRoutes);
+app.use('/api/v1/quizzes', quizRoutes);
 
 export default app;
