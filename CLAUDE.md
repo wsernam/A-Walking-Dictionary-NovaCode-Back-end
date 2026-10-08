@@ -163,11 +163,13 @@ Como estudiante, quiero responder el quiz asignado desde la aplicación y recibi
 Como docente del curso, quiero exportar los mazos de vocabulario y las pruebas a archivos PDF, para fotocopiar el material ante imprevistos en aula sin conectividad.
 
 - Endpoint: GET /api/v1/decks/{id}/export-pdf (Node.js, usando pdf-lib)
+- Endpoint adicional (aprobado por el equipo 2026-10-07, D-06): GET /api/v1/quizzes/{id}/export-pdf — cubre CA-3.3.2. Pendiente de agregarlo también en Backlog_HU.xlsx.
+- Acceso: solo rol Docente en ambos endpoints (decisión D-07, 2026-10-07).
 - Frontend: botón de descarga en React
 - CA-3.3.1 (Generación de PDF de mazo semanal): la docente o estudiante, desde un mazo completado, selecciona "Exportar a PDF" → PDF maquetado con lista ordenada de términos, traducciones, definiciones y contexto.
 - CA-3.3.2 (Exportación de quiz impreso con clave de respuestas): "Exportar versión impresa" de un quiz → PDF listo para fotocopiar, con hoja de preguntas y hoja separada de respuestas para la docente.
 - CA-3.3.3 (Formato optimizado para impresión): márgenes académicos, tipografía legible, estructura limpia sin elementos web redundantes.
-- Ver discrepancias D-06 y D-07 (endpoint del quiz en PDF y rol estudiante).
+- D-06 y D-07 resueltas: ver "Decisiones del equipo". ⚠️ A tener en cuenta: CA-3.3.1 menciona "docente o estudiante"; por ahora solo exporta la docente, reconsiderar si el estudiante debe poder exportar el PDF del mazo (nunca el del quiz, que trae la clave de respuestas).
 
 ### HE-04 — Repaso Adaptativo y Enriquecimiento Léxico
 
@@ -264,8 +266,6 @@ Claude NO debe resolver estas discrepancias por su cuenta. Si una tarea depende 
 - **D-03 — Campos de perfil (HU-5.2) sin columna en el DER:** `usuario` solo tiene `nivel_ingles`. No existen columnas para código estudiantil, avatar ni preferencias/áreas a reforzar. HU-5.2 figura como Completado: confirmar dónde se guardaron o si falta migración.
 - **D-04 — Código de acceso del curso (HU-5.3, CA-5.3.1):** La tabla `curso` no tiene columna para el código de acceso.
 - **D-05 — Tablas fuera del DER:** `wordnet_cache` (HU-4.2) y `notificacion` (HE-02, propuesta en migración 002) no están en el DER. Tampoco `tarjeta.motivo_rechazo`.
-- **D-06 — Exportar quiz a PDF (CA-3.3.2):** Solo existe el endpoint `GET /api/v1/decks/{id}/export-pdf`. No hay endpoint definido para exportar un quiz.
-- **D-07 — Quién exporta PDF:** HU-3.3 dice "docente", pero CA-3.3.1 dice "docente o estudiante". Definir si el estudiante tiene permiso.
 - **D-08 — Unicidad de tarjetas vs. acepciones (HU-1.3):** El DER tiene índice único `tarjeta (mazo_id, palabra)`, lo que impide guardar una acepción adicional como tarjeta nueva (CA-1.3.2). Además ese índice distingue mayúsculas/minúsculas en PostgreSQL, lo que no cumple CA-1.3.3 a nivel de BD. Confirmar si las acepciones se guardan como `aporte` con `tipo_aporte` distinto y si se usa `LOWER(palabra)`.
 - **D-09 — Campos obligatorios de mazo:** El DER exige `curso_id`, `fecha_apertura` y `fecha_cierre` (not null), pero CA-1.1.1 solo pide nombre, semana, autor y variante. Confirmar de dónde salen esos valores.
 - **D-10 — Endpoint de filtrado de pendientes (CA-2.1.1):** Este archivo menciona dos rutas distintas: `GET /decks/:id/cards?estado=pendiente_revision` y `GET /api/v1/cards/pending`. Definir cuál es la oficial.
@@ -321,6 +321,8 @@ HU en progreso (3.1, 3.2, 3.3, 5.3): documentar aquí el avance real al terminar
 
 Registro de decisiones humanas que Claude debe respetar en todas las sesiones. Formato: fecha — decisión — quién la tomó — HU/CA afectados.
 
+- 2026-10-07 — D-06: se aprueba el endpoint adicional `GET /api/v1/quizzes/:id/export-pdf` para cubrir CA-3.3.2 (el backlog solo lista el de mazos); falta reflejarlo en Backlog_HU.xlsx — wsernam — HU-3.3 (CA-3.3.2)
+- 2026-10-07 — D-07: solo la docente exporta PDF (`authenticate` + `requireRole('docente')` en `/decks/:id/export-pdf` y `/quizzes/:id/export-pdf`). A tener en cuenta: CA-3.3.1 dice "docente o estudiante"; reconsiderar el acceso del estudiante al PDF del mazo más adelante — wsernam — HU-3.3 (CA-3.3.1, CA-3.3.2)
 - 2026-10-07 — En `POST /api/v1/quizzes/:id/submit` el `estudiante_id` se toma del JWT (`req.usuario.id_usuario`), no del body; ruta protegida con `authenticate` + `requireRole('estudiante')` — wsernam — HU-3.2 (CA-3.2.2, CA-3.2.3), CA-5.4.2
 - 2026-10-07 — Responder o pedir preguntas de un quiz exige estar inscrito en el curso del quiz (`InscripcionRepository.obtenerPorCursoYEstudiante`), 403 si no — wsernam — HU-3.2
 - 2026-10-07 — Control de tiempo de CA-3.2.1 se queda con `fecha_inicio`/`tiempo_empleado_seg` informados por el cliente; NO se agrega endpoint de inicio de intento por ahora (limitación conocida) — wsernam — HU-3.2 (CA-3.2.1)

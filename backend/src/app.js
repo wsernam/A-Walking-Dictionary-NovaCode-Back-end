@@ -28,11 +28,14 @@
  *   - GET  /api/v1/courses
  *   - GET  /api/v1/courses/:id
  *
- *   HE-03 (HU-3.1 generación de quiz, HU-3.2 envío de respuestas):
+ *   HE-03 (HU-3.1 generación de quiz, HU-3.2 envío de respuestas, HU-3.3 exportación a PDF):
  *   - POST /api/v1/quizzes/generate              (CA-3.1.1, CA-3.1.2, CA-3.1.3)
  *   - GET  /api/v1/quizzes                        (estado_efectivo calculado en cada consulta)
  *   - GET  /api/v1/quizzes/:id                    (idem)
  *   - POST /api/v1/quizzes/:id/submit             (CA-3.2.1, CA-3.2.2, CA-3.2.3)
+ *   - GET  /api/v1/quizzes/:id/export-pdf         (CA-3.3.2, endpoint adicional — el backlog
+ *     solo documenta export-pdf para mazos, no para quizzes; ver docs/CHANGELOG_BACKEND.md)
+ *   - GET  /api/v1/decks/:id/export-pdf           (CA-3.3.1, CA-3.3.3)
  *
  *   HE-05 (HU-5.4 — login con Google/OAuth y control de roles; HU-5.2 — configurar perfil
  *   académico; HU-5.1/5.3 quedan fuera de esta rama):
@@ -60,7 +63,7 @@
  *
  * @note El resto de controladores/rutas de las entidades genéricas (inscripcion,
  * etiqueta_contexto vía CRUD directo, progreso_estudio, quiz_mazo, pregunta_quiz,
- * resultado_quiz, respuesta_quiz, y actualizar/eliminar curso/aporte) ya existen en
+ * respuesta_quiz, y actualizar/eliminar curso/aporte) ya existen en
  * src/controllers/ y src/repositories/, pero NO se montan aquí todavía.
  */
 

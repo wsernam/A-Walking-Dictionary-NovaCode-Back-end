@@ -72,6 +72,13 @@ router.patch(
 router.post('/:id/cards', authenticate, TarjetaController.crear);
 
 /**
+ * @brief HU-3.3 (CA-3.3.1, CA-3.3.3): exporta el mazo a PDF. GET /api/v1/decks/:id/export-pdf
+ * @note Solo docente por decisión del equipo (D-07, 2026-10-07), aunque CA-3.3.1 menciona
+ * "docente o estudiante"; queda anotado para reconsiderar el acceso del estudiante.
+ */
+router.get('/:id/export-pdf', authenticate, requireRole('docente'), MazoController.exportarPdf);
+
+/**
  * @brief Elimina un mazo por su id_mazo. DELETE /api/v1/decks/:id
  * @note Acción de docente (antes solo exigía sesión, lo que permitía a un estudiante borrar
  * mazos). Falla con 500 (violación de foreign key) si el mazo todavía tiene tarjetas asociadas.
