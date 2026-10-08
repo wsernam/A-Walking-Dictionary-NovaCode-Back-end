@@ -15,11 +15,14 @@ export const RespuestaQuizRepository = {
    * @brief Inserta una respuesta nueva en la base de datos.
    * @param {Object} datos - Campos de "respuesta_quiz" (resultado_id, pregunta_id,
    * respuesta_estudiante, es_correcta, puntaje_obtenido).
+   * @param {import('pg').Pool|import('pg').PoolClient} [db=pool] - Conexión a usar; se pasa un
+   * cliente cuando la inserción forma parte de una transacción (ver
+   * ResultadoQuizRepository.crearConRespuestas).
    * @return {Promise<RespuestaQuiz>} La respuesta recién creada, con su id_respuesta asignado.
    */
-  async crear(datos) {
+  async crear(datos, db = pool) {
     const { resultado_id, pregunta_id, respuesta_estudiante, es_correcta, puntaje_obtenido } = datos;
-    const { rows } = await pool.query(
+    const { rows } = await db.query(
       `INSERT INTO respuesta_quiz (resultado_id, pregunta_id, respuesta_estudiante, es_correcta, puntaje_obtenido)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,

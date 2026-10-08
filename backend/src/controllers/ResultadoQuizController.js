@@ -13,13 +13,16 @@ export const ResultadoQuizController = {
   /**
    * @brief HU-3.2 (CA-3.2.1, CA-3.2.2, CA-3.2.3): recibe las respuestas de un estudiante para
    * un quiz, calcula la calificación y la registra. POST /api/v1/quizzes/:id/submit
-   * @param {import('express').Request} req - req.params.id es el id_quiz; req.body: {
-   * estudiante_id, respuestas: [{pregunta_id, respuesta_estudiante}], tiempo_empleado_seg? }
-   * (ver QuizService.enviarRespuestas para el detalle de cada campo).
+   * @param {import('express').Request} req - req.params.id es el id_quiz; req.usuario (del
+   * JWT) identifica al estudiante; req.body: { respuestas: [{pregunta_id,
+   * respuesta_estudiante}], fecha_inicio?, tiempo_empleado_seg? } (ver
+   * QuizService.enviarRespuestas para el detalle de cada campo). Un estudiante_id en el body se
+   * ignora.
    * @param {import('express').Response} res - 201 con { resultado, respuestas } si es la
    * primera vez que el estudiante envía; 409 con { error, resultado, respuestas } del intento
    * previo si ya lo había enviado (CA-3.2.3); 400 si faltan datos o el quiz no está abierto;
-   * 404 si el quiz no existe o no tiene preguntas; 500 ante error inesperado.
+   * 403 si no está inscrito en el curso del quiz; 404 si el quiz no existe o no tiene
+   * preguntas; 500 ante error inesperado.
    */
   async submit(req, res) {
     try {
@@ -27,7 +30,7 @@ export const ResultadoQuizController = {
       if (Number.isNaN(quiz_id)) {
         return res.status(400).json({ error: 'id inválido' });
       }
-      const resultado = await QuizService.enviarRespuestas(quiz_id, req.body);
+      const resultado = await QuizService.enviarRespuestas(quiz_id, req.usuario.id_usuario, req.body);
       res.status(201).json(resultado);
     } catch (err) {
       if (err.status === 409) {

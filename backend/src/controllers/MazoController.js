@@ -10,6 +10,21 @@
 import { MazoRepository } from '../repositories/MazoRepository.js';
 import { ContextoService } from '../services/ContextoService.js';
 import { ExportarPDFService } from '../services/ExportarPDFService.js';
+import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
+
+const ESTADOS_VALIDOS = ['abierto', 'cerrado'];
+
+/**
+ * @brief Indica si el usuario autenticado es el docente dueño del mazo.
+ * Con DISABLE_AUTH=true (solo desarrollo) siempre devuelve true.
+ * @param {import('express').Request} req - req.usuario viene de authenticate.
+ * @param {Object} mazo - Mazo ya cargado (con docente_id).
+ * @return {boolean}
+ */
+function esDuenoDelMazo(req, mazo) {
+  if (authDeshabilitado()) return true;
+  return Number(mazo.docente_id) === Number(req.usuario?.id_usuario);
+}
 
 export const MazoController = {
   /**
@@ -144,11 +159,23 @@ export const MazoController = {
   },
 
   /**
-   * @brief Actualiza todos los campos de un mazo existente (reemplazo completo vía PUT).
-   * @param {import('express').Request} req - req.params.id es el id_mazo; req.body trae las
-   * columnas nuevas de "mazo" (curso_id, nombre_lectura, autor, semana, etc.).
-   * @param {import('express').Response} res - 200 con el mazo actualizado, 400 si el id no es
-   * numérico, 404 si no existe, 500 ante error inesperado.
+   * @brief Edita los datos de un mazo existente (PUT /decks/:id).
+   *
+   * Solo el docente dueño del mazo puede editarlo (403 si no). Se mezclan los campos recibidos
+   * con el mazo actual, así un body incompleto no deja columnas en null. Solo se pueden cambiar
+   * nombre_lectura, autor, semana, variante_regional_predeterminada, fecha_apertura y
+   * fecha_cierre; curso_id, docente_id, estado y fecha_creacion se conservan. El estado se
+   * cambia con actualizarEstado. Se aplican las mismas validaciones que en crear (CA-1.1.2 y
+   * longitudes del DER).
+   *
+   * @note Cambiar variante_regional_predeterminada aquí NO propaga a las tarjetas del mazo;
+   * para eso está actualizarVarianteRegional (CA-2.2.2).
+   *
+   * @param {import('express').Request} req - req.params.id es el id_mazo; req.body trae los
+   * campos a cambiar.
+   * @param {import('express').Response} res - 200 con el mazo actualizado, 400 si el id es
+   * inválido o falla una validación, 403 si no es el dueño, 404 si no existe, 500 ante error
+   * inesperado.
    */
   async actualizar(req, res) {
     try {
@@ -156,10 +183,59 @@ export const MazoController = {
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido' });
       }
-      const mazo = await MazoRepository.actualizar(id, req.body);
-      if (!mazo) {
+
+      const mazoActual = await MazoRepository.obtenerPorId(id);
+      if (!mazoActual) {
         return res.status(404).json({ error: 'Mazo no encontrado' });
       }
+      if (!esDuenoDelMazo(req, mazoActual)) {
+        return res.status(403).json({ error: 'Solo el docente dueño puede editar este mazo' });
+      }
+
+      const CAMPOS_EDITABLES = [
+        'nombre_lectura',
+        'autor',
+        'semana',
+        'variante_regional_predeterminada',
+        'fecha_apertura',
+        'fecha_cierre',
+      ];
+      const datos = { ...mazoActual };
+      for (const campo of CAMPOS_EDITABLES) {
+        if (req.body[campo] !== undefined) datos[campo] = req.body[campo];
+      }
+
+      // CA-1.1.2: nombre de la lectura y semana (y autor, NOT NULL en el DER) obligatorios.
+      const camposFaltantes = [];
+      if (!datos.nombre_lectura) camposFaltantes.push('nombre_lectura');
+      if (datos.semana === undefined || datos.semana === null || datos.semana === '') camposFaltantes.push('semana');
+      if (!datos.autor) camposFaltantes.push('autor');
+      if (!datos.fecha_apertura) camposFaltantes.push('fecha_apertura');
+      if (!datos.fecha_cierre) camposFaltantes.push('fecha_cierre');
+      if (camposFaltantes.length > 0) {
+        return res.status(400).json({
+          error: `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`,
+        });
+      }
+
+      const erroresLongitud = [];
+      if (String(datos.nombre_lectura).length > 200) {
+        erroresLongitud.push('El campo nombre_lectura no puede superar 200 caracteres.');
+      }
+      if (String(datos.autor).length > 150) {
+        erroresLongitud.push('El campo autor no puede superar 150 caracteres.');
+      }
+      if (
+        datos.variante_regional_predeterminada &&
+        String(datos.variante_regional_predeterminada).length > 100
+      ) {
+        erroresLongitud.push('El campo variante_regional_predeterminada no puede superar 100 caracteres.');
+      }
+      if (erroresLongitud.length > 0) {
+        return res.status(400).json({ error: erroresLongitud.join(' ') });
+      }
+
+      const mazo = await MazoRepository.actualizar(id, datos);
       res.status(200).json(mazo);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -170,12 +246,13 @@ export const MazoController = {
    * @brief Cambia únicamente el campo "estado" de un mazo (ej. de "abierto" a "cerrado").
    *
    * CA-1.1.3: cerrar el mazo inhabilita la recepción de nuevos aportes; esa verificación vive
-   * en TarjetaController.crear, no aquí.
+   * en TarjetaController.crear, no aquí. Solo el docente dueño del mazo puede cambiarlo.
    *
    * @param {import('express').Request} req - req.params.id es el id_mazo; req.body.estado es
-   * el nuevo valor del estado.
+   * el nuevo valor del estado ("abierto" o "cerrado").
    * @param {import('express').Response} res - 200 con el mazo actualizado, 400 si el id no es
-   * numérico o si falta "estado", 404 si el mazo no existe, 500 ante error inesperado.
+   * numérico, falta "estado" o no es un valor válido, 403 si no es el dueño, 404 si el mazo no
+   * existe, 500 ante error inesperado.
    */
   async actualizarEstado(req, res) {
     try {
@@ -187,9 +264,17 @@ export const MazoController = {
       if (!estado) {
         return res.status(400).json({ error: 'El campo estado es obligatorio' });
       }
+      if (!ESTADOS_VALIDOS.includes(estado)) {
+        return res.status(400).json({
+          error: `El estado debe ser uno de: ${ESTADOS_VALIDOS.join(', ')}`,
+        });
+      }
       const mazoActual = await MazoRepository.obtenerPorId(id);
       if (!mazoActual) {
         return res.status(404).json({ error: 'Mazo no encontrado' });
+      }
+      if (!esDuenoDelMazo(req, mazoActual)) {
+        return res.status(403).json({ error: 'Solo el docente dueño puede abrir o cerrar este mazo' });
       }
       const mazoActualizado = await MazoRepository.actualizar(id, { ...mazoActual, estado });
       res.status(200).json(mazoActualizado);
@@ -202,11 +287,12 @@ export const MazoController = {
    * @brief CA-2.2.2: actualiza la variante regional predeterminada del mazo y la propaga
    * automáticamente a todas sus tarjetas (sobrescribiendo la etiqueta 'variante_regional' de
    * cada una). Ver ContextoService.aplicarVarianteRegionalPorMazo para el detalle de la
-   * decisión de "sobrescribir siempre" vs. "solo si no tenía".
+   * decisión de "sobrescribir siempre" vs. "solo si no tenía". Solo el docente dueño del mazo.
    * @param {import('express').Request} req - req.params.id es el id_mazo; req.body.variante_regional
    * es el nuevo valor por defecto (obligatorio, debe ser una variante permitida).
    * @param {import('express').Response} res - 200 con { mazo, tarjetas_actualizadas }, 400 si
-   * falta variante_regional o no es válida, 404 si el mazo no existe, 500 ante error inesperado.
+   * falta variante_regional o no es válida, 403 si no es el dueño, 404 si el mazo no existe,
+   * 500 ante error inesperado.
    */
   async actualizarVarianteRegional(req, res) {
     try {
@@ -221,6 +307,9 @@ export const MazoController = {
       const mazoExistente = await MazoRepository.obtenerPorId(id);
       if (!mazoExistente) {
         return res.status(404).json({ error: 'Mazo no encontrado' });
+      }
+      if (!esDuenoDelMazo(req, mazoExistente)) {
+        return res.status(403).json({ error: 'Solo el docente dueño puede modificar este mazo' });
       }
       const tarjetasActualizadas = await ContextoService.aplicarVarianteRegionalPorMazo(id, variante_regional);
       const mazo = await MazoRepository.actualizarVarianteRegional(id, variante_regional);
@@ -256,11 +345,11 @@ export const MazoController = {
   },
 
   /**
-   * @brief Elimina un mazo por su id_mazo.
+   * @brief Elimina un mazo por su id_mazo. Solo el docente dueño del mazo.
    * @param {import('express').Request} req - req.params.id es el id_mazo a eliminar.
    * @param {import('express').Response} res - 200 con { eliminado: true }, 400 si el id no es
-   * numérico, 404 si no existía, 500 ante error inesperado (ej. si el mazo todavía tiene
-   * tarjetas asociadas, por la foreign key).
+   * numérico, 403 si no es el dueño, 404 si no existía, 500 ante error inesperado (ej. si el
+   * mazo todavía tiene tarjetas asociadas, por la foreign key).
    */
   async eliminar(req, res) {
     try {
@@ -268,10 +357,14 @@ export const MazoController = {
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido' });
       }
-      const eliminado = await MazoRepository.eliminar(id);
-      if (!eliminado) {
+      const mazoActual = await MazoRepository.obtenerPorId(id);
+      if (!mazoActual) {
         return res.status(404).json({ error: 'Mazo no encontrado' });
       }
+      if (!esDuenoDelMazo(req, mazoActual)) {
+        return res.status(403).json({ error: 'Solo el docente dueño puede eliminar este mazo' });
+      }
+      await MazoRepository.eliminar(id);
       res.status(200).json({ eliminado: true });
     } catch (error) {
       res.status(500).json({ error: error.message });

@@ -3,9 +3,9 @@
  * @brief Controlador REST de Aporte: recibe la petición HTTP, llama directamente al
  * repositorio (AporteRepository) y devuelve la respuesta.
  *
- * @note rechazar() implementa el flujo de coautoría/acepción nueva: es la única acción de
- * "Rechazar" disponible en el sistema. La tarjeta individual (revisión docente) NO tiene
- * rechazo — solo editar/aprobar, ver TarjetaController.aprobar.
+ * @note Las coautorías/acepciones nuevas solo se pueden editar y aprobar (aprobar()); no existe
+ * rechazo en ningún flujo del sistema. Lo mismo aplica a la tarjeta individual, ver
+ * TarjetaController.aprobar.
  */
 
 import { AporteRepository } from '../repositories/AporteRepository.js';
@@ -83,6 +83,7 @@ export const AporteController = {
   /**
    * @brief Lista las coautorías/acepciones nuevas pendientes de revisión docente
    * (GET /api/v1/aportes/pending). Endpoint adicional, fuera de los CA de HU-1.3.
+   * Incluye los aportes pendientes aunque su palabra (tarjeta) ya esté aprobada.
    * @param {import('express').Request} req
    * @param {import('express').Response} res - 200 con el arreglo, 500 ante error inesperado.
    */
@@ -100,8 +101,8 @@ export const AporteController = {
    * @brief Aprueba una coautoría/acepción nueva, con correcciones opcionales
    * (PATCH /api/v1/aportes/:id/approve). Endpoint adicional, fuera de los CA de HU-1.3.
    *
-   * Igual que rechazar(), no aplica a aportes 'creada': esos se aprueban por la revisión
-   * individual de la tarjeta (PATCH /cards/:id/approve).
+   * No aplica a aportes 'creada': esos se aprueban por la revisión individual de la tarjeta
+   * (PATCH /cards/:id/approve).
    *
    * @param {import('express').Request} req - req.params.id es el id_aporte; req.body puede traer
    * traduccion_aportada, definicion_aportada y ejemplo_aportado corregidos.
@@ -177,42 +178,6 @@ export const AporteController = {
         return res.status(404).json({ error: 'Aporte no encontrado' });
       }
       res.status(200).json({ eliminado: true });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  },
-
-  /**
-   * @brief Rechaza (elimina) un aporte de coautoría o acepción nueva.
-   *
-   * Regla de negocio: NO permite rechazar un aporte de tipo 'creada' — ese es el aporte
-   * original de una tarjeta en revisión individual, donde la docente solo puede editar/aprobar
-   * la tarjeta (ver TarjetaController.aprobar), nunca rechazarla. "Rechazar" solo existe para
-   * aportes 'coautoria' o 'acepcion_nueva'.
-   *
-   * @param {import('express').Request} req - req.params.id es el id_aporte a rechazar.
-   * @param {import('express').Response} res - 200 con { eliminado: true } si se rechazó, 400 si
-   * el id no es numérico, 403 si el aporte es de tipo 'creada' (no se puede rechazar en ese
-   * flujo), 404 si no existe, 500 ante error inesperado.
-   */
-  async rechazar(req, res) {
-    try {
-      const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
-      }
-      const aporte = await AporteRepository.obtenerPorId(id);
-      if (!aporte) {
-        return res.status(404).json({ error: 'Aporte no encontrado' });
-      }
-      if (aporte.tipo_aporte === 'creada') {
-        return res.status(403).json({
-          error:
-            'No se puede rechazar un aporte de creación original; use el flujo de revisión individual de la tarjeta (editar/aprobar).',
-        });
-      }
-      const eliminado = await AporteRepository.eliminar(id);
-      res.status(200).json({ eliminado });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

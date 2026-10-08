@@ -323,3 +323,7 @@ Registro de decisiones humanas que Claude debe respetar en todas las sesiones. F
 
 - 2026-10-07 — D-06: se aprueba el endpoint adicional `GET /api/v1/quizzes/:id/export-pdf` para cubrir CA-3.3.2 (el backlog solo lista el de mazos); falta reflejarlo en Backlog_HU.xlsx — wsernam — HU-3.3 (CA-3.3.2)
 - 2026-10-07 — D-07: solo la docente exporta PDF (`authenticate` + `requireRole('docente')` en `/decks/:id/export-pdf` y `/quizzes/:id/export-pdf`). A tener en cuenta: CA-3.3.1 dice "docente o estudiante"; reconsiderar el acceso del estudiante al PDF del mazo más adelante — wsernam — HU-3.3 (CA-3.3.1, CA-3.3.2)
+- 2026-10-07 — En `POST /api/v1/quizzes/:id/submit` el `estudiante_id` se toma del JWT (`req.usuario.id_usuario`), no del body; ruta protegida con `authenticate` + `requireRole('estudiante')` — wsernam — HU-3.2 (CA-3.2.2, CA-3.2.3), CA-5.4.2
+- 2026-10-07 — Responder o pedir preguntas de un quiz exige estar inscrito en el curso del quiz (`InscripcionRepository.obtenerPorCursoYEstudiante`), 403 si no — wsernam — HU-3.2
+- 2026-10-07 — Control de tiempo de CA-3.2.1 se queda con `fecha_inicio`/`tiempo_empleado_seg` informados por el cliente; NO se agrega endpoint de inicio de intento por ahora (limitación conocida) — wsernam — HU-3.2 (CA-3.2.1)
+- 2026-10-07 — Se aprueba el endpoint adicional `GET /api/v1/quizzes/:id/preguntas` (preguntas sin `respuesta_correcta` ni `tarjeta_id`, solo estudiante inscrito y quiz abierto) — wsernam — HU-3.2

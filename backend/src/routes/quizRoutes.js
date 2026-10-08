@@ -1,8 +1,8 @@
 /**
  * @file quizRoutes.js
  * @brief Rutas REST del recurso Quiz, montadas en app.js bajo el prefijo /api/v1/quizzes.
- * Combina los endpoints de negocio de HE-03 (generar, submit, export-pdf) con el CRUD genérico
- * de QuizController/ResultadoQuizController.
+ * Combina los endpoints de negocio de HE-03 (generar, preguntas, submit, export-pdf) con el CRUD
+ * genérico de QuizController/ResultadoQuizController.
  */
 
 import { Router } from 'express';
@@ -15,8 +15,9 @@ const router = Router();
 /**
  * @brief HU-3.1 (CA-3.1.1, CA-3.1.2, CA-3.1.3): genera un quiz acumulativo a partir de las
  * tarjetas revisado_docente de los mazos elegidos. POST /api/v1/quizzes/generate
+ * Solo docente (CA-5.4.2).
  */
-router.post('/generate', QuizController.generar);
+router.post('/generate', authenticate, requireRole('docente'), QuizController.generar);
 
 /**
  * @brief Crea un quiz nuevo (CRUD genérico). POST /api/v1/quizzes
@@ -46,10 +47,19 @@ router.get('/:id', QuizController.obtenerPorId);
 router.get('/:id/export-pdf', authenticate, requireRole('docente'), QuizController.exportarPdf);
 
 /**
+ * @brief HU-3.2: preguntas del quiz para el estudiante, sin respuesta_correcta.
+ * GET /api/v1/quizzes/:id/preguntas
+ * @note Endpoint adicional (no listado en el backlog), aprobado por el equipo: sin él no hay
+ * forma de pintar el formulario del quiz. Solo estudiante inscrito en el curso del quiz.
+ */
+router.get('/:id/preguntas', authenticate, requireRole('estudiante'), QuizController.obtenerPreguntas);
+
+/**
  * @brief HU-3.2 (CA-3.2.1, CA-3.2.2, CA-3.2.3): registra las respuestas de un estudiante y
  * calcula su calificación. POST /api/v1/quizzes/:id/submit
+ * Solo estudiante (CA-5.4.2); el estudiante_id sale del JWT.
  */
-router.post('/:id/submit', ResultadoQuizController.submit);
+router.post('/:id/submit', authenticate, requireRole('estudiante'), ResultadoQuizController.submit);
 
 /**
  * @brief Reemplaza todos los campos de un quiz existente (CRUD genérico).

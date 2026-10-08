@@ -13,6 +13,30 @@
   estudiante al PDF del mazo.
 - Contrato docs/CONTRATO_FRONTEND_HU-3.3.md actualizado: el front debe enviar el token (401/403).
 
+## Cambios aplicados en esta sesión (2026-10-07) — HU-3.2: transacción, auth y preguntas para el estudiante
+
+Correcciones a `POST /api/v1/quizzes/:id/submit` y un endpoint adicional aprobado por el equipo.
+
+- Nuevo `ResultadoQuizRepository.crearConRespuestas`: `resultado_quiz` y `respuesta_quiz` se guardan en
+  una sola transacción. Antes, un fallo a mitad dejaba un resultado sin desglose que bloqueaba al
+  estudiante con un 409. `ResultadoQuizRepository.crear` y `RespuestaQuizRepository.crear` aceptan un
+  segundo parámetro opcional con la conexión (por defecto `pool`).
+- Dos envíos simultáneos: el segundo chocaba con el índice único `(quiz_id, estudiante_id)` y salía
+  como 500; ahora se traduce a 409 con el resumen del primero (CA-3.2.3).
+- `POST /quizzes/:id/submit` exige JWT con rol `estudiante`; el `estudiante_id` sale del token
+  (`req.usuario.id_usuario`) y el del body se ignora. Responde 403 si el estudiante no está inscrito
+  en el curso del quiz (`InscripcionRepository.obtenerPorCursoYEstudiante`). **Cambia el contrato con
+  el frontend** (ver docs/CONTRATO_FRONTEND_HU-3.2.md).
+- `POST /quizzes/generate` (HU-3.1) exige JWT con rol `docente`.
+- Endpoint adicional (no listado en el backlog, aprobado por el equipo):
+  `GET /api/v1/quizzes/:id/preguntas` — preguntas sin `respuesta_correcta` ni `tarjeta_id`, solo para
+  estudiante inscrito y solo con el quiz abierto.
+- Control de tiempo (CA-3.2.1): sigue dependiendo de `fecha_inicio`/`tiempo_empleado_seg` que envía el
+  cliente. Limitación conocida aceptada por el equipo.
+- Probado con repositorios simulados (sin Docker disponible): transacción con COMMIT/ROLLBACK, 409 por
+  índice único, 403 por no inscrito, preguntas sin clave, 400 fuera de la ventana del quiz.
+  Pendiente: probar contra Postgres.
+
 ## Cambios aplicados en esta sesión (2026-10-04) — HU-3.1: validaciones y transacción al generar quiz
 
 Las pruebas de `POST /api/v1/quizzes/generate` contra Postgres mostraron que algunos datos
