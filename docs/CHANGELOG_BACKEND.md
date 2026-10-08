@@ -3,6 +3,21 @@
 ## Fecha
 2026-10-07 (última actualización — ver historial de sesiones más abajo)
 
+## Cambios aplicados en esta sesión (2026-10-07) — HU-3.3: nuevo diseño de los PDF (CA-3.3.3)
+
+Solo cambia `ExportarPDFService.js`; mismos endpoints, permisos, datos y errores.
+
+- Colores de la app como acentos (azul marino del rol docente, rojo Unicauca), sin rellenos grandes
+  para que se pueda fotocopiar en blanco y negro.
+- Encabezado con franja azul, títulos en serif, etiquetas redondeadas (variante, cantidad de
+  términos/preguntas) y pie con "Página X de Y"; encabezado corrido en las páginas siguientes.
+- Mazo: tarjetas numeradas, traducción en cursiva roja, ejemplo en cursiva gris y contexto
+  (registro / variante) como etiquetas. Una tarjeta ya no se parte entre dos páginas.
+- Quiz: recuadro Nombre / Código / Fecha / Nota, opciones con círculo para marcar y hoja de
+  respuestas "Solo docente" en tabla, con la letra correcta en rojo.
+- Probado con datos simulados: paginación de mazo largo, mazo vacío, quiz con hoja de respuestas
+  separada y 404. Pendiente: probar contra Postgres.
+
 ## Cambios aplicados en esta sesión (2026-10-07) — HU-3.3: exportar PDF solo para docente (D-06, D-07)
 
 - D-06 resuelta: `GET /api/v1/quizzes/:id/export-pdf` queda como endpoint adicional aprobado por el
