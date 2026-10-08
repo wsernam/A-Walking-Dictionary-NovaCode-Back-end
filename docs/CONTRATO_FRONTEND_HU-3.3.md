@@ -1,12 +1,12 @@
 # Contrato Backend → Frontend — HU-3.3 (HU-009 en la numeración de sprint del equipo)
 
-Este documento le dice al frontend (React) **qué se implementó en el backend** y **cómo debe consumirlo** para los botones de "Exportar a PDF" de mazos y quices. Cubre únicamente HU-3.3 (CA-3.3.1, CA-3.3.2, CA-3.3.3). Última actualización: 2026-10-04.
+Este documento le dice al frontend (React) **qué se implementó en el backend** y **cómo debe consumirlo** para los botones de "Exportar a PDF" de mazos y quices. Cubre únicamente HU-3.3 (CA-3.3.1, CA-3.3.2, CA-3.3.3). Última actualización: 2026-10-07.
 
 - Rama donde vive la implementación: **`feature/Sprint_3_HU_009`**. El PDF de quiz necesita un quiz generado con HU-3.1 (`feature/Sprint_3_HU_007`, contrato `docs/CONTRATO_FRONTEND_HU-3.1.md`).
 - Base URL: `/api/v1`.
 - Formato: los dos endpoints devuelven **el archivo PDF directamente** (`Content-Type: application/pdf`, `Content-Disposition: attachment`), **no JSON**. Solo los errores llegan en JSON: `{ "error": "mensaje legible" }`.
 
-> ⚠️ **Autenticación:** el login (HU-5.4, Google + JWT) ya existe en el backend, pero **estos endpoints todavía no piden token ni rol**. El front debe mostrar los botones solo a la docente hasta que el equipo decida protegerlos en el back.
+> 🔐 **Autenticación (cambio 2026-10-07):** los dos endpoints exigen `Authorization: Bearer <token>` de un usuario con rol **docente**. Sin token → `401`; otro rol (estudiante) → `403`. Mostrar los botones solo a la docente.
 
 ---
 
@@ -15,7 +15,7 @@ Este documento le dice al frontend (React) **qué se implementó en el backend**
 | HU | Método y ruta | Quién lo usa | Estado |
 |---|---|---|---|
 | HU-3.3 | `GET /decks/:id/export-pdf` | Docente (vista del mazo) | ✅ Del backlog |
-| HU-3.3 | `GET /quizzes/:id/export-pdf` | Docente (vista del quiz) | ✅ **Adicional**: el backlog solo lista el de mazos, pero CA-3.3.2 pide el PDF del quiz |
+| HU-3.3 | `GET /quizzes/:id/export-pdf` | Docente (vista del quiz) | ✅ **Adicional, aprobado por el equipo** (2026-10-07): el backlog solo lista el de mazos, pero CA-3.3.2 pide el PDF del quiz |
 
 ---
 
@@ -34,6 +34,8 @@ Un mazo sin tarjetas aprobadas **no da error**: se genera un PDF con el aviso "E
 
 | Status | Mensaje (`error`) | Cuándo |
 |---|---|---|
+| `401` | `Token de autenticación no proporcionado` / `Token inválido o expirado` | Falta el token o expiró. |
+| `403` | `No tiene permisos para acceder a este recurso` | El usuario no es docente. |
 | `400` | `id inválido` | El `:id` no es numérico. |
 | `404` | `Mazo no encontrado` | El mazo no existe. |
 | `404` | `Quiz no encontrado` | El quiz no existe. |
@@ -49,7 +51,7 @@ Un mazo sin tarjetas aprobadas **no da error**: se genera un PDF con el aviso "E
 
 ```js
 async function descargarPdf(url, nombreArchivo) {
-  const res = await fetch(url);
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
   if (!res.ok) {
     const { error } = await res.json(); // los errores vienen en JSON
     throw new Error(error);
@@ -76,7 +78,7 @@ descargarPdf(`/api/v1/quizzes/${id}/export-pdf`, `quiz-${id}.pdf`);
 
 1. **Solo tarjetas aprobadas en el PDF del mazo:** el backlog no aclara si deben ir todas; se exportan solo las `revisado_docente`, que son las que la docente ya validó.
 2. **Caracteres especiales:** la fuente del PDF cubre español e inglés (incluye ñ, tildes, ¿, ¡), pero un emoji o un alfabeto no latino hace fallar la exportación con `500`.
-3. **Autenticación:** los endpoints no piden token ni rol (ver la advertencia del inicio).
+3. ✅ **Resuelto (2026-10-07):** ambos endpoints piden JWT de docente. CA-3.3.1 menciona "docente o estudiante"; por decisión del equipo, por ahora solo exporta la docente (queda anotado para reconsiderar el PDF del mazo para estudiantes).
 
 ---
 

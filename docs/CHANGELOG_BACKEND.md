@@ -1,7 +1,17 @@
 # Changelog - Estructura Backend
 
 ## Fecha
-2026-10-04 (última actualización — ver historial de sesiones más abajo)
+2026-10-07 (última actualización — ver historial de sesiones más abajo)
+
+## Cambios aplicados en esta sesión (2026-10-07) — HU-3.3: exportar PDF solo para docente (D-06, D-07)
+
+- D-06 resuelta: `GET /api/v1/quizzes/:id/export-pdf` queda como endpoint adicional aprobado por el
+  equipo (CA-3.3.2). Falta reflejarlo en Backlog_HU.xlsx.
+- D-07 resuelta: `GET /api/v1/decks/:id/export-pdf` y `GET /api/v1/quizzes/:id/export-pdf` exigen JWT
+  con rol `docente` (antes no pedían token: cualquiera podía descargar la clave de respuestas del
+  quiz). CA-3.3.1 menciona "docente o estudiante"; queda anotado para reconsiderar el acceso del
+  estudiante al PDF del mazo.
+- Contrato docs/CONTRATO_FRONTEND_HU-3.3.md actualizado: el front debe enviar el token (401/403).
 
 ## Cambios aplicados en esta sesión (2026-10-04) — HU-3.1: validaciones y transacción al generar quiz
 

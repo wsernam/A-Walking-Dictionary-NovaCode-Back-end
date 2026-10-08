@@ -8,6 +8,7 @@
 import { Router } from 'express';
 import { QuizController } from '../controllers/QuizController.js';
 import { ResultadoQuizController } from '../controllers/ResultadoQuizController.js';
+import { authenticate, requireRole } from '../middleware/autenticacionMiddleware.js';
 
 const router = Router();
 
@@ -39,8 +40,10 @@ router.get('/:id', QuizController.obtenerPorId);
 /**
  * @brief HU-3.3 (CA-3.3.2): exporta el quiz a PDF con hoja de preguntas y hoja de respuestas
  * separada. GET /api/v1/quizzes/:id/export-pdf
+ * @note Endpoint adicional aprobado por el equipo (D-06, 2026-10-07): el backlog solo lista
+ * export-pdf de mazos. Solo docente (D-07): el PDF incluye la clave de respuestas.
  */
-router.get('/:id/export-pdf', QuizController.exportarPdf);
+router.get('/:id/export-pdf', authenticate, requireRole('docente'), QuizController.exportarPdf);
 
 /**
  * @brief HU-3.2 (CA-3.2.1, CA-3.2.2, CA-3.2.3): registra las respuestas de un estudiante y
