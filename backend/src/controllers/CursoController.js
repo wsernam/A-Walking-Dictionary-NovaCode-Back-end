@@ -11,6 +11,15 @@
 import { CursoRepository } from '../repositories/CursoRepository.js';
 import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
 
+const ocultarCodigo = (curso, req) => {
+  if (req.usuario?.rol === 'docente') {
+    return curso;
+  }
+
+  const { codigo_acceso, ...cursoPublico } = curso;
+  return cursoPublico;
+};
+
 export const CursoController = {
   /**
    * @brief Crea un curso nuevo. POST /api/v1/courses
@@ -90,7 +99,7 @@ export const CursoController = {
       if (!curso) {
         return res.status(404).json({ error: 'Curso no encontrado' });
       }
-      res.status(200).json(curso);
+      res.status(200).json(ocultarCodigo(curso, req));
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -104,7 +113,10 @@ export const CursoController = {
   async listar(req, res) {
     try {
       const cursos = await CursoRepository.listar();
-      res.status(200).json(cursos);
+
+      res.status(200).json(
+        cursos.map((curso) => ocultarCodigo(curso, req))
+      );
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

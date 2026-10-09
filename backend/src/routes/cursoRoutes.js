@@ -9,7 +9,7 @@
 
 import { Router } from 'express';
 import { CursoController } from '../controllers/CursoController.js';
-import { authenticate, requireRole } from '../middleware/autenticacionMiddleware.js';
+import { authenticate, requireRole, autenticacionOpcional } from '../middleware/autenticacionMiddleware.js';
 import { InscripcionController } from '../controllers/InscripcionController.js';
 
 const router = Router();
@@ -21,16 +21,16 @@ const router = Router();
 router.post('/', authenticate, requireRole('docente'), CursoController.crear);
 
 /** @brief Lista todos los cursos existentes, sin filtros. GET /api/v1/courses */
-router.get('/', CursoController.listar);
+router.get('/',  autenticacionOpcional, CursoController.listar);
 
 // HU-014: inscripción mediante código de acceso
-router.post('/enroll', InscripcionController.inscribirsePorCodigo);
+router.post('/enroll',   authenticate,  requireRole('estudiante'),InscripcionController.inscribirsePorCodigo);
 
 // HU-014: generar código de acceso para un curso
-router.post('/:id/access-code', InscripcionController.generarCodigoAcceso);
+router.post('/:id/access-code', authenticate,  requireRole('docente'), InscripcionController.generarCodigoAcceso);
 
 // HU-014: asignar directamente un estudiante por correo
-router.post('/:id/assign', InscripcionController.asignarPorCorreo);
+router.post('/:id/assign', authenticate,  requireRole('docente'), InscripcionController.asignarPorCorreo);
 
 // HU-014: listar estudiantes inscritos en un curso. Solo disponible para docentes.
 router.get(
@@ -41,6 +41,6 @@ router.get(
 );
 
 /** @brief Consulta un curso por su id_curso. GET /api/v1/courses/:id */
-router.get('/:id', CursoController.obtenerPorId);
+router.get('/:id',   autenticacionOpcional, CursoController.obtenerPorId);
 
 export default router;

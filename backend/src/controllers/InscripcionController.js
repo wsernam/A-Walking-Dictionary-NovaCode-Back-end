@@ -159,36 +159,30 @@ export const InscripcionController = {
   },
 
   async inscribirsePorCodigo(req, res) {
-    try {
-      const {
-        estudiante_id,
-        codigo_acceso,
-      } = req.body;
+      try {
+        const { codigo_acceso } = req.body;
 
-      if (
-        estudiante_id === undefined ||
-        estudiante_id === null ||
-        !codigo_acceso
-      ) {
-        return res.status(400).json({
-          error:
-            'estudiante_id y codigo_acceso son obligatorios',
+        if (!codigo_acceso) {
+          return res.status(400).json({
+            error: 'codigo_acceso es obligatorio',
+          });
+        }
+
+        const estudiante_id = req.usuario.id_usuario;
+
+        const inscripcion =
+          await InscripcionService.inscribirsePorCodigo(
+            estudiante_id,
+            codigo_acceso.trim().toUpperCase()
+          );
+
+        res.status(201).json(inscripcion);
+      } catch (error) {
+        res.status(error.status || 500).json({
+          error: error.message,
         });
       }
-
-      const inscripcion =
-        await InscripcionService.inscribirsePorCodigo(
-          estudiante_id,
-          codigo_acceso.trim().toUpperCase()
-        );
-
-      res.status(201).json(inscripcion);
-    } catch (error) {
-      res.status(error.status || 500).json({
-        error: error.message,
-      });
-    }
-  },
+    },
 
   async asignarPorCorreo(req, res) {
     try {
