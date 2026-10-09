@@ -1,4 +1,20 @@
 import { EstudioService } from '../services/EstudioService.js';
+import { InscripcionRepository } from '../repositories/InscripcionRepository.js';
+import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
+
+/**
+ * Auditoría OWASP H-03 (A01): comprueba que la inscripción pertenece al usuario del token.
+ * Si la inscripción no existe responde igual que si fuera ajena (403), para no revelar qué ids
+ * existen. Con DISABLE_AUTH=true (solo desarrollo local) no hay usuario real, así que se omite.
+ */
+async function esPropietario(req, inscripcionId) {
+  if (authDeshabilitado()) return true;
+  const inscripcion = await InscripcionRepository.obtenerPorId(inscripcionId);
+  return (
+    Boolean(inscripcion) &&
+    Number(inscripcion.estudiante_id) === Number(req.usuario.id_usuario)
+  );
+}
 
 export const EstudioController = {
   async iniciarSesion(req, res) {
@@ -16,6 +32,12 @@ export const EstudioController = {
       if (Number.isNaN(id)) {
         return res.status(400).json({
           error: 'inscripcion_id inválido',
+        });
+      }
+
+      if (!(await esPropietario(req, id))) {
+        return res.status(403).json({
+          error: 'No tiene permisos sobre esta inscripción',
         });
       }
 
@@ -46,6 +68,12 @@ export const EstudioController = {
       if (Number.isNaN(inscripcionId) || Number.isNaN(tarjetaId)) {
         return res.status(400).json({
           error: 'inscripcion_id y tarjeta_id deben ser números válidos',
+        });
+      }
+
+      if (!(await esPropietario(req, inscripcionId))) {
+        return res.status(403).json({
+          error: 'No tiene permisos sobre esta inscripción',
         });
       }
 

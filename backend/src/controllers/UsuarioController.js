@@ -84,6 +84,10 @@ export const UsuarioController = {
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido' });
       }
+      // Auditoría OWASP H-03: el estudiante solo ve su propio contexto; la docente, el de cualquiera.
+      if (req.usuario.rol !== 'docente' && req.usuario.id_usuario !== id) {
+        return res.status(403).json({ error: 'No tiene permisos para ver este contexto' });
+      }
       const contexto = await PerfilService.obtenerContextoAcademico(id);
       res.status(200).json(contexto);
     } catch (error) {
