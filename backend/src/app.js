@@ -99,6 +99,20 @@ app.use(express.json());
 // Auditoría OWASP H-09: registra 401/403/5xx de todas las rutas (ver registroSeguridadMiddleware.js).
 app.use(registroSeguridad);
 
+// Auditoría OWASP H-08: en producción no se devuelve al cliente el detalle de errores 5xx.
+// El mensaje real se deja en los logs para poder depurar.
+app.use((req, res, next) => {
+  const jsonOriginal = res.json.bind(res);
+  res.json = (cuerpo) => {
+    if (res.statusCode >= 500 && process.env.NODE_ENV === 'production') {
+      console.error(`[ERROR] ${req.method} ${req.originalUrl}:`, cuerpo);
+      return jsonOriginal({ error: 'Error interno del servidor' });
+    }
+    return jsonOriginal(cuerpo);
+  };
+  next();
+});
+
 app.use('/api/v1/auth', autenticacionRoutes);
 app.use('/api/v1/decks', mazoRoutes);
 app.use('/api/v1/cards', tarjetaRoutes);
