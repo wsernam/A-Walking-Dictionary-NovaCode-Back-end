@@ -51,11 +51,10 @@
  *   lectura de Invitado (CA-5.4.3) — no hay endpoint de "diccionario demostrativo" definido en
  *   el backlog, se interpretó así.
  *
- *   @note Los endpoints de perfil (/users/profile, /users/:id, /students/:id/context) NO llevan
- *   authenticate todavía: el contrato con el frontend (HU-013, contrato-perfil.md) se acordó
- *   antes de que existiera login real, con estudiante_id viajando en el body y sin header
- *   Authorization. Protegerlos requiere coordinar el cambio con frontend primero, para no
- *   romper ese contrato — queda pendiente, no es un descuido.
+ *   @note Perfil (auditoría OWASP H-01): /users/profile y /users/:id exigen JWT; en /users/:id el
+ *   estudiante solo ve su propio perfil y la docente cualquiera. Se eliminaron POST/GET/PUT/DELETE
+ *   genéricos de /users (públicos y sin uso). /students/:id/context sigue sin authenticate:
+ *   pendiente de H-03.
  *
  *   @note El login por email/password con bcrypt (POST /api/v1/auth/login) que existía antes en
  *   esta rama se ELIMINÓ: el profesor pidió reemplazarlo por OAuth (Google) después de la
