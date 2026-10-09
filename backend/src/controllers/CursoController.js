@@ -9,6 +9,7 @@
  */
 
 import { CursoRepository } from '../repositories/CursoRepository.js';
+import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
 
 export const CursoController = {
   /**
@@ -26,7 +27,8 @@ export const CursoController = {
    */
   async crear(req, res) {
     try {
-      const { nombre, periodo, estado, fecha_inicio, fecha_fin, docente_id } = req.body;
+      const docente_id = authDeshabilitado() ? req.body.docente_id : req.usuario.id_usuario;
+      const { nombre, periodo, estado, fecha_inicio, fecha_fin } = req.body;
 
       // nombre, periodo y estado son varchar NOT NULL en el DER.
       // fecha_inicio, fecha_fin y docente_id también son NOT NULL y el cliente debe enviarlos
@@ -65,7 +67,7 @@ export const CursoController = {
         return res.status(400).json({ error: erroresLongitud.join(' ') });
       }
 
-      const curso = await CursoRepository.crear(req.body);
+      const curso = await CursoRepository.crear({ ...req.body, docente_id });
       res.status(201).json(curso);
     } catch (error) {
       res.status(500).json({ error: error.message });

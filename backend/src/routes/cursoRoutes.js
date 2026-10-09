@@ -16,10 +16,9 @@ const router = Router();
 
 /**
  * @brief Crea un curso nuevo. POST /api/v1/courses
- * @note No hay CA que especifique un rol exclusivo para crear cursos; solo se exige sesión
- * iniciada (CA-5.4.2 no se aplica aquí porque no está documentado como acción docente-only).
+ * @note Solo docente (OWASP H-13): docente_id se toma del token, no del body.
  */
-router.post('/', authenticate, CursoController.crear);
+router.post('/', authenticate, requireRole('docente'), CursoController.crear);
 
 /** @brief Lista todos los cursos existentes, sin filtros. GET /api/v1/courses */
 router.get('/', CursoController.listar);

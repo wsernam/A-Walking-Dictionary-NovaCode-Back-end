@@ -61,10 +61,10 @@ export const MazoController = {
         semana,
         autor,
         variante_regional_predeterminada,
-        docente_id,
         fecha_apertura,
         fecha_cierre,
       } = req.body;
+      const docente_id = authDeshabilitado() ? req.body.docente_id : req.usuario.id_usuario;
 
       // CA-1.1.2: nombre de la lectura y semana son obligatorios.
       // autor, docente_id, fecha_apertura y fecha_cierre también son NOT NULL en el DER
@@ -110,7 +110,7 @@ export const MazoController = {
       const { fecha_creacion, ...datosMazo } = req.body;
 
       // CA-1.1.1: el mazo siempre se crea en estado "abierto"
-      const mazo = await MazoRepository.crear({ ...datosMazo, estado: 'abierto' });
+      const mazo = await MazoRepository.crear({ ...datosMazo, estado: 'abierto', docente_id });
       res.status(201).json(mazo);
     } catch (error) {
       res.status(500).json({ error: error.message });
