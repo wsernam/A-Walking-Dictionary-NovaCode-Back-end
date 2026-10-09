@@ -20,7 +20,7 @@ import jwt from 'jsonwebtoken';
  * por defecto. NUNCA debe quedar en true en un entorno real.
  * @return {boolean} true si DISABLE_AUTH === 'true'.
  */
-export const authDeshabilitado = () => process.env.DISABLE_AUTH === 'true';
+export const authDeshabilitado = () => process.env.DISABLE_AUTH === 'true' && process.env.NODE_ENV !== 'production';
 
 /**
  * @brief CA-5.4.1: verifica el token JWT del header "Authorization: Bearer <token>".
@@ -52,7 +52,7 @@ export function authenticate(req, res, next) {
   const token = authHeader.slice('Bearer '.length);
 
   try {
-    req.usuario = jwt.verify(token, process.env.JWT_SECRET);
+    req.usuario = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     next();
   } catch (error) {
     return res.status(401).json({ error: 'Token inválido o expirado' });
@@ -74,7 +74,7 @@ export function autenticacionOpcional(req, res, next) {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     try {
-      req.usuario = jwt.verify(authHeader.slice('Bearer '.length), process.env.JWT_SECRET);
+      req.usuario = jwt.verify(authHeader.slice('Bearer '.length), process.env.JWT_SECRET, { algorithms: ['HS256'] });
     } catch {
       // Token inválido o expirado: se atiende como invitado.
     }

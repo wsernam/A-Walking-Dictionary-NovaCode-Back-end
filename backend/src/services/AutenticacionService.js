@@ -85,8 +85,9 @@ export async function validarTokenGoogle(idToken) {
  * @returns {{ token: string, usuario: Object }} Nunca incluye password_hash.
  */
 export function emitirSesion(usuario) {
-  if (!process.env.JWT_SECRET) {
-    throw new Error('JWT_SECRET no está configurado en el entorno');
+  const secreto = process.env.JWT_SECRET;
+  if (!secreto || secreto.length < 32) {
+    throw new Error('JWT_SECRET ausente o demasiado corto (mínimo 32 caracteres)');
   }
 
   const token = jwt.sign(
@@ -96,7 +97,7 @@ export function emitirSesion(usuario) {
       rol: usuario.rol,
     },
     process.env.JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
+    { expiresIn: JWT_EXPIRES_IN, algorithm: 'HS256' }
   );
 
   return {
