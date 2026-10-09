@@ -78,6 +78,7 @@ import usuarioRoutes from './routes/usuarioRoutes.js';
 import estudianteRoutes from './routes/estudianteRoutes.js';
 import aporteRoutes from './routes/aporteRoutes.js';
 import quizRoutes from './routes/quizRoutes.js';
+import { registroSeguridad } from './middleware/registroSeguridadMiddleware.js';
 
 /** @brief Instancia principal de la aplicación Express. */
 const app = express();
@@ -94,6 +95,9 @@ app.get('/health', (_req, res) => {
 
 app.use(cors());
 app.use(express.json());
+
+// Auditoría OWASP H-09: registra 401/403/5xx de todas las rutas (ver registroSeguridadMiddleware.js).
+app.use(registroSeguridad);
 
 app.use('/api/v1/auth', autenticacionRoutes);
 app.use('/api/v1/decks', mazoRoutes);
