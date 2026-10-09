@@ -53,8 +53,11 @@
  *
  *   @note Perfil (auditoría OWASP H-01): /users/profile y /users/:id exigen JWT; en /users/:id el
  *   estudiante solo ve su propio perfil y la docente cualquiera. Se eliminaron POST/GET/PUT/DELETE
- *   genéricos de /users (públicos y sin uso). /students/:id/context sigue sin authenticate:
- *   pendiente de H-03.
+ *   genéricos de /users (públicos y sin uso).
+ *
+ *   @note Estudio y perfil (auditoría OWASP H-03): /students/:id/context exige JWT con la misma
+ *   regla de propietario que /users/:id. /study/review-session y /study/review-session/review
+ *   exigen JWT, rol estudiante y que inscripcion_id sea del usuario del token (EstudioController).
  *
  *   @note El login por email/password con bcrypt (POST /api/v1/auth/login) que existía antes en
  *   esta rama se ELIMINÓ: el profesor pidió reemplazarlo por OAuth (Google) después de la
