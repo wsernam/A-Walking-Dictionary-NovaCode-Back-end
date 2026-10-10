@@ -1,0 +1,102 @@
+{
+  "info": {
+    "_postman_id": "bb1033f0-27ba-481b-a9bd-ea4897bf3044",
+    "name": "pruebas enriquecimiento lexico",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "44402582"
+  },
+  "item": [
+    {
+      "name": "prueba endpoint1",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/v1/enrichment/family/cooking",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "enrichment",
+            "family",
+            "cooking"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "primera false desde cache",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/v1/enrichment/family/curious",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "enrichment",
+            "family",
+            "curious"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "segunda true desde cache",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/v1/enrichment/family/curious",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "enrichment",
+            "family",
+            "curious"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "palabranoexiste",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/v1/enrichment/family/xyzpalabraquenoexiste",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "enrichment",
+            "family",
+            "xyzpalabraquenoexiste"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
