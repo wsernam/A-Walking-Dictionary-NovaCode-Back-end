@@ -82,11 +82,10 @@ import estudianteRoutes from './routes/estudianteRoutes.js';
 import aporteRoutes from './routes/aporteRoutes.js';
 import quizRoutes from './routes/quizRoutes.js';
 import { registroSeguridad } from './middleware/registroSeguridadMiddleware.js';
-
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-
 import rutasEnriquecimiento from './routes/enriquecimientoRoutes.js';
+import diccionarioRoutes from './routes/diccionarioRoutes.js';
 
 
 /** @brief Instancia principal de la aplicación Express. */
@@ -159,5 +158,7 @@ app.use('/api/v1/students', estudianteRoutes);
 app.use('/api/v1/aportes', aporteRoutes);
 app.use('/api/v1/quizzes', quizRoutes);
 app.use('/api/v1/enrichment', rutasEnriquecimiento);
+app.use('/api/v1/dictionary', diccionarioRoutes);
+
 
 export default app;

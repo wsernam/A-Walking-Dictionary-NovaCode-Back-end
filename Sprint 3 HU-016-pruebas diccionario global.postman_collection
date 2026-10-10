@@ -1,0 +1,107 @@
+{
+  "info": {
+    "_postman_id": "c7d1bd35-3d70-4e89-9a51-15e9523cd2f7",
+    "name": "pruebas diccionario global",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "44402582"
+  },
+  "item": [
+    {
+      "name": "consulta vocabulario",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/v1/dictionary",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "dictionary"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "busqueda de palabra",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/v1/dictionary?q=hou",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "dictionary"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "hou"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "busqueda inexistente",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/v1/dictionary?q=xyz123",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "dictionary"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "xyz123"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "busqueda por id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/v1/dictionary/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "v1",
+            "dictionary",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
