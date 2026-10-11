@@ -1,6 +1,6 @@
 # Contrato Backend → Frontend — HU-3.2 (HU-008 en la numeración de sprint del equipo)
 
-Este documento le dice al frontend (React) **qué se implementó en el backend** y **cómo debe consumirlo** para la pantalla de "Responder quiz y recibir nota" del estudiante. Cubre únicamente HU-3.2 (CA-3.2.1, CA-3.2.2, CA-3.2.3). Última actualización: 2026-10-07.
+Este documento le dice al frontend (React) **qué se implementó en el backend** y **cómo debe consumirlo** para la pantalla de "Responder quiz y recibir nota" del estudiante. Cubre únicamente HU-3.2 (CA-3.2.1, CA-3.2.2, CA-3.2.3). Última actualización: 2026-10-11.
 
 - Rama donde vive la implementación: **`feature/Sprint_3_HU_008`**. Depende de HU-3.1 (generar quiz, `feature/Sprint_3_HU_007`, contrato `docs/CONTRATO_FRONTEND_HU-3.1.md`): para responder un quiz, la docente primero tiene que generarlo.
 - Base URL: `/api/v1`.
@@ -10,6 +10,8 @@ Este documento le dice al frontend (React) **qué se implementó en el backend**
 
 > 🔐 **Autenticación (cambio 2026-10-07):** `GET /quizzes/:id/preguntas` y `POST /quizzes/:id/submit` exigen `Authorization: Bearer <token>` de un usuario con rol **estudiante** **inscrito en el curso del quiz**. El estudiante se toma del token: **ya no se envía `estudiante_id` en el body** (si llega, se ignora). Sin token → `401`; otro rol → `403`; no inscrito → `403`.
 
+> 🔄 **Cambio 2026-10-11 (pedido en `docs/contrato-quiz-estudiante.md` del frontend):** nuevos `GET /quizzes/mine` y `GET /quizzes/:id/result`. Además, `GET /quizzes` y `GET /quizzes/:id` ahora piden token (cualquier rol), y `POST /quizzes`, `PUT /quizzes/:id` y `DELETE /quizzes/:id` piden token con rol docente.
+
 ---
 
 ## Resumen
@@ -18,7 +20,9 @@ Este documento le dice al frontend (React) **qué se implementó en el backend**
 |---|---|---|---|
 | HU-3.2 | `GET /quizzes/:id/preguntas` | Estudiante (pintar el formulario) | ➕ Adicional, aprobado por el equipo |
 | HU-3.2 | `POST /quizzes/:id/submit` | Estudiante (resolver quiz) | ✅ Del backlog |
-| HU-3.1 | `GET /quizzes/:id` | Portada del quiz (título, tiempo límite, `estado_efectivo`) | ✅ Apoyo, viene de HU-3.1, **no trae preguntas** |
+| HU-3.2 | `GET /quizzes/mine` | Estudiante (lista de sus quices con nota) | ➕ Adicional (2026-10-11) |
+| HU-3.2 | `GET /quizzes/:id/result` | Estudiante (resultado previo, CA-3.2.3) | ➕ Adicional (2026-10-11) |
+| HU-3.1 | `GET /quizzes/:id` | Portada del quiz (título, tiempo límite, `estado_efectivo`) | ✅ Apoyo, viene de HU-3.1, **no trae preguntas**. Pide token (cualquier rol). |
 
 ---
 
@@ -161,6 +165,83 @@ Pasados esos márgenes responde `400` y no guarda nada.
 
 ---
 
+## `GET /api/v1/quizzes/mine`
+
+➕ Adicional, pedido por el frontend (`docs/contrato-quiz-estudiante.md`, 2.1). Lista de quices del estudiante.
+
+- Requiere token con rol **estudiante**; el estudiante sale del token.
+- Solo trae quices de cursos donde el estudiante tiene inscripción **activa**.
+- Orden: `fecha_apertura` descendente.
+
+### Respuesta 200
+
+```json
+[
+  {
+    "id_quiz": 1,
+    "curso_id": 1,
+    "titulo": "Quiz semanas 1-2",
+    "semana_corte": 2,
+    "fecha_creacion": "2026-10-08T15:00:00.000Z",
+    "fecha_apertura": "2026-10-09T18:00:00.000Z",
+    "fecha_cierre": "2026-10-11T18:00:00.000Z",
+    "tiempo_limite_min": 120,
+    "estado": "programado",
+    "estado_efectivo": "abierto",
+    "resultado": null
+  }
+]
+```
+
+`resultado` es `null` si el estudiante no ha enviado el quiz. Si ya lo envió:
+`{ "id_resultado", "puntaje_obtenido", "puntaje_maximo", "calificacion", "fecha_envio" }`.
+Los puntajes y la calificación llegan como **texto** (`"3.75"`), igual que en el submit, porque son `DECIMAL` en Postgres.
+
+### Errores
+
+| Status | Mensaje (`error`) | Cuándo |
+|---|---|---|
+| `401` | `Token de autenticación no proporcionado` / `Token inválido o expirado` | Sin sesión. |
+| `403` | `No tiene permisos para acceder a este recurso` | El usuario no es estudiante. |
+
+---
+
+## `GET /api/v1/quizzes/:id/result`
+
+➕ Adicional, pedido por el frontend (`docs/contrato-quiz-estudiante.md`, 2.2). Resultado previo del estudiante para CA-3.2.3, en cualquier dispositivo y **aunque el quiz ya esté cerrado** (no depende de `estado_efectivo`).
+
+- Requiere token con rol **estudiante** inscrito en el curso del quiz; el estudiante sale del token.
+
+### Respuesta 200
+
+```json
+{
+  "resultado": { "id_resultado": 9, "quiz_id": 1, "estudiante_id": 7, "fecha_inicio": "…", "fecha_envio": "…", "puntaje_obtenido": "3", "puntaje_maximo": "4", "calificacion": "3.75", "tiempo_empleado_seg": 540 },
+  "respuestas": [
+    { "id_respuesta": 1, "resultado_id": 9, "pregunta_id": 11, "respuesta_estudiante": "isla", "es_correcta": true, "puntaje_obtenido": "1" }
+  ],
+  "preguntas": [
+    { "id_pregunta": 11, "tipo_pregunta": "seleccion_multiple", "enunciado": "¿Cuál es la traducción correcta de \"island\"?", "opcion_a": "isla", "opcion_b": "…", "opcion_c": "…", "opcion_d": "…", "orden": 1 }
+  ]
+}
+```
+
+- `resultado` y `respuestas` tienen la misma forma que en el `201` / `409` del submit.
+- `preguntas` **no** trae `respuesta_correcta` ni `tarjeta_id` (mismo recorte que `GET /:id/preguntas`). Trae además `tipo_pregunta`.
+
+### Errores
+
+| Status | Mensaje (`error`) | Cuándo |
+|---|---|---|
+| `400` | `id inválido` | `id` no numérico. |
+| `401` | `Token de autenticación no proporcionado` / `Token inválido o expirado` | Sin sesión. |
+| `403` | `No tiene permisos para acceder a este recurso` | El usuario no es estudiante. |
+| `403` | `No estás inscrito en el curso de este quiz` | No está inscrito (mismo criterio que `/preguntas` y `/submit`). |
+| `404` | `Quiz no encontrado` | El quiz no existe. |
+| `404` | `Aún no has enviado este quiz` | El estudiante todavía no ha enviado: mostrar la portada normal. |
+
+---
+
 ## Cómo implementarlo en el front
 
 ### Pantallas
@@ -186,15 +267,15 @@ El cronómetro visible es del front; el backend solo lo hace cumplir.
 ### Reintento (CA-3.2.3)
 
 - Mientras el quiz está **abierto**, un segundo envío responde `409` con el resumen previo. ✅
-- Si el quiz **ya cerró**, un estudiante que sí había enviado recibe `400 "El quiz ya cerró…"`, **no** el `409` con su resumen (la validación de cierre va antes).
-- El `409` solo se dispara al **enviar**; abrir el enlace no consulta nada. Para saber si el estudiante ya respondió antes de mostrar el formulario no hay endpoint todavía (ver pendientes). Mientras tanto, el front puede recordar localmente que ese quiz ya se envió y mostrar el resultado guardado.
+- Si el quiz **ya cerró**, el submit responde `400 "El quiz ya cerró…"`, **no** el `409` (la validación de cierre va antes). Para ese caso está `GET /quizzes/:id/result`.
+- Antes de mostrar la portada, consultar `GET /quizzes/:id/result`: con `200` mostrar el resultado; con `404 "Aún no has enviado este quiz"` mostrar la portada normal. El respaldo en `localStorage` queda solo para cuando ese endpoint falle.
 
 ---
 
 ## Supuestos pendientes de validar (afectan al front)
 
 1. ✅ **Resuelto (2026-10-07):** las preguntas se obtienen con `GET /quizzes/:id/preguntas` (ver arriba).
-2. **🟡 No hay endpoint para consultar el resultado previo** de un estudiante sin reenviar (por ejemplo, para un "historial" o para abrir el enlace después del cierre). Hoy solo se obtiene con el `409` del submit.
+2. ✅ **Resuelto (2026-10-11):** el resultado previo se consulta con `GET /quizzes/:id/result`, y la lista con nota con `GET /quizzes/mine`.
 3. **🟡 La respuesta del submit no trae la respuesta correcta** de cada pregunta, así que el desglose solo puede decir acierto o error.
 4. Escala de `calificacion` 0–5 (pendiente de validar con la docente).
 5. `fecha_inicio` la informa el cliente; el servidor no registra cuándo empezó el intento, así que el límite de tiempo no es inviolable. **Decisión del equipo (2026-10-07):** se acepta como limitación conocida; no se agrega endpoint de inicio por ahora.

@@ -24,19 +24,28 @@ router.post('/generate', authenticate, requireRole('docente'), QuizController.ge
  * @note No viene de un CA específico; para la generación de HU-3.1 usar POST /generate.
  */
 // TODO: agregar validacionMiddleware aquí cuando esté implementado
-router.post('/', QuizController.crear);
+// Solo docente: sin token cualquiera podía crear quices (contrato-quiz-estudiante.md, 2.3).
+router.post('/', authenticate, requireRole('docente'), QuizController.crear);
 
 /**
  * @brief Lista todos los quices, cada uno con estado_efectivo calculado (CA-3.1.3).
- * GET /api/v1/quizzes
+ * GET /api/v1/quizzes. Cualquier rol con sesión; el estudiante usa GET /mine.
  */
-router.get('/', QuizController.listar);
+router.get('/', authenticate, QuizController.listar);
+
+/**
+ * @brief HU-3.2: quices de los cursos donde el estudiante tiene inscripción activa, con su
+ * resultado si ya los envió. GET /api/v1/quizzes/mine
+ * @note Endpoint adicional pedido por el frontend (contrato-quiz-estudiante.md, 2.1). Va antes
+ * de GET /:id para que Express no tome "mine" como un id.
+ */
+router.get('/mine', authenticate, requireRole('estudiante'), QuizController.listarMios);
 
 /**
  * @brief Busca un quiz por su id_quiz, con estado_efectivo calculado (CA-3.1.3).
  * GET /api/v1/quizzes/:id
  */
-router.get('/:id', QuizController.obtenerPorId);
+router.get('/:id', authenticate, QuizController.obtenerPorId);
 
 /**
  * @brief HU-3.3 (CA-3.3.2): exporta el quiz a PDF con hoja de preguntas y hoja de respuestas
@@ -62,17 +71,25 @@ router.get('/:id/preguntas', authenticate, requireRole('estudiante'), QuizContro
 router.post('/:id/submit', authenticate, requireRole('estudiante'), ResultadoQuizController.submit);
 
 /**
+ * @brief CA-3.2.3: resultado previo del estudiante (resultado, respuestas y preguntas sin
+ * respuesta_correcta), aunque el quiz esté cerrado. GET /api/v1/quizzes/:id/result
+ * @note Endpoint adicional pedido por el frontend (contrato-quiz-estudiante.md, 2.2). Solo
+ * estudiante inscrito en el curso del quiz.
+ */
+router.get('/:id/result', authenticate, requireRole('estudiante'), QuizController.obtenerResultado);
+
+/**
  * @brief Reemplaza todos los campos de un quiz existente (CRUD genérico).
  * PUT /api/v1/quizzes/:id
  */
 // TODO: agregar validacionMiddleware aquí cuando esté implementado
-router.put('/:id', QuizController.actualizar);
+router.put('/:id', authenticate, requireRole('docente'), QuizController.actualizar);
 
 /**
  * @brief Elimina un quiz por su id_quiz (CRUD genérico). DELETE /api/v1/quizzes/:id
  * @note Falla con 500 (violación de foreign key) si el quiz todavía tiene filas asociadas en
  * quiz_mazo, pregunta_quiz o resultado_quiz.
  */
-router.delete('/:id', QuizController.eliminar);
+router.delete('/:id', authenticate, requireRole('docente'), QuizController.eliminar);
 
 export default router;

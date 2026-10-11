@@ -152,6 +152,45 @@ export const QuizController = {
   },
 
   /**
+   * @brief HU-3.2: quices de los cursos del estudiante con su resultado si ya los envió.
+   * GET /api/v1/quizzes/mine (endpoint adicional, ver QuizService.listarDelEstudiante).
+   * @param {import('express').Request} req - req.usuario (del JWT) identifica al estudiante.
+   * @param {import('express').Response} res - 200 con el arreglo de quices, 500 ante error
+   * inesperado.
+   */
+  async listarMios(req, res) {
+    try {
+      const quizzes = await QuizService.listarDelEstudiante(req.usuario.id_usuario);
+      res.status(200).json(quizzes);
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  },
+
+  /**
+   * @brief CA-3.2.3: resultado previo del estudiante, aunque el quiz esté cerrado.
+   * GET /api/v1/quizzes/:id/result (endpoint adicional, ver
+   * QuizService.obtenerResultadoEstudiante).
+   * @param {import('express').Request} req - req.params.id es el id_quiz; req.usuario (del
+   * JWT) identifica al estudiante.
+   * @param {import('express').Response} res - 200 con { resultado, respuestas, preguntas }, 400
+   * si el id no es numérico, 403 si no está inscrito en el curso del quiz, 404 si el quiz no
+   * existe o el estudiante aún no lo envió, 500 ante error inesperado.
+   */
+  async obtenerResultado(req, res) {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ error: 'id inválido' });
+      }
+      const resultado = await QuizService.obtenerResultadoEstudiante(id, req.usuario.id_usuario);
+      res.status(200).json(resultado);
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  },
+
+  /**
    * @brief Lista todos los quices existentes, sin filtros, cada uno con `estado_efectivo`
    * calculado (CA-3.1.3). GET /api/v1/quizzes
    * @param {import('express').Request} req - No se usa (sin filtros ni paginación implementados).
