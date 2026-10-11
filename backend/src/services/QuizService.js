@@ -5,7 +5,8 @@
  * calificación de las respuestas de un estudiante.
  *
  * Endpoints relacionados: POST /api/v1/quizzes/generate, POST /api/v1/quizzes/:id/submit,
- * GET /api/v1/quizzes/:id/preguntas (adicional, aprobado por el equipo)
+ * GET /api/v1/quizzes/:id/preguntas, GET /api/v1/quizzes/mine y GET /api/v1/quizzes/:id/result
+ * (adicionales, aprobados por el equipo)
  * Almacenamiento: tablas quiz, quiz_mazo, pregunta_quiz, resultado_quiz, respuesta_quiz
  *
  * @note ALCANCE (no documentado explícitamente en el backlog, dejar constancia en vez de
@@ -84,6 +85,16 @@ async function verificarInscripcion(quiz, estudiante_id) {
   if (!inscripcion) {
     throw error(403, 'No estás inscrito en el curso de este quiz');
   }
+}
+
+/**
+ * @brief Recorta una pregunta para el estudiante: sin `respuesta_correcta` ni `tarjeta_id` (con
+ * la tarjeta se podría consultar la traducción).
+ * @param {import('../models/PreguntaQuiz.js').PreguntaQuiz} pregunta - Pregunta completa.
+ * @return {Object} { id_pregunta, tipo_pregunta, enunciado, opcion_a..d, orden }.
+ */
+function sinClaveDeRespuesta({ id_pregunta, tipo_pregunta, enunciado, opcion_a, opcion_b, opcion_c, opcion_d, orden }) {
+  return { id_pregunta, tipo_pregunta, enunciado, opcion_a, opcion_b, opcion_c, opcion_d, orden };
 }
 
 /**
@@ -502,18 +513,53 @@ export const QuizService = {
 
     return {
       quiz: this.conEstadoEfectivo(quiz),
-      preguntas: preguntas.map(
-        ({ id_pregunta, tipo_pregunta, enunciado, opcion_a, opcion_b, opcion_c, opcion_d, orden }) => ({
-          id_pregunta,
-          tipo_pregunta,
-          enunciado,
-          opcion_a,
-          opcion_b,
-          opcion_c,
-          opcion_d,
-          orden,
-        })
-      ),
+      preguntas: preguntas.map(sinClaveDeRespuesta),
     };
+  },
+
+  /**
+   * @brief HU-3.2: lista de quices del estudiante, solo de los cursos donde tiene inscripción
+   * activa, con su resultado si ya envió el quiz. GET /api/v1/quizzes/mine
+   * @note Endpoint adicional pedido por el frontend (docs/contrato-quiz-estudiante.md, 2.1).
+   * @param {number} estudiante_id - id_usuario del estudiante autenticado (sale del JWT).
+   * @return {Promise<Object[]>} Cada quiz con `estado_efectivo` y `resultado` (null si no lo
+   * ha enviado), ordenados por fecha_apertura descendente.
+   */
+  async listarDelEstudiante(estudiante_id) {
+    const filas = await QuizRepository.listarPorEstudiante(estudiante_id);
+    return filas.map(({ quiz, resultado }) => ({ ...this.conEstadoEfectivo(quiz), resultado }));
+  },
+
+  /**
+   * @brief CA-3.2.3: resumen del envío previo del estudiante, en cualquier dispositivo y aunque
+   * el quiz ya haya cerrado. GET /api/v1/quizzes/:id/result
+   * @note Endpoint adicional pedido por el frontend (docs/contrato-quiz-estudiante.md, 2.2). No
+   * depende del estado del quiz: el submit con el quiz cerrado responde 400, no el 409 con el
+   * resumen.
+   * @param {number} quiz_id - Id del quiz.
+   * @param {number} estudiante_id - id_usuario del estudiante autenticado (sale del JWT).
+   * @return {Promise<{resultado:Object, respuestas:Object[], preguntas:Object[]}>} `resultado` y
+   * `respuestas` iguales a los del submit; `preguntas` sin `respuesta_correcta` ni `tarjeta_id`.
+   * @throws {Error} status 404 si el quiz no existe o si el estudiante aún no lo envió; status
+   * 403 si no está inscrito en el curso del quiz.
+   */
+  async obtenerResultadoEstudiante(quiz_id, estudiante_id) {
+    const quiz = await QuizRepository.obtenerPorId(quiz_id);
+    if (!quiz) {
+      throw error(404, 'Quiz no encontrado');
+    }
+    await verificarInscripcion(quiz, estudiante_id);
+
+    const resultado = await ResultadoQuizRepository.obtenerPorQuizYEstudiante(quiz_id, estudiante_id);
+    if (!resultado) {
+      throw error(404, 'Aún no has enviado este quiz');
+    }
+
+    const [respuestas, preguntas] = await Promise.all([
+      RespuestaQuizRepository.listarPorResultado(resultado.id_resultado),
+      PreguntaQuizRepository.listarPorQuiz(quiz_id),
+    ]);
+
+    return { resultado, respuestas, preguntas: preguntas.map(sinClaveDeRespuesta) };
   },
 };

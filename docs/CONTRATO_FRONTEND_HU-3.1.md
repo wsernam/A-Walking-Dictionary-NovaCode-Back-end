@@ -10,7 +10,7 @@ Queda alineado con el contrato del frontend (`docs/contrato-quiz.md`, rama `feat
 - Errores: siempre `{ "error": "mensaje legible" }` con el status HTTP correspondiente. Mostrar `error` tal cual al usuario.
 - Fechas: enviar en ISO 8601 con zona horaria (`new Date(...).toISOString()` → `2026-10-01T13:00:00.000Z`).
 
-> 🔒 **Autenticación:** `POST /quizzes/generate` exige `Authorization: Bearer <token>` con rol **docente** (`authenticate` + `requireRole('docente')`). Sin token o con token inválido responde `401`; con otro rol, `403`. `GET /quizzes` y `GET /quizzes/:id` todavía no piden token.
+> 🔒 **Autenticación:** `POST /quizzes/generate` exige `Authorization: Bearer <token>` con rol **docente** (`authenticate` + `requireRole('docente')`). Sin token o con token inválido responde `401`; con otro rol, `403`. `GET /quizzes` y `GET /quizzes/:id` piden token de cualquier rol (desde 2026-10-11). El estudiante tiene su propia lista en `GET /quizzes/mine` (ver `docs/CONTRATO_FRONTEND_HU-3.2.md`).
 
 ---
 

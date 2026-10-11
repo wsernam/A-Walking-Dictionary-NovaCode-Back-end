@@ -1,7 +1,24 @@
 # Changelog - Estructura Backend
 
 ## Fecha
-2026-10-08 (última actualización — ver historial de sesiones más abajo)
+2026-10-11 (última actualización — ver historial de sesiones más abajo)
+
+## Cambios aplicados en esta sesión (2026-10-11) — HU-3.2: lista y resultado del estudiante + protección de quizRoutes
+
+Pedido del frontend en `docs/contrato-quiz-estudiante.md` (PR #43 del front, ya en develop).
+
+- Nuevo `GET /api/v1/quizzes/mine` (estudiante): quices de cursos con inscripción activa, con
+  `estado_efectivo` y `resultado` (null si no ha enviado). Orden `fecha_apertura` DESC. Declarado
+  antes de `GET /:id`. `QuizRepository.listarPorEstudiante` + `QuizService.listarDelEstudiante`.
+- Nuevo `GET /api/v1/quizzes/:id/result` (estudiante inscrito): `{ resultado, respuestas, preguntas }`
+  sin `respuesta_correcta` ni `tarjeta_id`, aunque el quiz esté cerrado (CA-3.2.3). 404 "Aún no has
+  enviado este quiz". `QuizService.obtenerResultadoEstudiante`.
+- `sinClaveDeRespuesta` en QuizService: un solo recorte de preguntas para `/preguntas` y `/result`.
+- Seguridad (2.3 del contrato): `POST /quizzes`, `PUT /quizzes/:id` y `DELETE /quizzes/:id` exigen
+  token docente; `GET /quizzes` y `GET /quizzes/:id` exigen token (cualquier rol).
+- Contratos `CONTRATO_FRONTEND_HU-3.2.md` y `CONTRATO_FRONTEND_HU-3.1.md` actualizados.
+- Probado con Express mínimo + BD simulada (13 casos: 200/401/403/404 y orden `/mine` vs `/:id`).
+  Pendiente: probar contra Postgres.
 
 ## Cambios aplicados en esta sesión (2026-10-08) — HU-3.1: alinear con el contrato del front
 

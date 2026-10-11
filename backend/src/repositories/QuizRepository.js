@@ -93,6 +93,35 @@ export const QuizRepository = {
   },
 
   /**
+   * @brief HU-3.2: quices de los cursos donde el estudiante tiene inscripción activa, cada uno
+   * con el resultado del estudiante si ya lo envió. Orden: fecha_apertura descendente.
+   * @param {number} estudiante_id - id_usuario del estudiante.
+   * @return {Promise<Array<{quiz:Quiz, resultado:?Object}>>} Cada quiz con `resultado`
+   * ({ id_resultado, puntaje_obtenido, puntaje_maximo, calificacion, fecha_envio }) o null.
+   */
+  async listarPorEstudiante(estudiante_id) {
+    const { rows } = await pool.query(
+      `SELECT q.*,
+              r.id_resultado, r.puntaje_obtenido, r.puntaje_maximo, r.calificacion, r.fecha_envio
+       FROM quiz q
+       JOIN inscripcion i ON i.curso_id = q.curso_id
+       LEFT JOIN resultado_quiz r ON r.quiz_id = q.id_quiz AND r.estudiante_id = i.estudiante_id
+       WHERE i.estudiante_id = $1 AND i.estado = 'activa'
+       ORDER BY q.fecha_apertura DESC, q.id_quiz DESC`,
+      [estudiante_id]
+    );
+    return rows.map((row) => {
+      const { id_resultado, puntaje_obtenido, puntaje_maximo, calificacion, fecha_envio } = row;
+      return {
+        quiz: new Quiz(row),
+        resultado: id_resultado
+          ? { id_resultado, puntaje_obtenido, puntaje_maximo, calificacion, fecha_envio }
+          : null,
+      };
+    });
+  },
+
+  /**
    * @brief Reemplaza todos los campos de un quiz existente (UPDATE completo).
    * @param {number} id_quiz - Id del quiz a actualizar.
    * @param {Object} datos - Nuevos valores de todas las columnas de "quiz".
