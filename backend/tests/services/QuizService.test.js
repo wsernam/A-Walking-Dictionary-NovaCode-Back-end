@@ -19,7 +19,7 @@ vi.mock('../../src/repositories/InscripcionRepository.js', () => ({
 }));
 vi.mock('../../src/repositories/MazoRepository.js', () => ({ MazoRepository: { obtenerPorId: vi.fn() } }));
 vi.mock('../../src/repositories/QuizRepository.js', () => ({
-  QuizRepository: { obtenerPorId: vi.fn(), crearConMazosYPreguntas: vi.fn() },
+  QuizRepository: { obtenerPorId: vi.fn(), crearConMazosYPreguntas: vi.fn(), listarPorEstudiante: vi.fn() },
 }));
 vi.mock('../../src/repositories/PreguntaQuizRepository.js', () => ({
   PreguntaQuizRepository: { listarPorQuiz: vi.fn() },
@@ -407,5 +407,59 @@ describe('QuizService.obtenerPreguntasParaEstudiante — HU-3.2 (endpoint aproba
   it('responde 400 si el quiz no está abierto', async () => {
     QuizRepository.obtenerPorId.mockResolvedValue({ ...quizAbierto, fecha_apertura: enMinutos(5) });
     await expect(QuizService.obtenerPreguntasParaEstudiante(1, 2)).rejects.toMatchObject({ status: 400 });
+  });
+});
+
+describe('QuizService.listarDelEstudiante — HU-3.2 (endpoint aprobado 2026-10-11)', () => {
+  it('devuelve los quices del estudiante con estado_efectivo y su resultado si ya lo envió', async () => {
+    QuizRepository.listarPorEstudiante.mockResolvedValue([
+      { quiz: { id_quiz: 1, estado: 'programado', fecha_apertura: enMinutos(-60), fecha_cierre: enMinutos(60) }, resultado: null },
+      { quiz: { id_quiz: 2, estado: 'cerrado' }, resultado: { calificacion: 4.5 } },
+    ]);
+
+    const quices = await QuizService.listarDelEstudiante(2);
+
+    expect(QuizRepository.listarPorEstudiante).toHaveBeenCalledWith(2);
+    expect(quices).toEqual([
+      expect.objectContaining({ id_quiz: 1, estado_efectivo: 'abierto', resultado: null }),
+      expect.objectContaining({ id_quiz: 2, estado_efectivo: 'cerrado', resultado: { calificacion: 4.5 } }),
+    ]);
+  });
+});
+
+describe('QuizService.obtenerResultadoEstudiante — CA-3.2.3 (resumen del resultado previo)', () => {
+  const quizCerrado = { id_quiz: 1, curso_id: 10, estado: 'cerrado' };
+
+  beforeEach(() => {
+    QuizRepository.obtenerPorId.mockResolvedValue(quizCerrado);
+    InscripcionRepository.obtenerPorCursoYEstudiante.mockResolvedValue({ id_inscripcion: 5 });
+    ResultadoQuizRepository.obtenerPorQuizYEstudiante.mockResolvedValue({ id_resultado: 50, calificacion: 3.75 });
+    RespuestaQuizRepository.listarPorResultado.mockResolvedValue([{ id_respuesta: 1, es_correcta: true }]);
+    PreguntaQuizRepository.listarPorQuiz.mockResolvedValue([
+      { id_pregunta: 1, tarjeta_id: 7, enunciado: '¿...?', opcion_a: 'cocinar', respuesta_correcta: 'cocinar', orden: 1 },
+    ]);
+  });
+
+  it('CA-3.2.3: devuelve resultado, respuestas y preguntas sin la clave de respuestas', async () => {
+    const { resultado, respuestas, preguntas } = await QuizService.obtenerResultadoEstudiante(1, 2);
+
+    expect(resultado.calificacion).toBe(3.75);
+    expect(RespuestaQuizRepository.listarPorResultado).toHaveBeenCalledWith(50);
+    expect(respuestas).toHaveLength(1);
+    expect(preguntas[0]).not.toHaveProperty('respuesta_correcta');
+    expect(preguntas[0]).not.toHaveProperty('tarjeta_id');
+  });
+
+  it('responde 404 si el estudiante aún no envió el quiz o si el quiz no existe', async () => {
+    ResultadoQuizRepository.obtenerPorQuizYEstudiante.mockResolvedValueOnce(null);
+    await expect(QuizService.obtenerResultadoEstudiante(1, 2)).rejects.toMatchObject({ status: 404 });
+
+    QuizRepository.obtenerPorId.mockResolvedValueOnce(null);
+    await expect(QuizService.obtenerResultadoEstudiante(1, 2)).rejects.toMatchObject({ status: 404 });
+  });
+
+  it('responde 403 si el estudiante no está inscrito en el curso del quiz', async () => {
+    InscripcionRepository.obtenerPorCursoYEstudiante.mockResolvedValue(null);
+    await expect(QuizService.obtenerResultadoEstudiante(1, 2)).rejects.toMatchObject({ status: 403 });
   });
 });
