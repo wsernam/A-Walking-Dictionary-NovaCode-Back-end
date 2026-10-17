@@ -8,6 +8,7 @@ export default defineConfig({
     environment: 'node',
     include: ['tests/**/*.test.js'],
     // Cada prueba arranca sin mocks ni variables de entorno de la anterior.
+    clearMocks: true,
     restoreMocks: true,
     unstubEnvs: true,
     coverage: {
