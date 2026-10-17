@@ -1,0 +1,85 @@
+name: Backend pruebas funcionales
+
+# Levanta el backend real contra un PostgreSQL de servicio y ejecuta las pruebas funcionales
+# (backend/pruebas-funcionales/, una prueba por CA del backlog). Independiente de
+# backend-tests.yml (unitarias + SonarQube).
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+jobs:
+  funcionales:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine   # misma imagen que el docker-compose.yml de infra
+        env:
+          POSTGRES_USER: walking
+          POSTGRES_PASSWORD: walking
+          POSTGRES_DB: walking_dictionary
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U walking -d walking_dictionary"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: walking
+      DB_PASSWORD: walking
+      DB_NAME: walking_dictionary
+      PORT: 5000
+      DISABLE_AUTH: 'false'
+      # Las pruebas no usan Google real (el login se simula firmando el JWT); solo debe existir.
+      GOOGLE_CLIENT_ID: ci-sin-google.apps.googleusercontent.com
+      CORS_ORIGINS: http://localhost:3000
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20          # misma versión que los Dockerfiles (node:20-alpine)
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+
+      # Secreto de un solo uso: lo comparten el backend y las pruebas, y desaparece con el job.
+      - name: Generar JWT_SECRET
+        run: echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
+      - name: Arrancar el backend
+        run: |
+          nohup npm start > backend.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:5000/health && exit 0
+            sleep 1
+          done
+          cat backend.log
+          exit 1
+
+      # La preparación global de la suite crea el esquema con init.sql + seed.sql.
+      - run: npm run test:funcional
+
+      - name: Log del backend
+        if: failure()
+        run: cat backend.log
+
+      - name: Publicar reporte
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-pruebas-funcionales
+          path: backend/reportes-funcionales/

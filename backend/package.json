@@ -9,7 +9,8 @@
     "dev": "node --watch server.js",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:funcional": "vitest run --config vitest.funcional.config.js"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.12",
+    "@vitest/ui": "^4.1.12",
     "eslint": "^9.9.0",
     "vitest": "^4.1.12"
   }

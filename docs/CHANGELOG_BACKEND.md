@@ -1,7 +1,31 @@
 # Changelog - Estructura Backend
 
 ## Fecha
-2026-10-11 (última actualización — ver historial de sesiones más abajo)
+2026-10-17 (última actualización — ver historial de sesiones más abajo)
+
+## Cambios aplicados en esta sesión (2026-10-17) — Suite de pruebas funcionales de la API
+
+Sin cambios en `src/`. Cubre el "Pendiente: probar contra Postgres" de las sesiones anteriores.
+
+- Nueva carpeta `backend/pruebas-funcionales/` (Vitest, sin mocks): peticiones HTTP reales al
+  backend corriendo, que usa PostgreSQL real. Un archivo por épica (HE-01, 02, 03, 05) y una prueba
+  por CA: 82 pruebas + 4 `todo` (CA-2.1.3 no implementado; CA-3.3.3 y CA-5.1.1/5.1.2 manuales).
+- `npm run test:funcional` (config `vitest.funcional.config.js`). Separado de `npm test`: no
+  cuenta para la cobertura de SonarQube.
+- Antes de la suite se reinicia la base al estado de `init.sql` + `seed.sql`: dentro del
+  contenedor `walking_dictionary_db` si está corriendo (local), o por conexión directa (CI).
+- El login con Google no se automatiza: las pruebas firman el JWT con `JWT_SECRET` y el mismo
+  payload que `AutenticacionService.emitirSesion`.
+- Reporte HTML + JUnit en `backend/reportes-funcionales/` (ignorado en git y ESLint).
+  Nueva dependencia de desarrollo `@vitest/ui` (reporte HTML).
+- Nuevo workflow `.github/workflows/funcionales.yml`: PostgreSQL de servicio + backend con
+  `npm start` + suite; sube el reporte como artefacto. `backend-tests.yml` no cambia.
+- Observaciones encontradas (sin corregir, pendientes de decisión del equipo):
+  - `quiz.fecha_apertura`/`fecha_cierre` son `TIMESTAMP` sin zona: si el backend corre con una
+    zona distinta de UTC (ej. `npm run dev` en Windows, UTC-5), los quices abren 5 h tarde.
+    En Docker, Render y GitHub Actions (UTC) funciona bien.
+  - `resultado_quiz.puntaje_obtenido`, `puntaje_maximo` y `calificacion` llegan como string
+    (columnas NUMERIC); el front ya los convierte con `Number()`.
 
 ## Cambios aplicados en esta sesión (2026-10-11) — HU-3.2: lista y resultado del estudiante + protección de quizRoutes
 
