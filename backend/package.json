@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:funcional": "vitest run --config vitest.funcional.config.js"
+    "test:funcional": "vitest run --config vitest.funcional.config.js",
+    "test:security": "node security-suite/run.mjs"
   },
   "engines": {
     "node": ">=20.0.0"

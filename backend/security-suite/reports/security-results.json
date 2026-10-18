@@ -1,0 +1,174 @@
+{
+  "date": "2026-10-18T18:41:25.755Z",
+  "url": null,
+  "totals": {
+    "PASS": 14,
+    "FAIL": 2,
+    "WARN": 1,
+    "MANUAL": 0,
+    "SKIP": 6
+  },
+  "results": [
+    {
+      "id": "H-01",
+      "description": "CRUD genérico de usuarios deshabilitado",
+      "status": "PASS",
+      "reason": "Usuarios solo expone rutas explícitas autenticadas",
+      "type": "CODIGO"
+    },
+    {
+      "id": "H-01b",
+      "description": "Perfil: propiedad de recurso",
+      "status": "PASS",
+      "reason": "Comprobar que el estudiante no vea perfiles ajenos",
+      "type": "CODIGO"
+    },
+    {
+      "id": "H-02",
+      "description": "Generación de código solo para docentes",
+      "status": "PASS",
+      "reason": "Endpoint requiere JWT y rol docente",
+      "type": "CODIGO"
+    },
+    {
+      "id": "H-03",
+      "description": "Estudio y contexto requieren autenticación",
+      "status": "PASS",
+      "reason": "Rutas de estudio y contexto protegidas",
+      "type": "CODIGO"
+    },
+    {
+      "id": "H-03b",
+      "description": "Inscripción validada contra JWT",
+      "status": "PASS",
+      "reason": "El controlador verifica propiedad de la inscripción",
+      "type": "CODIGO"
+    },
+    {
+      "id": "H-04",
+      "description": "Bypass de autenticación deshabilitado en producción",
+      "status": "PASS",
+      "reason": "DISABLE_AUTH no funciona con NODE_ENV=production",
+      "type": "CODIGO"
+    },
+    {
+      "id": "H-06",
+      "description": "TLS verifica el certificado de PostgreSQL",
+      "status": "FAIL",
+      "reason": "No debe desactivarse la validación del certificado",
+      "type": "CODIGO"
+    },
+    {
+      "id": "H-07",
+      "description": "Helmet, CORS restringido y rate limit",
+      "status": "PASS",
+      "reason": "Comprobación estática de configuración de seguridad",
+      "type": "CODIGO"
+    },
+    {
+      "id": "H-08",
+      "description": "Errores 5xx genéricos en producción",
+      "status": "PASS",
+      "reason": "Control global de serialización de respuestas 500",
+      "type": "CODIGO"
+    },
+    {
+      "id": "H-09",
+      "description": "Registro de eventos 401, 403 y 5xx",
+      "status": "PASS",
+      "reason": "Registro de eventos de seguridad configurado",
+      "type": "CODIGO"
+    },
+    {
+      "id": "H-11",
+      "description": "Códigos con aleatoriedad criptográfica",
+      "status": "FAIL",
+      "reason": "Debe emplearse node:crypto, no Math.random",
+      "type": "CODIGO"
+    },
+    {
+      "id": "H-12",
+      "description": "JWT valida algoritmo y secreto",
+      "status": "PASS",
+      "reason": "Algoritmo permitido explícitamente y secreto suficientemente largo",
+      "type": "CODIGO"
+    },
+    {
+      "id": "H-13",
+      "description": "Curso atribuido al docente autenticado",
+      "status": "PASS",
+      "reason": "La identidad del docente viene del token fuera del bypass local",
+      "type": "CODIGO"
+    },
+    {
+      "id": "HTTP",
+      "description": "Pruebas contra backend local",
+      "status": "SKIP",
+      "reason": "No responde http://127.0.0.1:5000/health; iniciar el backend con npm start y volver a ejecutar",
+      "type": "HTTP"
+    },
+    {
+      "id": "SQLi-01",
+      "description": "Consulta del diccionario parametrizada y filtrada",
+      "status": "PASS",
+      "reason": "La búsqueda envía termino.trim() como parámetro $1 y restringe tarjetas a revisado_docente",
+      "type": "CODIGO"
+    },
+    {
+      "id": "SQLi-02/03",
+      "description": "Pruebas SQLi con PostgreSQL real",
+      "status": "SKIP",
+      "reason": "Para ejecutar: inicia backend local con BD de pruebas y http://127.0.0.1:5000/health disponible",
+      "type": "HTTP/BD"
+    },
+    {
+      "id": "XSS-01",
+      "description": "Búsqueda de sinks DOM peligrosos",
+      "status": "PASS",
+      "reason": "110 archivos de frontend revisados; no se encontraron sinks de alto riesgo conocidos. No prueba por sí solo ausencia de XSS",
+      "type": "ESTATICO"
+    },
+    {
+      "id": "CSRF-01",
+      "description": "Evaluación del transporte de credenciales",
+      "status": "PASS",
+      "reason": "La API usa Bearer explícito desde JavaScript y no se observó autenticación automática por cookies en los archivos inspeccionados. Riesgo CSRF clásico reducido; no evalúa todos los flujos.",
+      "type": "ARQUITECTURA"
+    },
+    {
+      "id": "H-12b-01",
+      "description": "Almacenamiento de JWT en navegador",
+      "status": "WARN",
+      "reason": "El JWT permanece en localStorage; riesgo residual ante XSS. No se declara corregido.",
+      "type": "ESTATICO"
+    },
+    {
+      "id": "H-12b-02",
+      "description": "Revocación inmediata de JWT",
+      "status": "SKIP",
+      "reason": "Para comprobar revocación se necesitan usuario de prueba, JWT vigente y prueba controlada de desactivación/cambio de rol; no se simula",
+      "type": "INTEGRACION"
+    },
+    {
+      "id": "XSS-02",
+      "description": "Prueba HTTP con payload HTML",
+      "status": "SKIP",
+      "reason": "Requiere backend local y acceso a BD de pruebas",
+      "type": "HTTP"
+    },
+    {
+      "id": "CSRF-02",
+      "description": "Prueba HTTP de origen no permitido",
+      "status": "SKIP",
+      "reason": "Requiere backend local",
+      "type": "HTTP"
+    },
+    {
+      "id": "H-05",
+      "description": "RLS de Supabase por SQL de solo lectura",
+      "status": "SKIP",
+      "reason": "Configura SECURITY_DB_URL o DB_HOST/DB_USER/DB_PASSWORD/DB_NAME en un entorno de pruebas; nunca publiques credenciales",
+      "type": "POSTGRES"
+    }
+  ]
+}

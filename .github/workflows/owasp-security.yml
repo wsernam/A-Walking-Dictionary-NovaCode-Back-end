@@ -1,0 +1,110 @@
+name: NovaCode - Seguridad OWASP
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [develop, main]
+    paths:
+      - 'backend/security-suite/**'
+      - 'backend/src/**'
+      - 'backend/package*.json'
+      - '.github/workflows/owasp-security.yml'
+  pull_request:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+jobs:
+  owasp:
+    name: Suite OWASP - codigo y API
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: walking
+          POSTGRES_PASSWORD: walking
+          POSTGRES_DB: walking_dictionary
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U walking -d walking_dictionary"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_HOST: localhost
+      DB_PORT: '5432'
+      DB_USER: walking
+      DB_PASSWORD: walking
+      DB_NAME: walking_dictionary
+      PORT: '5000'
+      DISABLE_AUTH: 'false'
+      NODE_ENV: production
+      GOOGLE_CLIENT_ID: ci-sin-google.apps.googleusercontent.com
+      CORS_ORIGINS: http://localhost:3000
+      PGPASSWORD: walking
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Descargar backend
+        uses: actions/checkout@v4
+
+      - name: Descargar frontend para pruebas XSS y CSRF
+        uses: actions/checkout@v4
+        with:
+          repository: knnsand/A-Walking-Dictionary-NovaCode-Front-end
+          ref: develop
+          path: frontend-source
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Crear base de pruebas aislada
+        run: psql -h localhost -U walking -d walking_dictionary -v ON_ERROR_STOP=1 -f ../init.sql
+
+      - name: Generar secreto JWT temporal
+        run: echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
+      - name: Iniciar backend
+        run: |
+          nohup npm start > backend.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:5000/health >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat backend.log
+          exit 1
+
+      - name: Ejecutar suite OWASP
+        env:
+          SECURITY_BASE_URL: http://127.0.0.1:5000
+          SECURITY_FRONTEND_PATH: ${{ github.workspace }}/frontend-source
+          # Esta BD es PostgreSQL de CI, NO Supabase. H-05 debe comprobarse
+          # separadamente en Supabase con credenciales de lectura seguras.
+          DB_HOST: ''
+          DB_USER: ''
+          DB_NAME: ''
+        run: npm run test:security
+
+      - name: Adjuntar reporte y logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: novacode-owasp-report
+          path: |
+            backend/security-suite/reports/
+            backend/backend.log
+          if-no-files-found: warn
