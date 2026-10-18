@@ -5,7 +5,9 @@
 
 ## Cambios aplicados en esta sesión (2026-10-17) — Suite de pruebas funcionales de la API
 
-Sin cambios en `src/`. Cubre el "Pendiente: probar contra Postgres" de las sesiones anteriores.
+La suite no cambia `src/`; la única corrección que salió de ella (zona horaria, ver abajo) fue
+por separado en `fix/quiz-zona-horaria`. Cubre el "Pendiente: probar contra Postgres" de las
+sesiones anteriores.
 
 - Nueva carpeta `backend/pruebas-funcionales/` (Vitest, sin mocks): peticiones HTTP reales al
   backend corriendo, que usa PostgreSQL real. Un archivo por épica (HE-01, 02, 03, 05) y una prueba
@@ -20,11 +22,13 @@ Sin cambios en `src/`. Cubre el "Pendiente: probar contra Postgres" de las sesio
   Nueva dependencia de desarrollo `@vitest/ui` (reporte HTML).
 - Nuevo workflow `.github/workflows/funcionales.yml`: PostgreSQL de servicio + backend con
   `npm start` + suite; sube el reporte como artefacto. `backend-tests.yml` no cambia.
-- Observaciones encontradas (sin corregir, pendientes de decisión del equipo):
-  - `quiz.fecha_apertura`/`fecha_cierre` son `TIMESTAMP` sin zona: si el backend corre con una
-    zona distinta de UTC (ej. `npm run dev` en Windows, UTC-5), los quices abren 5 h tarde.
-    En Docker, Render y GitHub Actions (UTC) funciona bien.
-  - `resultado_quiz.puntaje_obtenido`, `puntaje_maximo` y `calificacion` llegan como string
+- Observaciones encontradas:
+  - CORREGIDO (PR #27, 2026-10-18): `quiz.fecha_apertura`/`fecha_cierre` son `TIMESTAMP` sin
+    zona y `pg` los interpretaba con la hora local del proceso: un backend fuera de UTC (ej.
+    `npm run dev` en Windows, UTC-5) abría los quices 5 h tarde. `src/config/db.js` fija UTC al
+    leer y escribir (`parseInputDatesAsUTC` + parser de TIMESTAMP). Sin migración. Verificado con
+    la suite y el backend en `TZ=America/Bogota`: 5 fallos antes, 82/82 después.
+  - Sin corregir (decisión del equipo): `resultado_quiz.puntaje_obtenido`, `puntaje_maximo` y `calificacion` llegan como string
     (columnas NUMERIC); el front ya los convierte con `Number()`.
 
 ## Cambios aplicados en esta sesión (2026-10-11) — HU-3.2: lista y resultado del estudiante + protección de quizRoutes
