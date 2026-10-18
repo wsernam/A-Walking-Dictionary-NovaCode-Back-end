@@ -144,15 +144,24 @@ export async function runAdvanced({backend,url,request,results,serverAvailable})
           'Supabase rechazó explícitamente la lectura por falta de permisos (42501)',
           'SUPABASE/API'
         );
-      } else if ([401, 403].includes(response.status)) {
+      } 
+       else if ([401, 403].includes(response.status)) {
+        const errorCode =
+          typeof body?.code === 'string'
+            ? body.code
+            : '(sin código)';
+
         result(
           results,
           'H-05',
           'Acceso anónimo a tablas privadas de Supabase',
           'WARN',
-          `HTTP ${response.status}: comprobar si el rechazo corresponde a permisos o a credenciales inválidas`,
+          `HTTP ${response.status}; código Supabase: ${errorCode}. ` +
+          'Se debe distinguir entre permisos insuficientes y credenciales inválidas.',
           'SUPABASE/API'
         );
+      
+
       } else {
         result(
           results,
