@@ -104,7 +104,9 @@ export async function runAdvanced({backend,url,request,results,serverAvailable})
       // 1. Verificar la respuesta del servicio PostgREST.
       // Esto comprueba disponibilidad y aceptacion de la solicitud,
       // pero NO certifica por si solo la validez del JWT.
-      const controlUrl = new URL('/rest/v1/', baseUrl);
+      const controlUrl = new URL('/rest/v1/usuario', baseUrl);
+      controlUrl.searchParams.set('select', 'id_usuario');
+      controlUrl.searchParams.set('limit', '0');
 
       const control = await fetch(controlUrl, {
         method: 'GET',
@@ -115,7 +117,16 @@ export async function runAdvanced({backend,url,request,results,serverAvailable})
         signal: AbortSignal.timeout(10000)
       });
 
-      if (control.status !== 200) {
+      const controlBody = await control.json().catch(() => null);
+
+    const controlValido =
+      control.status === 200 ||
+      (
+        [401, 403].includes(control.status) &&
+        controlBody?.code === '42501'
+      );
+
+    if (!controlValido) {
         result(
           results,
           'H-05a',
