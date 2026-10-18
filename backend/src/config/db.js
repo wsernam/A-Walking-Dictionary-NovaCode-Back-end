@@ -10,6 +10,13 @@ import pg from 'pg';
 
 const { Pool } = pg;
 
+// Las columnas TIMESTAMP del DER no guardan zona horaria (ej. quiz.fecha_apertura). Por defecto pg
+// las lee y escribe con la hora local del proceso, así que un backend que no corre en UTC (ej.
+// "npm run dev" en Windows, UTC-5) desplaza las fechas 5 h y los quices abren tarde. Se fija UTC
+// en ambos sentidos, igual que ya pasa en Docker, Render y GitHub Actions.
+pg.defaults.parseInputDatesAsUTC = true;
+pg.types.setTypeParser(pg.types.builtins.TIMESTAMP, (valor) => new Date(`${valor.replace(' ', 'T')}Z`));
+
 /**
  * @brief Pool de conexiones de PostgreSQL, configurado desde variables de entorno
  * (DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME).
