@@ -1,8 +1,8 @@
 // Configuración mínima de ESLint (flat config) para el backend en ES Modules.
 
 export default [
-  // Reporte de cobertura generado por "npm run test:coverage" (no es código fuente).
-  { ignores: ['coverage/'] },
+  // Reportes generados por "npm run test:coverage" y "npm run test:funcional" (no son código fuente).
+  { ignores: ['coverage/', 'reportes-funcionales/'] },
   {
     languageOptions: {
       ecmaVersion: 2023,
