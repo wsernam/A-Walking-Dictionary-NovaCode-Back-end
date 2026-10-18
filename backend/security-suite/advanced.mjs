@@ -77,110 +77,148 @@ export async function runAdvanced({backend,url,request,results,serverAvailable})
     result(results,'CSRF-02','Prueba HTTP de origen no permitido','SKIP','Requiere backend local','HTTP');
   }
   
-  // H-05: verificar acceso anónimo directo a Supabase.
-  // Prueba exclusivamente de lectura; no modifica registros.
+  
+  // H-05a: verificar acceso anonimo a datos privados de Supabase.
+  // Solo realiza solicitudes GET. No modifica datos ni permisos.
   const supabaseUrl = process.env.SECURITY_SUPABASE_URL;
   const anonKey = process.env.SECURITY_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !anonKey) {
     result(
       results,
-      'H-05',
-      'Acceso anónimo a tablas privadas de Supabase',
+      'H-05a',
+      'Acceso anonimo a datos privados de Supabase',
       'SKIP',
-      'Falta configurar SECURITY_SUPABASE_URL o SECURITY_SUPABASE_ANON_KEY',
+      'Faltan SECURITY_SUPABASE_URL o SECURITY_SUPABASE_ANON_KEY',
       'SUPABASE/API'
     );
   } else {
     try {
-      const endpoint = new URL(
-        '/rest/v1/usuario',
-        supabaseUrl
-      );
+      const baseUrl = new URL(supabaseUrl);
+      const headers = {
+        apikey: anonKey,
+        Authorization: `Bearer ${anonKey}`,
+        Accept: 'application/json'
+      };
 
-      endpoint.searchParams.set('select', 'id_usuario');
-      endpoint.searchParams.set('limit', '1');
+      // 1. Verificar la respuesta del servicio PostgREST.
+      // Esto comprueba disponibilidad y aceptacion de la solicitud,
+      // pero NO certifica por si solo la validez del JWT.
+      const controlUrl = new URL('/rest/v1/', baseUrl);
 
-      const response = await fetch(endpoint, {
+      const control = await fetch(controlUrl, {
         method: 'GET',
         headers: {
-          apikey: anonKey,
-          Accept: 'application/json'
+          ...headers,
+          Accept: 'application/openapi+json'
         },
         signal: AbortSignal.timeout(10000)
       });
 
-      const body = await response.json().catch(() => null);
+      if (control.status !== 200) {
+        result(
+          results,
+          'H-05a',
+          'Acceso anonimo a datos privados de Supabase',
+          'WARN',
+          `Consulta de control: HTTP ${control.status}. ` +
+          'No se pudo confirmar la disponibilidad de PostgREST; ' +
+          'no se interpreta el rechazo de la tabla como PASS.',
+          'SUPABASE/API'
+        );
+      } else {
+        // 2. Intentar leer una fila de la tabla privada usuario.
+        const targetUrl = new URL('/rest/v1/usuario', baseUrl);
+        targetUrl.searchParams.set('select', 'id_usuario');
+        targetUrl.searchParams.set('limit', '1');
 
-      if (response.status === 200 && Array.isArray(body)) {
-        if (body.length > 0) {
+        const response = await fetch(targetUrl, {
+          method: 'GET',
+          headers,
+          signal: AbortSignal.timeout(10000)
+        });
+
+        const body = await response.json().catch(() => null);
+        const errorCode =
+          typeof body?.code === 'string' ? body.code : null;
+
+        if (
+          [401, 403].includes(response.status) &&
+          errorCode === '42501'
+        ) {
           result(
             results,
-            'H-05',
-            'Acceso anónimo a tablas privadas de Supabase',
+            'H-05a',
+            'Acceso anonimo a datos privados de Supabase',
+            'PASS',
+            `HTTP ${response.status}; PostgreSQL 42501: ` +
+            'consulta anonima rechazada por permisos. ' +
+            'No demuestra por si sola la configuracion RLS.',
+            'SUPABASE/API'
+          );
+        } else if (
+          response.status === 200 &&
+          Array.isArray(body) &&
+          body.length > 0
+        ) {
+          result(
+            results,
+            'H-05a',
+            'Acceso anonimo a datos privados de Supabase',
             'FAIL',
-            `La API devolvió ${body.length} registro(s) privados sin sesión de usuario`,
+            `HTTP 200: la consulta anonima devolvio ` +
+            `${body.length} registro(s) de usuario.`,
+            'SUPABASE/API'
+          );
+        } else if (
+          response.status === 200 &&
+          Array.isArray(body) &&
+          body.length === 0
+        ) {
+          result(
+            results,
+            'H-05a',
+            'Acceso anonimo a datos privados de Supabase',
+            'WARN',
+            'HTTP 200 con arreglo vacio. No se observaron ' +
+            'registros expuestos, pero la tabla podria estar vacia.',
             'SUPABASE/API'
           );
         } else {
           result(
             results,
-            'H-05',
-            'Acceso anónimo a tablas privadas de Supabase',
+            'H-05a',
+            'Acceso anonimo a datos privados de Supabase',
             'WARN',
-            'HTTP 200 con arreglo vacío: no se expusieron registros, pero debe confirmarse que la tabla contiene datos y que RLS está activo',
+            `HTTP ${response.status}; codigo: ` +
+            `${errorCode || '(no disponible)'}. ` +
+            'No se pudo confirmar la denegacion por permisos.',
             'SUPABASE/API'
           );
         }
-      } else if (
-        response.status === 403 &&
-        body?.code === '42501'
-      ) {
-        result(
-          results,
-          'H-05',
-          'Acceso anónimo a tablas privadas de Supabase',
-          'PASS',
-          'Supabase rechazó explícitamente la lectura por falta de permisos (42501)',
-          'SUPABASE/API'
-        );
-      } 
-       else if ([401, 403].includes(response.status)) {
-        const errorCode =
-          typeof body?.code === 'string'
-            ? body.code
-            : '(sin código)';
-
-        result(
-          results,
-          'H-05',
-          'Acceso anónimo a tablas privadas de Supabase',
-          'WARN',
-          `HTTP ${response.status}; código Supabase: ${errorCode}. ` +
-          'Se debe distinguir entre permisos insuficientes y credenciales inválidas.',
-          'SUPABASE/API'
-        );
-      
-
-      } else {
-        result(
-          results,
-          'H-05',
-          'Acceso anónimo a tablas privadas de Supabase',
-          'WARN',
-          `Respuesta HTTP ${response.status}; verificar configuración de API y permisos`,
-          'SUPABASE/API'
-        );
       }
     } catch (error) {
       result(
         results,
-        'H-05',
-        'Acceso anónimo a tablas privadas de Supabase',
+        'H-05a',
+        'Acceso anonimo a datos privados de Supabase',
         'SKIP',
-        `No se completó la solicitud: ${error.name}`,
+        `No se completo la solicitud HTTP: ${error.name}`,
         'SUPABASE/API'
       );
     }
   }
+
+  // H-05b: la configuracion RLS requiere evidencia SQL real.
+  // No se declara PASS automatico sin consultar metadatos.
+  result(
+    results,
+    'H-05b',
+    'Configuracion RLS de las tablas de Supabase',
+    'SKIP',
+    'Verificacion manual mediante Supabase SQL Editor: ' +
+    '14 tablas con RLS habilitado al momento de la revision. ' +
+    'La suite CI no consulta metadatos RLS.',
+    'SUPABASE/RLS'
+  );
 }
