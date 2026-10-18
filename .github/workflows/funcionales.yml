@@ -77,9 +77,21 @@ jobs:
         if: failure()
         run: cat backend.log
 
+      # Resumen en Markdown: se muestra en la página de esta ejecución y va en el artefacto
+      # (RESUMEN.md). No toca el repositorio.
+      - name: Resumen de resultados
+        if: always()
+        run: >-
+          node pruebas-funcionales/soporte/generar-resumen.js
+          --resultados reportes-funcionales/resultados.json
+          --criterios pruebas-funcionales/criterios.json
+          --suite "Pruebas funcionales de la API (back)"
+          --salida reportes-funcionales/RESUMEN.md
+
       - name: Publicar reporte
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: reporte-pruebas-funcionales
           path: backend/reportes-funcionales/
+          retention-days: 30

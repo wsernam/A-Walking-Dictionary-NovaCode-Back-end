@@ -15,10 +15,12 @@ export default defineConfig({
     testTimeout: 20000,
     hookTimeout: 60000,
     // En GitHub Actions se agrega "github-actions": marca las pruebas fallidas en el PR.
-    reporters: ['default', 'html', 'junit', ...(process.env.GITHUB_ACTIONS ? ['github-actions'] : [])],
+    // "json" lo lee pruebas-funcionales/soporte/generar-resumen.js para el resumen en Markdown.
+    reporters: ['default', 'html', 'junit', 'json', ...(process.env.GITHUB_ACTIONS ? ['github-actions'] : [])],
     outputFile: {
       html: 'reportes-funcionales/index.html',
       junit: 'reportes-funcionales/junit.xml',
+      json: 'reportes-funcionales/resultados.json',
     },
   },
 });
