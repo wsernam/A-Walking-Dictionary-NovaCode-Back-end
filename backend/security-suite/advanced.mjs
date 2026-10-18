@@ -76,20 +76,102 @@ export async function runAdvanced({backend,url,request,results,serverAvailable})
     result(results,'XSS-02','Prueba HTTP con payload HTML','SKIP','Requiere backend local y acceso a BD de pruebas','HTTP');
     result(results,'CSRF-02','Prueba HTTP de origen no permitido','SKIP','Requiere backend local','HTTP');
   }
-  const hasDbEnv=Boolean(process.env.SECURITY_DB_URL || (process.env.DB_HOST&&process.env.DB_USER&&process.env.DB_NAME));
-  if(!hasDbEnv){result(results,'H-05','RLS de Supabase por SQL de solo lectura','SKIP','Configura SECURITY_DB_URL o DB_HOST/DB_USER/DB_PASSWORD/DB_NAME en un entorno de pruebas; nunca publiques credenciales','POSTGRES');}
-  else {
-    let client;
-    try{
-      const {Client}=await import('pg');
-      client=new Client(process.env.SECURITY_DB_URL?{connectionString:process.env.SECURITY_DB_URL,ssl:process.env.SECURITY_DB_SSL==='true'?{rejectUnauthorized:true}:undefined}:{host:process.env.DB_HOST,port:Number(process.env.DB_PORT||5432),user:process.env.DB_USER,password:process.env.DB_PASSWORD,database:process.env.DB_NAME,ssl:process.env.DB_SSL==='true'?{rejectUnauthorized:true}:false,connectionTimeoutMillis:6000});
-      await client.connect();
-      await client.query('BEGIN READ ONLY');
-      const q=await client.query("SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename");
-      const bad=q.rows.filter(r=>!r.rowsecurity);
-      result(results,'H-05','RLS activado en tablas públicas',q.rows.length&&bad.length===0?'PASS':'FAIL',`${q.rows.length} tablas examinadas; RLS deshabilitado: ${bad.length?bad.map(x=>x.tablename).join(', '):'ninguna'}. Nota: no prueba políticas ni privilegios anon`, 'POSTGRES');
-      await client.query('ROLLBACK');
-    }catch(e){result(results,'H-05','RLS de Supabase','SKIP',`No se completó consulta de solo lectura: ${e.code||e.name}. Revisar conexión segura de entorno de pruebas`, 'POSTGRES');}
-    finally{if(client)await client.end().catch(()=>{});}
+  
+  // H-05: verificar acceso anónimo directo a Supabase.
+  // Prueba exclusivamente de lectura; no modifica registros.
+  const supabaseUrl = process.env.SECURITY_SUPABASE_URL;
+  const anonKey = process.env.SECURITY_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !anonKey) {
+    result(
+      results,
+      'H-05',
+      'Acceso anónimo a tablas privadas de Supabase',
+      'SKIP',
+      'Falta configurar SECURITY_SUPABASE_URL o SECURITY_SUPABASE_ANON_KEY',
+      'SUPABASE/API'
+    );
+  } else {
+    try {
+      const endpoint = new URL(
+        '/rest/v1/usuario',
+        supabaseUrl
+      );
+
+      endpoint.searchParams.set('select', 'id_usuario');
+      endpoint.searchParams.set('limit', '1');
+
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          apikey: anonKey,
+          Accept: 'application/json'
+        },
+        signal: AbortSignal.timeout(10000)
+      });
+
+      const body = await response.json().catch(() => null);
+
+      if (response.status === 200 && Array.isArray(body)) {
+        if (body.length > 0) {
+          result(
+            results,
+            'H-05',
+            'Acceso anónimo a tablas privadas de Supabase',
+            'FAIL',
+            `La API devolvió ${body.length} registro(s) privados sin sesión de usuario`,
+            'SUPABASE/API'
+          );
+        } else {
+          result(
+            results,
+            'H-05',
+            'Acceso anónimo a tablas privadas de Supabase',
+            'WARN',
+            'HTTP 200 con arreglo vacío: no se expusieron registros, pero debe confirmarse que la tabla contiene datos y que RLS está activo',
+            'SUPABASE/API'
+          );
+        }
+      } else if (
+        response.status === 403 &&
+        body?.code === '42501'
+      ) {
+        result(
+          results,
+          'H-05',
+          'Acceso anónimo a tablas privadas de Supabase',
+          'PASS',
+          'Supabase rechazó explícitamente la lectura por falta de permisos (42501)',
+          'SUPABASE/API'
+        );
+      } else if ([401, 403].includes(response.status)) {
+        result(
+          results,
+          'H-05',
+          'Acceso anónimo a tablas privadas de Supabase',
+          'WARN',
+          `HTTP ${response.status}: comprobar si el rechazo corresponde a permisos o a credenciales inválidas`,
+          'SUPABASE/API'
+        );
+      } else {
+        result(
+          results,
+          'H-05',
+          'Acceso anónimo a tablas privadas de Supabase',
+          'WARN',
+          `Respuesta HTTP ${response.status}; verificar configuración de API y permisos`,
+          'SUPABASE/API'
+        );
+      }
+    } catch (error) {
+      result(
+        results,
+        'H-05',
+        'Acceso anónimo a tablas privadas de Supabase',
+        'SKIP',
+        `No se completó la solicitud: ${error.name}`,
+        'SUPABASE/API'
+      );
+    }
   }
 }

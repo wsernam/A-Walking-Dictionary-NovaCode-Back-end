@@ -24,6 +24,7 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
+        
           POSTGRES_USER: walking
           POSTGRES_PASSWORD: walking
           POSTGRES_DB: walking_dictionary
@@ -46,6 +47,10 @@ jobs:
       GOOGLE_CLIENT_ID: ci-sin-google.apps.googleusercontent.com
       CORS_ORIGINS: http://localhost:3000
       PGPASSWORD: walking
+      
+      SECURITY_SUPABASE_URL: https://hvyrtzawcbtuhvqkpogi.supabase.co
+      SECURITY_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
 
     defaults:
       run:
@@ -88,16 +93,22 @@ jobs:
           cat backend.log
           exit 1
 
+      
       - name: Ejecutar suite OWASP
         env:
           SECURITY_BASE_URL: http://127.0.0.1:5000
           SECURITY_FRONTEND_PATH: ${{ github.workspace }}/frontend-source
-          # Esta BD es PostgreSQL de CI, NO Supabase. H-05 debe comprobarse
-          # separadamente en Supabase con credenciales de lectura seguras.
+
+          # H-05: consulta HTTP de solo lectura a Supabase real
+          SECURITY_SUPABASE_URL: https://hvyrtzawcbtuhvqkpogi.supabase.co
+          SECURITY_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+          # No usar la conexión PostgreSQL temporal para H-05
           DB_HOST: ''
           DB_USER: ''
           DB_NAME: ''
         run: npm run test:security
+
 
       - name: Adjuntar reporte y logs
         if: always()

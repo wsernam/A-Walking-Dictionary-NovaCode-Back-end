@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-18T18:41:25.755Z",
+  "date": "2026-10-18T20:20:35.743Z",
   "url": null,
   "totals": {
     "PASS": 14,
@@ -165,10 +165,10 @@
     },
     {
       "id": "H-05",
-      "description": "RLS de Supabase por SQL de solo lectura",
+      "description": "Acceso anónimo a tablas privadas de Supabase",
       "status": "SKIP",
-      "reason": "Configura SECURITY_DB_URL o DB_HOST/DB_USER/DB_PASSWORD/DB_NAME en un entorno de pruebas; nunca publiques credenciales",
-      "type": "POSTGRES"
+      "reason": "Falta configurar SECURITY_SUPABASE_URL o SECURITY_SUPABASE_ANON_KEY",
+      "type": "SUPABASE/API"
     }
   ]
 }
