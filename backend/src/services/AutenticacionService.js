@@ -43,6 +43,7 @@ export async function validarTokenGoogle(idToken) {
   if (!idToken) {
     const error = new Error('idToken es obligatorio');
     error.status = 400;
+    error.code = 'AUTH_GOOGLE_TOKEN_MISSING';
     throw error;
   }
 
@@ -60,6 +61,7 @@ export async function validarTokenGoogle(idToken) {
   } catch {
     const error = new Error('Token de Google inválido');
     error.status = 401;
+    error.code = 'AUTH_GOOGLE_TOKEN_INVALID';
     throw error;
   }
 
@@ -68,6 +70,7 @@ export async function validarTokenGoogle(idToken) {
       'El email de la cuenta de Google no está verificado'
     );
     error.status = 401;
+    error.code = 'AUTH_GOOGLE_EMAIL_NOT_VERIFIED';
     throw error;
   }
 
@@ -129,12 +132,14 @@ export const AutenticacionService = {
         'Usuario no registrado en la plataforma'
       );
       error.status = 403;
+      error.code = 'AUTH_USER_NOT_REGISTERED';
       throw error;
     }
 
     if (!usuario.activo) {
       const error = new Error('Cuenta inactiva');
       error.status = 401;
+      error.code = 'AUTH_ACCOUNT_INACTIVE';
       throw error;
     }
 

@@ -46,6 +46,7 @@ export const CuraduriaService = {
     if (!tarjeta) {
       const error = new Error('Tarjeta no encontrada');
       error.status = 404;
+      error.code = 'CARD_NOT_FOUND';
       throw error;
     }
 
@@ -54,6 +55,7 @@ export const CuraduriaService = {
         'La tarjeta no está pendiente de revisión'
       );
       error.status = 409;
+      error.code = 'CARD_NOT_PENDING';
       throw error;
     }
 
@@ -70,6 +72,7 @@ export const CuraduriaService = {
     if (!tarjeta) {
       const error = new Error('Tarjeta no encontrada');
       error.status = 404;
+      error.code = 'CARD_NOT_FOUND';
       throw error;
     }
 
@@ -78,6 +81,7 @@ export const CuraduriaService = {
         'Solo se pueden editar tarjetas pendientes de revisión'
       );
       error.status = 409;
+      error.code = 'CARD_NOT_PENDING';
       throw error;
     }
 

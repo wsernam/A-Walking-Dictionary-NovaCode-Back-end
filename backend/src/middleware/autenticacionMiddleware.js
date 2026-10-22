@@ -30,7 +30,7 @@ export const authDeshabilitado = () => process.env.DISABLE_AUTH === 'true' && pr
  *
  * @param {import('express').Request} req - Debe traer el header Authorization con el JWT.
  * @param {import('express').Response} res - Responde 401 si falta el header o si el token es
- * inválido o expiró ({ error: mensaje }).
+ * inválido o expiró ({ error: mensaje, code }).
  * @param {import('express').NextFunction} next - Se invoca si el token es válido.
  * @return {void}
  */
@@ -46,7 +46,7 @@ export function authenticate(req, res, next) {
 
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Token de autenticación no proporcionado' });
+    return res.status(401).json({ error: 'Token de autenticación no proporcionado', code: 'AUTH_TOKEN_MISSING' });
   }
 
   const token = authHeader.slice('Bearer '.length);
@@ -55,7 +55,7 @@ export function authenticate(req, res, next) {
     req.usuario = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     next();
   } catch (error) {
-    return res.status(401).json({ error: 'Token inválido o expirado' });
+    return res.status(401).json({ error: 'Token inválido o expirado', code: 'AUTH_TOKEN_INVALID' });
   }
 }
 
@@ -99,10 +99,10 @@ export function requireRole(...rolesPermitidos) {
       return next();
     }
     if (!req.usuario) {
-      return res.status(401).json({ error: 'Token de autenticación no proporcionado' });
+      return res.status(401).json({ error: 'Token de autenticación no proporcionado', code: 'AUTH_TOKEN_MISSING' });
     }
     if (!rolesPermitidos.includes(req.usuario.rol)) {
-      return res.status(403).json({ error: 'No tiene permisos para acceder a este recurso' });
+      return res.status(403).json({ error: 'No tiene permisos para acceder a este recurso', code: 'AUTH_FORBIDDEN' });
     }
     next();
   };

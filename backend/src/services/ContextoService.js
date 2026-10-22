@@ -17,6 +17,7 @@ function validarRegistro(registro) {
       'Registro inválido. Valores permitidos: formal, informal, slang, coloquial, anticuado'
     );
     error.status = 400;
+    error.code = 'CONTEXT_INVALID_REGISTER';
     throw error;
   }
 }
@@ -25,6 +26,7 @@ function validarVarianteRegional(variante) {
   if (variante && !VARIANTES_PERMITIDAS.includes(variante.toLowerCase())) {
     const error = new Error('Variante regional inválida');
     error.status = 400;
+    error.code = 'CONTEXT_INVALID_VARIANT';
     throw error;
   }
 }
@@ -44,12 +46,14 @@ export const ContextoService = {
     if (!tarjeta) {
       const error = new Error('Tarjeta no encontrada');
       error.status = 404;
+      error.code = 'CARD_NOT_FOUND';
       throw error;
     }
 
     if (!datos.registro && !datos.variante_regional) {
       const error = new Error('Debe proporcionar al menos una etiqueta de contexto');
       error.status = 400;
+      error.code = 'CONTEXT_EMPTY';
       throw error;
     }
 

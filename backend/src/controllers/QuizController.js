@@ -27,7 +27,7 @@ export const QuizController = {
       const resultado = await QuizService.generar(req.body);
       res.status(201).json(resultado);
     } catch (err) {
-      res.status(err.status || 500).json({ error: err.message });
+      res.status(err.status || 500).json({ error: err.message, code: err.code });
     }
   },
 
@@ -43,7 +43,7 @@ export const QuizController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const pdfBytes = await ExportarPDFService.generarPdfQuiz(id);
       res.status(200);
@@ -53,7 +53,7 @@ export const QuizController = {
       });
       res.send(Buffer.from(pdfBytes));
     } catch (err) {
-      res.status(err.status || 500).json({ error: err.message });
+      res.status(err.status || 500).json({ error: err.message, code: err.code });
     }
   },
 
@@ -77,6 +77,7 @@ export const QuizController = {
       if (camposFaltantes.length > 0) {
         return res.status(400).json({
           error: `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`,
+          code: 'REQUIRED_FIELDS_MISSING',
         });
       }
 
@@ -93,7 +94,7 @@ export const QuizController = {
         );
       }
       if (erroresLongitud.length > 0) {
-        return res.status(400).json({ error: erroresLongitud.join(' ') });
+        return res.status(400).json({ error: erroresLongitud.join(' '), code: 'FIELD_TOO_LONG' });
       }
 
       const quiz = await QuizRepository.crear(req.body);
@@ -114,11 +115,11 @@ export const QuizController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const quiz = await QuizRepository.obtenerPorId(id);
       if (!quiz) {
-        return res.status(404).json({ error: 'Quiz no encontrado' });
+        return res.status(404).json({ error: 'Quiz no encontrado', code: 'QUIZ_NOT_FOUND' });
       }
       // CA-3.1.3: el estado real ("programado"/"abierto"/"cerrado") se calcula al consultar,
       // sin infraestructura de jobs/cron en el proyecto (ver QuizService.calcularEstadoEfectivo).
@@ -142,12 +143,12 @@ export const QuizController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const resultado = await QuizService.obtenerPreguntasParaEstudiante(id, req.usuario.id_usuario);
       res.status(200).json(resultado);
     } catch (err) {
-      res.status(err.status || 500).json({ error: err.message });
+      res.status(err.status || 500).json({ error: err.message, code: err.code });
     }
   },
 
@@ -163,7 +164,7 @@ export const QuizController = {
       const quizzes = await QuizService.listarDelEstudiante(req.usuario.id_usuario);
       res.status(200).json(quizzes);
     } catch (err) {
-      res.status(err.status || 500).json({ error: err.message });
+      res.status(err.status || 500).json({ error: err.message, code: err.code });
     }
   },
 
@@ -181,12 +182,12 @@ export const QuizController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const resultado = await QuizService.obtenerResultadoEstudiante(id, req.usuario.id_usuario);
       res.status(200).json(resultado);
     } catch (err) {
-      res.status(err.status || 500).json({ error: err.message });
+      res.status(err.status || 500).json({ error: err.message, code: err.code });
     }
   },
 
@@ -218,11 +219,11 @@ export const QuizController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const quiz = await QuizRepository.actualizar(id, req.body);
       if (!quiz) {
-        return res.status(404).json({ error: 'Quiz no encontrado' });
+        return res.status(404).json({ error: 'Quiz no encontrado', code: 'QUIZ_NOT_FOUND' });
       }
       res.status(200).json(quiz);
     } catch (error) {
@@ -241,11 +242,11 @@ export const QuizController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const eliminado = await QuizRepository.eliminar(id);
       if (!eliminado) {
-        return res.status(404).json({ error: 'Quiz no encontrado' });
+        return res.status(404).json({ error: 'Quiz no encontrado', code: 'QUIZ_NOT_FOUND' });
       }
       res.status(200).json({ eliminado: true });
     } catch (error) {

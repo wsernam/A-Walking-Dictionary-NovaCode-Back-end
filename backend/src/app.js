@@ -86,6 +86,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import rutasEnriquecimiento from './routes/enriquecimientoRoutes.js';
 import diccionarioRoutes from './routes/diccionarioRoutes.js';
+import { codigoPorStatus } from './utils/codigosError.js';
 
 
 /** @brief Instancia principal de la aplicación Express. */
@@ -124,7 +125,7 @@ const limiteAutenticacion = rateLimit({
   skipSuccessfulRequests: true, // solo cuentan los intentos fallidos (respuestas con código 400 o superior)
   standardHeaders: 'draft-7',
   legacyHeaders: false,
-  message: { error: 'Demasiados intentos. Intenta de nuevo en unos minutos.' }
+  message: { error: 'Demasiados intentos. Intenta de nuevo en unos minutos.', code: 'RATE_LIMITED' }
 });
 
 app.use('/api/v1/auth', limiteAutenticacion);
@@ -135,12 +136,17 @@ app.use(registroSeguridad);
 
 // Auditoría OWASP H-08: en producción no se devuelve al cliente el detalle de errores 5xx.
 // El mensaje real se deja en los logs para poder depurar.
+// Además, toda respuesta de error lleva `code`: si el controlador no puso uno específico, se usa
+// el genérico de su status (ver utils/codigosError.js).
 app.use((req, res, next) => {
   const jsonOriginal = res.json.bind(res);
   res.json = (cuerpo) => {
     if (res.statusCode >= 500 && process.env.NODE_ENV === 'production') {
       console.error(`[ERROR] ${req.method} ${req.originalUrl}:`, cuerpo);
-      return jsonOriginal({ error: 'Error interno del servidor' });
+      return jsonOriginal({ error: 'Error interno del servidor', code: 'INTERNAL_ERROR' });
+    }
+    if (res.statusCode >= 400 && cuerpo && typeof cuerpo === 'object' && 'error' in cuerpo && !cuerpo.code) {
+      return jsonOriginal({ ...cuerpo, code: codigoPorStatus(res.statusCode) });
     }
     return jsonOriginal(cuerpo);
   };

@@ -33,6 +33,7 @@ const MAX_AVATAR = 500;
 function errorValidacion(mensaje) {
   const error = new Error(mensaje);
   error.status = 400;
+  error.code = 'PROFILE_INVALID_DATA';
   return error;
 }
 
@@ -86,6 +87,7 @@ function validarNivelIngles(nivel_ingles) {
   if (nivel_ingles && !NIVELES_MCER.includes(nivel_ingles.toUpperCase())) {
     const error = new Error(`nivel_ingles inválido. Valores permitidos: ${NIVELES_MCER.join(', ')}`);
     error.status = 400;
+    error.code = 'PROFILE_INVALID_LEVEL';
     throw error;
   }
 }
@@ -138,6 +140,7 @@ export const PerfilService = {
     if (!usuario) {
       const error = new Error('Usuario no encontrado');
       error.status = 404;
+      error.code = 'USER_NOT_FOUND';
       throw error;
     }
     return mapearPerfil(usuario);
@@ -162,6 +165,7 @@ export const PerfilService = {
     if (!usuarioActual) {
       const error = new Error('Usuario no encontrado');
       error.status = 404;
+      error.code = 'USER_NOT_FOUND';
       throw error;
     }
 
@@ -200,6 +204,7 @@ export const PerfilService = {
     if (!usuario) {
       const error = new Error('Usuario no encontrado');
       error.status = 404;
+      error.code = 'USER_NOT_FOUND';
       throw error;
     }
     const contexto = await InscripcionRepository.obtenerContextoAcademico(estudiante_id);

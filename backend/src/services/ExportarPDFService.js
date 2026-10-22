@@ -33,6 +33,7 @@ import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
 import { EtiquetaContextoRepository } from '../repositories/EtiquetaContextoRepository.js';
 import { QuizRepository } from '../repositories/QuizRepository.js';
 import { PreguntaQuizRepository } from '../repositories/PreguntaQuizRepository.js';
+import { errorApi } from '../utils/codigosError.js';
 
 /** @brief Tamaño de página A4 en puntos PDF (72 puntos = 1 pulgada). */
 const PAGE_SIZE = [595.28, 841.89];
@@ -74,13 +75,12 @@ const COLORES = {
  * @brief Crea un Error con un código HTTP adjunto, para que el controlador que atrapa la
  * excepción sepa con qué status responder (mismo patrón que QuizService.js).
  * @param {number} status - Código HTTP a usar en la respuesta (404, ...).
+ * @param {string} code - Código fijo en inglés (ver docs/codigos-error.md).
  * @param {string} message - Mensaje de error legible para el cliente.
- * @return {Error} Error con la propiedad adicional `status`.
+ * @return {Error} Error con las propiedades adicionales `status` y `code`.
  */
-function error(status, message) {
-  const err = new Error(message);
-  err.status = status;
-  return err;
+function error(status, code, message) {
+  return errorApi(status, code, message);
 }
 
 /**
@@ -357,7 +357,7 @@ export const ExportarPDFService = {
   async generarPdfMazo(id_mazo) {
     const mazo = await MazoRepository.obtenerPorId(id_mazo);
     if (!mazo) {
-      throw error(404, 'Mazo no encontrado');
+      throw error(404, 'DECK_NOT_FOUND', 'Mazo no encontrado');
     }
 
     const tarjetas = await TarjetaRepository.listarAprobadasPorMazos([id_mazo]);
@@ -417,12 +417,12 @@ export const ExportarPDFService = {
   async generarPdfQuiz(id_quiz) {
     const quiz = await QuizRepository.obtenerPorId(id_quiz);
     if (!quiz) {
-      throw error(404, 'Quiz no encontrado');
+      throw error(404, 'QUIZ_NOT_FOUND', 'Quiz no encontrado');
     }
 
     const preguntas = await PreguntaQuizRepository.listarPorQuiz(id_quiz);
     if (preguntas.length === 0) {
-      throw error(404, 'El quiz no tiene preguntas generadas todavía');
+      throw error(404, 'QUIZ_NO_QUESTIONS', 'El quiz no tiene preguntas generadas todavía');
     }
 
     const doc = await PDFDocument.create();

@@ -27,6 +27,7 @@ export const RegistroService = {
         `Debe utilizar un correo institucional ${DOMINIO_INSTITUCIONAL}`
       );
       error.status = 400;
+      error.code = 'REGISTER_INVALID_DOMAIN';
       throw error;
     }
 
@@ -61,5 +62,6 @@ export const RegistroService = {
 function correoYaRegistrado() {
   const error = new Error('El correo ya está registrado en la plataforma');
   error.status = 409;
+  error.code = 'REGISTER_EMAIL_TAKEN';
   return error;
 }

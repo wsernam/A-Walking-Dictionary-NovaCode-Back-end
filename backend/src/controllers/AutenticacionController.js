@@ -25,7 +25,7 @@ export const AutenticacionController = {
       res.status(200).json(resultado);
     } catch (error) {
       const status = error.status || 500;
-      res.status(status).json({ error: error.message });
+      res.status(status).json({ error: error.message, code: error.code });
     }
   },
 };

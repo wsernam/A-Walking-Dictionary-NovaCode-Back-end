@@ -24,6 +24,7 @@ export const EstudioController = {
       if (!inscripcion_id) {
         return res.status(400).json({
           error: 'El campo inscripcion_id es obligatorio',
+          code: 'REQUIRED_FIELDS_MISSING',
         });
       }
 
@@ -32,12 +33,14 @@ export const EstudioController = {
       if (Number.isNaN(id)) {
         return res.status(400).json({
           error: 'inscripcion_id inválido',
+          code: 'INVALID_ID',
         });
       }
 
       if (!(await esPropietario(req, id))) {
         return res.status(403).json({
           error: 'No tiene permisos sobre esta inscripción',
+          code: 'ENROLLMENT_FORBIDDEN',
         });
       }
 
@@ -47,6 +50,7 @@ export const EstudioController = {
     } catch (error) {
       return res.status(error.status || 500).json({
         error: error.message,
+        code: error.code,
       });
     }
   },
@@ -59,6 +63,7 @@ export const EstudioController = {
         return res.status(400).json({
           error:
             'Los campos inscripcion_id, tarjeta_id y valoracion son obligatorios',
+          code: 'REQUIRED_FIELDS_MISSING',
         });
       }
 
@@ -68,12 +73,14 @@ export const EstudioController = {
       if (Number.isNaN(inscripcionId) || Number.isNaN(tarjetaId)) {
         return res.status(400).json({
           error: 'inscripcion_id y tarjeta_id deben ser números válidos',
+          code: 'INVALID_ID',
         });
       }
 
       if (!(await esPropietario(req, inscripcionId))) {
         return res.status(403).json({
           error: 'No tiene permisos sobre esta inscripción',
+          code: 'ENROLLMENT_FORBIDDEN',
         });
       }
 
@@ -87,6 +94,7 @@ export const EstudioController = {
     } catch (error) {
       return res.status(error.status || 500).json({
         error: error.message,
+        code: error.code,
       });
     }
   },

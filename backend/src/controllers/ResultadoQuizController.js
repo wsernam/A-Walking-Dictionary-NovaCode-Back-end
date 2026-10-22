@@ -28,7 +28,7 @@ export const ResultadoQuizController = {
     try {
       const quiz_id = Number(req.params.id);
       if (Number.isNaN(quiz_id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const resultado = await QuizService.enviarRespuestas(quiz_id, req.usuario.id_usuario, req.body);
       res.status(201).json(resultado);
@@ -36,11 +36,12 @@ export const ResultadoQuizController = {
       if (err.status === 409) {
         return res.status(409).json({
           error: err.message,
+          code: err.code,
           resultado: err.resultado,
           respuestas: err.respuestas,
         });
       }
-      res.status(err.status || 500).json({ error: err.message });
+      res.status(err.status || 500).json({ error: err.message, code: err.code });
     }
   },
 
@@ -70,11 +71,11 @@ export const ResultadoQuizController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const resultado = await ResultadoQuizRepository.obtenerPorId(id);
       if (!resultado) {
-        return res.status(404).json({ error: 'ResultadoQuiz no encontrado' });
+        return res.status(404).json({ error: 'ResultadoQuiz no encontrado', code: 'QUIZ_RESULT_NOT_FOUND' });
       }
       res.status(200).json(resultado);
     } catch (error) {
@@ -109,11 +110,11 @@ export const ResultadoQuizController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const resultado = await ResultadoQuizRepository.actualizar(id, req.body);
       if (!resultado) {
-        return res.status(404).json({ error: 'ResultadoQuiz no encontrado' });
+        return res.status(404).json({ error: 'ResultadoQuiz no encontrado', code: 'QUIZ_RESULT_NOT_FOUND' });
       }
       res.status(200).json(resultado);
     } catch (error) {
@@ -132,11 +133,11 @@ export const ResultadoQuizController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const eliminado = await ResultadoQuizRepository.eliminar(id);
       if (!eliminado) {
-        return res.status(404).json({ error: 'ResultadoQuiz no encontrado' });
+        return res.status(404).json({ error: 'ResultadoQuiz no encontrado', code: 'QUIZ_RESULT_NOT_FOUND' });
       }
       res.status(200).json({ eliminado: true });
     } catch (error) {

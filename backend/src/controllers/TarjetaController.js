@@ -57,14 +57,14 @@ export const TarjetaController = {
       // (ruta anidada /decks/:id/cards), no del body.
       const mazoId = Number(req.params.id);
       if (Number.isNaN(mazoId)) {
-        return res.status(400).json({ error: 'El id del mazo en la URL no es válido' });
+        return res.status(400).json({ error: 'El id del mazo en la URL no es válido', code: 'INVALID_ID' });
       }
       const mazo = await MazoRepository.obtenerPorId(mazoId);
       if (!mazo) {
-        return res.status(404).json({ error: 'Mazo no encontrado' });
+        return res.status(404).json({ error: 'Mazo no encontrado', code: 'DECK_NOT_FOUND' });
       }
       if (mazo.estado !== 'abierto') {
-        return res.status(409).json({ error: 'El mazo no acepta más palabras' });
+        return res.status(409).json({ error: 'El mazo no acepta más palabras', code: 'DECK_CLOSED' });
       }
 
       // a.2) el estudiante debe estar inscrito (activo) en el curso del mazo y el aporte queda a
@@ -75,7 +75,7 @@ export const TarjetaController = {
       if (authDeshabilitado()) {
         inscripcionId = inscripcion_id;
         if (!inscripcionId) {
-          return res.status(400).json({ error: 'inscripcion_id es obligatorio' });
+          return res.status(400).json({ error: 'inscripcion_id es obligatorio', code: 'REQUIRED_FIELDS_MISSING' });
         }
       } else {
         const inscripcion = await InscripcionRepository.obtenerPorCursoYEstudiante(
@@ -85,6 +85,7 @@ export const TarjetaController = {
         if (!inscripcion || inscripcion.estado !== 'activa') {
           return res.status(403).json({
             error: 'No estás inscrito en el curso de este mazo, así que no puedes registrar palabras en él.',
+            code: 'DECK_NOT_ENROLLED',
           });
         }
         inscripcionId = inscripcion.id_inscripcion;
@@ -98,10 +99,11 @@ export const TarjetaController = {
       if (camposFaltantes.length > 0) {
         return res.status(400).json({
           error: `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`,
+          code: 'REQUIRED_FIELDS_MISSING',
         });
       }
       if (ejemplo && ejemplo.length > 150) {
-        return res.status(400).json({ error: 'El ejemplo no puede superar los 150 caracteres' });
+        return res.status(400).json({ error: 'El ejemplo no puede superar los 150 caracteres', code: 'FIELD_TOO_LONG' });
       }
 
       // Longitud máxima según el DER: palabra varchar(150), traduccion varchar(255).
@@ -119,7 +121,7 @@ export const TarjetaController = {
         );
       }
       if (erroresLongitud.length > 0) {
-        return res.status(400).json({ error: erroresLongitud.join(' ') });
+        return res.status(400).json({ error: erroresLongitud.join(' '), code: 'FIELD_TOO_LONG' });
       }
 
       const fechaAporte = new Date();
@@ -194,10 +196,10 @@ export const TarjetaController = {
 
       const mazoId = Number(mazo_id);
       if (Number.isNaN(mazoId)) {
-        return res.status(400).json({ error: 'mazo_id inválido' });
+        return res.status(400).json({ error: 'mazo_id inválido', code: 'INVALID_ID' });
       }
       if (!palabra) {
-        return res.status(400).json({ error: 'El campo palabra es obligatorio' });
+        return res.status(400).json({ error: 'El campo palabra es obligatorio', code: 'REQUIRED_FIELDS_MISSING' });
       }
 
       const tarjetaExistente = await DeduplicacionService.buscarDuplicado(mazoId, palabra);
@@ -228,11 +230,11 @@ export const TarjetaController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const tarjeta = await TarjetaService.obtenerDetalleTarjeta(id);
       if (!tarjeta) {
-        return res.status(404).json({ error: 'Tarjeta no encontrada' });
+        return res.status(404).json({ error: 'Tarjeta no encontrada', code: 'CARD_NOT_FOUND' });
       }
       res.status(200).json(tarjeta);
     } catch (error) {
@@ -268,11 +270,11 @@ export const TarjetaController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const tarjeta = await TarjetaRepository.actualizar(id, req.body);
       if (!tarjeta) {
-        return res.status(404).json({ error: 'Tarjeta no encontrada' });
+        return res.status(404).json({ error: 'Tarjeta no encontrada', code: 'CARD_NOT_FOUND' });
       }
       res.status(200).json(tarjeta);
     } catch (error) {
@@ -296,12 +298,12 @@ export const TarjetaController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const tarjeta = await CuraduriaService.editarTarjeta(id, req.body);
       res.status(200).json({ mensaje: 'Tarjeta actualizada correctamente', tarjeta });
     } catch (error) {
-      res.status(error.status || 500).json({ error: error.message });
+      res.status(error.status || 500).json({ error: error.message, code: error.code });
     }
   },
 
@@ -322,12 +324,12 @@ export const TarjetaController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const tarjeta = await CuraduriaService.aprobarTarjeta(id);
       res.status(200).json({ mensaje: 'Tarjeta aprobada correctamente', tarjeta });
     } catch (error) {
-      res.status(error.status || 500).json({ error: error.message });
+      res.status(error.status || 500).json({ error: error.message, code: error.code });
     }
   },
 
@@ -343,7 +345,7 @@ export const TarjetaController = {
       const tarjetas = await CuraduriaService.listarPendientes();
       res.status(200).json(tarjetas);
     } catch (error) {
-      res.status(error.status || 500).json({ error: error.message });
+      res.status(error.status || 500).json({ error: error.message, code: error.code });
     }
   },
 
@@ -361,7 +363,7 @@ export const TarjetaController = {
       const tarjetas = await CuraduriaService.listarAprobadas();
       res.status(200).json(tarjetas);
     } catch (error) {
-      res.status(error.status || 500).json({ error: error.message });
+      res.status(error.status || 500).json({ error: error.message, code: error.code });
     }
   },
 
@@ -376,12 +378,12 @@ export const TarjetaController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const resultado = await ContextoService.actualizarContexto(id, req.body);
       res.status(200).json({ mensaje: 'Contexto actualizado correctamente', etiquetas: resultado });
     } catch (error) {
-      res.status(error.status || 500).json({ error: error.message });
+      res.status(error.status || 500).json({ error: error.message, code: error.code });
     }
   },
 
@@ -395,11 +397,11 @@ export const TarjetaController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const eliminado = await TarjetaRepository.eliminar(id);
       if (!eliminado) {
-        return res.status(404).json({ error: 'Tarjeta no encontrada' });
+        return res.status(404).json({ error: 'Tarjeta no encontrada', code: 'CARD_NOT_FOUND' });
       }
       res.status(200).json({ eliminado: true });
     } catch (error) {

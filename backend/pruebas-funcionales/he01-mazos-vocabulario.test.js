@@ -108,6 +108,7 @@ describe('HU-1.2 — Registrar palabra en mazo compartido', () => {
     const { status, body } = await registrarPalabra('juan', MAZO_CERRADO_SEED);
     expect(status).toBe(409);
     expect(body.error).toMatch(/no acepta/i);
+    expect(body.code).toBe('DECK_CLOSED');
   });
 });
 

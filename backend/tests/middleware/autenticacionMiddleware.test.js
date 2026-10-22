@@ -41,6 +41,8 @@ describe('authenticate — CA-5.4.1 (autenticación con JWT)', () => {
     authenticate(crearReq(), res, next);
 
     expect(res.status).toHaveBeenCalledWith(401);
+
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'AUTH_TOKEN_MISSING' }));
     expect(next).not.toHaveBeenCalled();
   });
 
@@ -51,6 +53,8 @@ describe('authenticate — CA-5.4.1 (autenticación con JWT)', () => {
     authenticate(crearReq(firmar()), res, next);
 
     expect(res.status).toHaveBeenCalledWith(401);
+
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'AUTH_TOKEN_MISSING' }));
     expect(next).not.toHaveBeenCalled();
   });
 
@@ -61,6 +65,8 @@ describe('authenticate — CA-5.4.1 (autenticación con JWT)', () => {
     authenticate(crearReq(`Bearer ${firmar(usuarioEstudiante, 'otro-secreto')}`), res, next);
 
     expect(res.status).toHaveBeenCalledWith(401);
+
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'AUTH_TOKEN_INVALID' }));
     expect(next).not.toHaveBeenCalled();
   });
 
@@ -72,6 +78,8 @@ describe('authenticate — CA-5.4.1 (autenticación con JWT)', () => {
     authenticate(crearReq(`Bearer ${vencido}`), res, next);
 
     expect(res.status).toHaveBeenCalledWith(401);
+
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'AUTH_TOKEN_INVALID' }));
     expect(next).not.toHaveBeenCalled();
   });
 
@@ -82,6 +90,8 @@ describe('authenticate — CA-5.4.1 (autenticación con JWT)', () => {
     authenticate(crearReq(`Bearer ${firmar(usuarioEstudiante, SECRETO, { algorithm: 'HS512' })}`), res, next);
 
     expect(res.status).toHaveBeenCalledWith(401);
+
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'AUTH_TOKEN_INVALID' }));
     expect(next).not.toHaveBeenCalled();
   });
 
@@ -106,6 +116,8 @@ describe('requireRole — CA-5.4.2 (control de acceso por roles)', () => {
     requireRole('docente')({ headers: {} }, res, next);
 
     expect(res.status).toHaveBeenCalledWith(401);
+
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'AUTH_TOKEN_MISSING' }));
     expect(next).not.toHaveBeenCalled();
   });
 
@@ -116,6 +128,8 @@ describe('requireRole — CA-5.4.2 (control de acceso por roles)', () => {
     requireRole('docente')({ usuario: usuarioEstudiante }, res, next);
 
     expect(res.status).toHaveBeenCalledWith(403);
+
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'AUTH_FORBIDDEN' }));
     expect(next).not.toHaveBeenCalled();
   });
 

@@ -79,6 +79,7 @@ export const MazoController = {
       if (camposFaltantes.length > 0) {
         return res.status(400).json({
           error: `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`,
+          code: 'REQUIRED_FIELDS_MISSING',
         });
       }
 
@@ -102,7 +103,7 @@ export const MazoController = {
         );
       }
       if (erroresLongitud.length > 0) {
-        return res.status(400).json({ error: erroresLongitud.join(' ') });
+        return res.status(400).json({ error: erroresLongitud.join(' '), code: 'FIELD_TOO_LONG' });
       }
 
       // Se descarta explícitamente cualquier fecha_creacion que venga del body:
@@ -127,11 +128,11 @@ export const MazoController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const mazo = await MazoRepository.obtenerPorId(id);
       if (!mazo) {
-        return res.status(404).json({ error: 'Mazo no encontrado' });
+        return res.status(404).json({ error: 'Mazo no encontrado', code: 'DECK_NOT_FOUND' });
       }
       res.status(200).json(mazo);
     } catch (error) {
@@ -181,15 +182,15 @@ export const MazoController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
 
       const mazoActual = await MazoRepository.obtenerPorId(id);
       if (!mazoActual) {
-        return res.status(404).json({ error: 'Mazo no encontrado' });
+        return res.status(404).json({ error: 'Mazo no encontrado', code: 'DECK_NOT_FOUND' });
       }
       if (!esDuenoDelMazo(req, mazoActual)) {
-        return res.status(403).json({ error: 'Solo el docente dueño puede editar este mazo' });
+        return res.status(403).json({ error: 'Solo el docente dueño puede editar este mazo', code: 'DECK_NOT_OWNER' });
       }
 
       const CAMPOS_EDITABLES = [
@@ -215,6 +216,7 @@ export const MazoController = {
       if (camposFaltantes.length > 0) {
         return res.status(400).json({
           error: `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`,
+          code: 'REQUIRED_FIELDS_MISSING',
         });
       }
 
@@ -232,7 +234,7 @@ export const MazoController = {
         erroresLongitud.push('El campo variante_regional_predeterminada no puede superar 100 caracteres.');
       }
       if (erroresLongitud.length > 0) {
-        return res.status(400).json({ error: erroresLongitud.join(' ') });
+        return res.status(400).json({ error: erroresLongitud.join(' '), code: 'FIELD_TOO_LONG' });
       }
 
       const mazo = await MazoRepository.actualizar(id, datos);
@@ -258,23 +260,24 @@ export const MazoController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const { estado } = req.body;
       if (!estado) {
-        return res.status(400).json({ error: 'El campo estado es obligatorio' });
+        return res.status(400).json({ error: 'El campo estado es obligatorio', code: 'REQUIRED_FIELDS_MISSING' });
       }
       if (!ESTADOS_VALIDOS.includes(estado)) {
         return res.status(400).json({
           error: `El estado debe ser uno de: ${ESTADOS_VALIDOS.join(', ')}`,
+          code: 'INVALID_STATUS_VALUE',
         });
       }
       const mazoActual = await MazoRepository.obtenerPorId(id);
       if (!mazoActual) {
-        return res.status(404).json({ error: 'Mazo no encontrado' });
+        return res.status(404).json({ error: 'Mazo no encontrado', code: 'DECK_NOT_FOUND' });
       }
       if (!esDuenoDelMazo(req, mazoActual)) {
-        return res.status(403).json({ error: 'Solo el docente dueño puede abrir o cerrar este mazo' });
+        return res.status(403).json({ error: 'Solo el docente dueño puede abrir o cerrar este mazo', code: 'DECK_NOT_OWNER' });
       }
       const mazoActualizado = await MazoRepository.actualizar(id, { ...mazoActual, estado });
       res.status(200).json(mazoActualizado);
@@ -298,24 +301,24 @@ export const MazoController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const { variante_regional } = req.body;
       if (!variante_regional) {
-        return res.status(400).json({ error: 'El campo variante_regional es obligatorio' });
+        return res.status(400).json({ error: 'El campo variante_regional es obligatorio', code: 'REQUIRED_FIELDS_MISSING' });
       }
       const mazoExistente = await MazoRepository.obtenerPorId(id);
       if (!mazoExistente) {
-        return res.status(404).json({ error: 'Mazo no encontrado' });
+        return res.status(404).json({ error: 'Mazo no encontrado', code: 'DECK_NOT_FOUND' });
       }
       if (!esDuenoDelMazo(req, mazoExistente)) {
-        return res.status(403).json({ error: 'Solo el docente dueño puede modificar este mazo' });
+        return res.status(403).json({ error: 'Solo el docente dueño puede modificar este mazo', code: 'DECK_NOT_OWNER' });
       }
       const tarjetasActualizadas = await ContextoService.aplicarVarianteRegionalPorMazo(id, variante_regional);
       const mazo = await MazoRepository.actualizarVarianteRegional(id, variante_regional);
       res.status(200).json({ mazo, tarjetas_actualizadas: tarjetasActualizadas });
     } catch (error) {
-      res.status(error.status || 500).json({ error: error.message });
+      res.status(error.status || 500).json({ error: error.message, code: error.code });
     }
   },
 
@@ -330,7 +333,7 @@ export const MazoController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const pdfBytes = await ExportarPDFService.generarPdfMazo(id);
       res.status(200);
@@ -340,7 +343,7 @@ export const MazoController = {
       });
       res.send(Buffer.from(pdfBytes));
     } catch (error) {
-      res.status(error.status || 500).json({ error: error.message });
+      res.status(error.status || 500).json({ error: error.message, code: error.code });
     }
   },
 
@@ -355,14 +358,14 @@ export const MazoController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const mazoActual = await MazoRepository.obtenerPorId(id);
       if (!mazoActual) {
-        return res.status(404).json({ error: 'Mazo no encontrado' });
+        return res.status(404).json({ error: 'Mazo no encontrado', code: 'DECK_NOT_FOUND' });
       }
       if (!esDuenoDelMazo(req, mazoActual)) {
-        return res.status(403).json({ error: 'Solo el docente dueño puede eliminar este mazo' });
+        return res.status(403).json({ error: 'Solo el docente dueño puede eliminar este mazo', code: 'DECK_NOT_OWNER' });
       }
       await MazoRepository.eliminar(id);
       res.status(200).json({ eliminado: true });
