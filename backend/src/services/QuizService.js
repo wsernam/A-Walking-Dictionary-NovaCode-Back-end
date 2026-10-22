@@ -36,6 +36,7 @@ import { PreguntaQuizRepository } from '../repositories/PreguntaQuizRepository.j
 import { ResultadoQuizRepository } from '../repositories/ResultadoQuizRepository.js';
 import { RespuestaQuizRepository } from '../repositories/RespuestaQuizRepository.js';
 import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
+import { errorApi } from '../utils/codigosError.js';
 
 /** @brief Margen (ms) que se tolera al recibir un envío tras vencer el tiempo/cierre (latencia). */
 const MARGEN_ENVIO_MS = 30 * 1000;
@@ -50,13 +51,12 @@ const MIN_TRADUCCIONES_DISTINTAS = 4;
  * @brief Crea un Error con un código HTTP adjunto, para que el controlador que atrapa la
  * excepción sepa con qué status responder (mismo patrón que ContextoService.js).
  * @param {number} status - Código HTTP a usar en la respuesta (400, 404, 409, ...).
+ * @param {string} code - Código fijo en inglés (ver docs/codigos-error.md).
  * @param {string} message - Mensaje de error legible para el cliente.
- * @return {Error} Error con la propiedad adicional `status`.
+ * @return {Error} Error con las propiedades adicionales `status` y `code`.
  */
-function error(status, message) {
-  const err = new Error(message);
-  err.status = status;
-  return err;
+function error(status, code, message) {
+  return errorApi(status, code, message);
 }
 
 /**
@@ -67,7 +67,7 @@ function error(status, message) {
  * @return {Promise<Error>} Error con status 409 y el resumen previo.
  */
 async function errorReintento(resultadoPrevio) {
-  const err = error(409, 'Ya enviaste este quiz. No se permite un nuevo intento.');
+  const err = error(409, 'QUIZ_ALREADY_SUBMITTED', 'Ya enviaste este quiz. No se permite un nuevo intento.');
   err.resultado = resultadoPrevio;
   err.respuestas = await RespuestaQuizRepository.listarPorResultado(resultadoPrevio.id_resultado);
   return err;
@@ -83,7 +83,7 @@ async function errorReintento(resultadoPrevio) {
 async function verificarInscripcion(quiz, estudiante_id) {
   const inscripcion = await InscripcionRepository.obtenerPorCursoYEstudiante(quiz.curso_id, estudiante_id);
   if (!inscripcion) {
-    throw error(403, 'No estás inscrito en el curso de este quiz');
+    throw error(403, 'QUIZ_NOT_ENROLLED', 'No estás inscrito en el curso de este quiz');
   }
 }
 
@@ -247,40 +247,41 @@ export const QuizService = {
     if (!fecha_cierre) camposFaltantes.push('fecha_cierre');
     if (!tiempo_limite_min) camposFaltantes.push('tiempo_limite_min');
     if (camposFaltantes.length > 0) {
-      throw error(400, `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`);
+      throw error(400, 'REQUIRED_FIELDS_MISSING', `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`);
     }
 
     if (!esEnteroPositivo(curso_id)) {
-      throw error(400, 'curso_id debe ser un número entero mayor o igual a 1');
+      throw error(400, 'INVALID_ID', 'curso_id debe ser un número entero mayor o igual a 1');
     }
     if (String(titulo).length > MAX_TITULO) {
-      throw error(400, `titulo debe tener máximo ${MAX_TITULO} caracteres`);
+      throw error(400, 'QUIZ_INVALID_TITLE', `titulo debe tener máximo ${MAX_TITULO} caracteres`);
     }
     if (Number.isNaN(new Date(fecha_apertura).getTime())) {
-      throw error(400, 'fecha_apertura no es una fecha válida');
+      throw error(400, 'QUIZ_INVALID_DATES', 'fecha_apertura no es una fecha válida');
     }
     if (Number.isNaN(new Date(fecha_cierre).getTime())) {
-      throw error(400, 'fecha_cierre no es una fecha válida');
+      throw error(400, 'QUIZ_INVALID_DATES', 'fecha_cierre no es una fecha válida');
     }
     if (new Date(fecha_cierre) <= new Date(fecha_apertura)) {
-      throw error(400, 'fecha_cierre debe ser posterior a fecha_apertura');
+      throw error(400, 'QUIZ_INVALID_DATES', 'fecha_cierre debe ser posterior a fecha_apertura');
     }
     if (!esEnteroPositivo(tiempo_limite_min)) {
-      throw error(400, 'tiempo_limite_min debe ser un número entero mayor o igual a 1');
+      throw error(400, 'QUIZ_INVALID_TIME_LIMIT', 'tiempo_limite_min debe ser un número entero mayor o igual a 1');
     }
     // La ventana se valida después de tiempo_limite_min para comparar contra un entero válido.
     const ventanaMin = (new Date(fecha_cierre) - new Date(fecha_apertura)) / 60000;
     if (ventanaMin < Number(tiempo_limite_min)) {
       throw error(
         400,
+        'QUIZ_WINDOW_TOO_SHORT',
         `La ventana entre fecha_apertura y fecha_cierre (${Math.floor(ventanaMin)} min) debe ser mayor o igual a tiempo_limite_min (${tiempo_limite_min} min)`
       );
     }
     if (cantidad_preguntas !== undefined && cantidad_preguntas !== null && !esEnteroPositivo(cantidad_preguntas)) {
-      throw error(400, 'cantidad_preguntas debe ser un número entero mayor o igual a 1');
+      throw error(400, 'QUIZ_INVALID_QUESTION_COUNT', 'cantidad_preguntas debe ser un número entero mayor o igual a 1');
     }
     if (!mazo_ids.every(esEnteroPositivo)) {
-      throw error(400, 'mazo_ids debe contener solo ids de mazo (enteros mayores o iguales a 1)');
+      throw error(400, 'QUIZ_INVALID_DECK_IDS', 'mazo_ids debe contener solo ids de mazo (enteros mayores o iguales a 1)');
     }
 
     // Un mismo mazo repetido en mazo_ids se cuenta una sola vez (quiz_mazo tiene pk (quiz_id, mazo_id)).
@@ -288,17 +289,17 @@ export const QuizService = {
 
     const curso = await CursoRepository.obtenerPorId(Number(curso_id));
     if (!curso) {
-      throw error(404, `El curso ${curso_id} no existe`);
+      throw error(404, 'COURSE_NOT_FOUND', `El curso ${curso_id} no existe`);
     }
 
     const mazos = await Promise.all(mazoIdsUnicos.map((id) => MazoRepository.obtenerPorId(id)));
     const mazoInexistente = mazoIdsUnicos.find((id, idx) => !mazos[idx]);
     if (mazoInexistente !== undefined) {
-      throw error(404, `El mazo ${mazoInexistente} no existe`);
+      throw error(404, 'DECK_NOT_FOUND', `El mazo ${mazoInexistente} no existe`);
     }
     const mazoAjeno = mazos.find((m) => Number(m.curso_id) !== Number(curso_id));
     if (mazoAjeno) {
-      throw error(404, `El mazo ${mazoAjeno.id_mazo} no pertenece al curso ${curso_id}`);
+      throw error(404, 'QUIZ_DECK_NOT_IN_COURSE', `El mazo ${mazoAjeno.id_mazo} no pertenece al curso ${curso_id}`);
     }
 
     // CA-3.1.1: exclusivamente tarjetas revisado_docente de los mazos elegidos.
@@ -308,6 +309,7 @@ export const QuizService = {
     if (traduccionesDistintas < MIN_TRADUCCIONES_DISTINTAS) {
       throw error(
         400,
+        'QUIZ_NOT_ENOUGH_CARDS',
         `Se encontraron ${traduccionesDistintas} traducciones distintas entre las tarjetas revisado_docente de los mazos seleccionados; se requieren al menos ${MIN_TRADUCCIONES_DISTINTAS}.`
       );
     }
@@ -371,19 +373,19 @@ export const QuizService = {
     const { respuestas, tiempo_empleado_seg, fecha_inicio } = datos;
 
     if (!Array.isArray(respuestas)) {
-      throw error(400, 'respuestas debe ser un arreglo de { pregunta_id, respuesta_estudiante }');
+      throw error(400, 'QUIZ_INVALID_ANSWERS', 'respuestas debe ser un arreglo de { pregunta_id, respuesta_estudiante }');
     }
 
     const quiz = await QuizRepository.obtenerPorId(quiz_id);
     if (!quiz) {
-      throw error(404, 'Quiz no encontrado');
+      throw error(404, 'QUIZ_NOT_FOUND', 'Quiz no encontrado');
     }
     await verificarInscripcion(quiz, estudiante_id);
 
     const ahora = new Date();
     const estadoEfectivo = this.calcularEstadoEfectivo(quiz);
     if (estadoEfectivo === 'programado') {
-      throw error(400, 'El quiz aún no está abierto (fecha_apertura no ha llegado)');
+      throw error(400, 'QUIZ_NOT_OPEN', 'El quiz aún no está abierto (fecha_apertura no ha llegado)');
     }
     // CA-3.2.1: el autoenvío por fin de tiempo puede llegar unos segundos después de
     // fecha_cierre (latencia de red); se tolera un margen solo si el cierre es el derivado de la
@@ -393,7 +395,7 @@ export const QuizService = {
       quiz.fecha_cierre &&
       ahora.getTime() <= new Date(quiz.fecha_cierre).getTime() + MARGEN_ENVIO_MS;
     if (estadoEfectivo === 'cerrado' && !dentroDeGraciaDeCierre) {
-      throw error(400, 'El quiz ya cerró y no acepta más respuestas');
+      throw error(400, 'QUIZ_CLOSED', 'El quiz ya cerró y no acepta más respuestas');
     }
 
     // CA-3.2.3: si ya finalizó y envió, se deniega el reintento y se muestra el resumen previo.
@@ -404,7 +406,7 @@ export const QuizService = {
 
     const preguntas = await PreguntaQuizRepository.listarPorQuiz(quiz_id);
     if (preguntas.length === 0) {
-      throw error(404, 'El quiz no tiene preguntas generadas todavía');
+      throw error(404, 'QUIZ_NO_QUESTIONS', 'El quiz no tiene preguntas generadas todavía');
     }
 
     // CA-3.2.1: el temporizador vive en el frontend; aquí simplemente se califica lo que haya
@@ -442,7 +444,7 @@ export const QuizService = {
       const limiteMs = quiz.tiempo_limite_min * 60 * 1000;
       const transcurridoMs = fecha_envio.getTime() - fecha_inicio_final.getTime();
       if (transcurridoMs > limiteMs + MARGEN_ENVIO_MS) {
-        throw error(400, `Se agotó el tiempo límite de ${quiz.tiempo_limite_min} minutos; el envío fue rechazado`);
+        throw error(400, 'QUIZ_TIME_EXPIRED', `Se agotó el tiempo límite de ${quiz.tiempo_limite_min} minutos; el envío fue rechazado`);
       }
       tiempoEmpleadoFinal = Math.min(Math.round(transcurridoMs / 1000), quiz.tiempo_limite_min * 60);
     }
@@ -494,21 +496,21 @@ export const QuizService = {
   async obtenerPreguntasParaEstudiante(quiz_id, estudiante_id) {
     const quiz = await QuizRepository.obtenerPorId(quiz_id);
     if (!quiz) {
-      throw error(404, 'Quiz no encontrado');
+      throw error(404, 'QUIZ_NOT_FOUND', 'Quiz no encontrado');
     }
     await verificarInscripcion(quiz, estudiante_id);
 
     const estadoEfectivo = this.calcularEstadoEfectivo(quiz);
     if (estadoEfectivo === 'programado') {
-      throw error(400, 'El quiz aún no está abierto (fecha_apertura no ha llegado)');
+      throw error(400, 'QUIZ_NOT_OPEN', 'El quiz aún no está abierto (fecha_apertura no ha llegado)');
     }
     if (estadoEfectivo === 'cerrado') {
-      throw error(400, 'El quiz ya cerró y no acepta más respuestas');
+      throw error(400, 'QUIZ_CLOSED', 'El quiz ya cerró y no acepta más respuestas');
     }
 
     const preguntas = await PreguntaQuizRepository.listarPorQuiz(quiz_id);
     if (preguntas.length === 0) {
-      throw error(404, 'El quiz no tiene preguntas generadas todavía');
+      throw error(404, 'QUIZ_NO_QUESTIONS', 'El quiz no tiene preguntas generadas todavía');
     }
 
     return {
@@ -546,13 +548,13 @@ export const QuizService = {
   async obtenerResultadoEstudiante(quiz_id, estudiante_id) {
     const quiz = await QuizRepository.obtenerPorId(quiz_id);
     if (!quiz) {
-      throw error(404, 'Quiz no encontrado');
+      throw error(404, 'QUIZ_NOT_FOUND', 'Quiz no encontrado');
     }
     await verificarInscripcion(quiz, estudiante_id);
 
     const resultado = await ResultadoQuizRepository.obtenerPorQuizYEstudiante(quiz_id, estudiante_id);
     if (!resultado) {
-      throw error(404, 'Aún no has enviado este quiz');
+      throw error(404, 'QUIZ_NOT_SUBMITTED', 'Aún no has enviado este quiz');
     }
 
     const [respuestas, preguntas] = await Promise.all([

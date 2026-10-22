@@ -28,6 +28,7 @@ export const InscripcionService = {
     if (!curso) {
       const error = new Error('Curso no encontrado');
       error.status = 404;
+      error.code = 'COURSE_NOT_FOUND';
       throw error;
     }
 
@@ -60,12 +61,14 @@ export const InscripcionService = {
     if (!estudiante) {
       const error = new Error('Estudiante no encontrado');
       error.status = 404;
+      error.code = 'STUDENT_NOT_FOUND';
       throw error;
     }
 
     if (estudiante.rol.toLowerCase() !== 'estudiante') {
       const error = new Error('El usuario no tiene rol de estudiante');
       error.status = 400;
+      error.code = 'USER_NOT_STUDENT';
       throw error;
     }
 
@@ -76,6 +79,7 @@ export const InscripcionService = {
     if (!curso) {
       const error = new Error('Código de acceso inválido');
       error.status = 404;
+      error.code = 'ENROLL_INVALID_CODE';
       throw error;
     }
 
@@ -88,6 +92,7 @@ export const InscripcionService = {
     if (inscripcionExistente) {
       const error = new Error('El estudiante ya está inscrito en este curso');
       error.status = 409;
+      error.code = 'ENROLL_ALREADY_ENROLLED';
       throw error;
     }
 
@@ -109,6 +114,7 @@ export const InscripcionService = {
     if (!curso) {
       const error = new Error('Curso no encontrado');
       error.status = 404;
+      error.code = 'COURSE_NOT_FOUND';
       throw error;
     }
 
@@ -117,12 +123,14 @@ export const InscripcionService = {
     if (!estudiante) {
       const error = new Error('Estudiante no encontrado');
       error.status = 404;
+      error.code = 'STUDENT_NOT_FOUND';
       throw error;
     }
 
     if (estudiante.rol.toLowerCase() !== 'estudiante') {
       const error = new Error('El usuario no tiene rol de estudiante');
       error.status = 400;
+      error.code = 'USER_NOT_STUDENT';
       throw error;
     }
 
@@ -135,6 +143,7 @@ export const InscripcionService = {
     if (inscripcionExistente) {
       const error = new Error('El estudiante ya está inscrito en este curso');
       error.status = 409;
+      error.code = 'ENROLL_ALREADY_ENROLLED';
       throw error;
     }
 

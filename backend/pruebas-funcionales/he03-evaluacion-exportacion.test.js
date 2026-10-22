@@ -135,6 +135,7 @@ describe('HU-3.2 — Responder quiz y recibir nota', () => {
       body: { respuestas: [] },
     });
     expect(status).toBe(409);
+    expect(body.code).toBe('QUIZ_ALREADY_SUBMITTED');
     expect(Number(body.resultado.puntaje_obtenido)).toBe(preguntas.length - 1);
 
     const resumen = await api('GET', `/quizzes/${quiz.id_quiz}/result`, { como: 'juan' });
@@ -165,8 +166,9 @@ describe('HU-3.2 — Responder quiz y recibir nota', () => {
   });
 
   it('HU-3.2 Un estudiante no inscrito en el curso no puede responder (403)', async () => {
-    const { status } = await api('POST', `/quizzes/${quiz.id_quiz}/submit`, { como: 'thalia', body: { respuestas: [] } });
+    const { status, body } = await api('POST', `/quizzes/${quiz.id_quiz}/submit`, { como: 'thalia', body: { respuestas: [] } });
     expect(status).toBe(403);
+    expect(body.code).toBe('QUIZ_NOT_ENROLLED');
   });
 
   it('HU-3.2 Un quiz programado (aún no abierto) no acepta respuestas (400)', async () => {

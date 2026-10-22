@@ -26,7 +26,8 @@ export const DiccionarioController = {
 
       if (q !== undefined && typeof q !== 'string') {
         return res.status(400).json({
-          error: 'El parámetro q debe ser un texto'
+          error: 'El parámetro q debe ser un texto',
+          code: 'INVALID_QUERY',
         });
       }
 
@@ -76,7 +77,8 @@ export const DiccionarioController = {
 
       if (!/^[1-9]\d*$/.test(card_id)) {
         return res.status(400).json({
-          error: 'El identificador de la tarjeta no es válido'
+          error: 'El identificador de la tarjeta no es válido',
+          code: 'INVALID_ID',
         });
       }
 
@@ -84,7 +86,8 @@ export const DiccionarioController = {
 
       if (!Number.isSafeInteger(id)) {
         return res.status(400).json({
-          error: 'El identificador de la tarjeta no es válido'
+          error: 'El identificador de la tarjeta no es válido',
+          code: 'INVALID_ID',
         });
       }
 
@@ -93,7 +96,8 @@ export const DiccionarioController = {
 
       if (!tarjeta) {
         return res.status(404).json({
-          error: 'Tarjeta no encontrada en el Diccionario Global'
+          error: 'Tarjeta no encontrada en el Diccionario Global',
+          code: 'CARD_NOT_FOUND',
         });
       }
 

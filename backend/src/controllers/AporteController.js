@@ -23,6 +23,7 @@ export const AporteController = {
       if (camposFaltantes.length > 0) {
         return res.status(400).json({
           error: `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`,
+          code: 'REQUIRED_FIELDS_MISSING',
         });
       }
 
@@ -45,7 +46,7 @@ export const AporteController = {
         );
       }
       if (erroresLongitud.length > 0) {
-        return res.status(400).json({ error: erroresLongitud.join(' ') });
+        return res.status(400).json({ error: erroresLongitud.join(' '), code: 'FIELD_TOO_LONG' });
       }
 
       const aporte = await AporteRepository.crear(req.body);
@@ -59,11 +60,11 @@ export const AporteController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const aporte = await AporteRepository.obtenerPorId(id);
       if (!aporte) {
-        return res.status(404).json({ error: 'Aporte no encontrado' });
+        return res.status(404).json({ error: 'Aporte no encontrado', code: 'CONTRIBUTION_NOT_FOUND' });
       }
       res.status(200).json(aporte);
     } catch (error) {
@@ -114,7 +115,7 @@ export const AporteController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
 
       // Mismos límites del DER que valida crear().
@@ -131,17 +132,18 @@ export const AporteController = {
         );
       }
       if (erroresLongitud.length > 0) {
-        return res.status(400).json({ error: erroresLongitud.join(' ') });
+        return res.status(400).json({ error: erroresLongitud.join(' '), code: 'FIELD_TOO_LONG' });
       }
 
       const actual = await AporteRepository.obtenerPorId(id);
       if (!actual) {
-        return res.status(404).json({ error: 'Aporte no encontrado' });
+        return res.status(404).json({ error: 'Aporte no encontrado', code: 'CONTRIBUTION_NOT_FOUND' });
       }
       if (actual.tipo_aporte === 'creada') {
         return res.status(403).json({
           error:
             'No se puede aprobar un aporte de creación original por esta vía; use el flujo de revisión individual de la tarjeta (PATCH /cards/:id/approve).',
+          code: 'CONTRIBUTION_NOT_APPROVABLE',
         });
       }
       const aporte = await AporteRepository.aprobar(id, req.body);
@@ -155,11 +157,11 @@ export const AporteController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const aporte = await AporteRepository.actualizar(id, req.body);
       if (!aporte) {
-        return res.status(404).json({ error: 'Aporte no encontrado' });
+        return res.status(404).json({ error: 'Aporte no encontrado', code: 'CONTRIBUTION_NOT_FOUND' });
       }
       res.status(200).json(aporte);
     } catch (error) {
@@ -171,11 +173,11 @@ export const AporteController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const eliminado = await AporteRepository.eliminar(id);
       if (!eliminado) {
-        return res.status(404).json({ error: 'Aporte no encontrado' });
+        return res.status(404).json({ error: 'Aporte no encontrado', code: 'CONTRIBUTION_NOT_FOUND' });
       }
       res.status(200).json({ eliminado: true });
     } catch (error) {

@@ -15,6 +15,7 @@
 
 import { createRequire } from 'node:module';
 import { WordnetCacheRepository } from '../repositories/WordnetCacheRepository.js';
+import { errorApi } from '../utils/codigosError.js';
 
 const require = createRequire(import.meta.url);
 
@@ -582,7 +583,7 @@ export const WordnetService = {
    */
   async obtenerFamilia(palabra) {
     if (!palabra || typeof palabra !== 'string') {
-      throw new Error('La palabra es obligatoria');
+      throw errorApi(400, 'REQUIRED_FIELDS_MISSING', 'La palabra es obligatoria');
     }
 
     const palabraLimpia = palabra
@@ -590,13 +591,11 @@ export const WordnetService = {
       .toLowerCase();
 
     if (!palabraLimpia) {
-      throw new Error('La palabra es obligatoria');
+      throw errorApi(400, 'REQUIRED_FIELDS_MISSING', 'La palabra es obligatoria');
     }
 
     if (palabraLimpia.length > 150) {
-      throw new Error(
-        'La palabra no puede superar 150 caracteres'
-      );
+      throw errorApi(400, 'FIELD_TOO_LONG', 'La palabra no puede superar 150 caracteres');
     }
 
     /**

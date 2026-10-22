@@ -34,6 +34,7 @@ export const RegistroController = {
 
       res.status(status).json({
         error: error.message,
+        code: error.code,
       });
     }
   },

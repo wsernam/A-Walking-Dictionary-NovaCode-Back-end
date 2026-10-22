@@ -15,6 +15,7 @@ export const InscripcionController = {
       if (!estado) {
         return res.status(400).json({
           error: 'El campo estado es obligatorio',
+          code: 'REQUIRED_FIELDS_MISSING',
         });
       }
 
@@ -22,6 +23,7 @@ export const InscripcionController = {
       if (estado.length > 30) {
         return res.status(400).json({
           error: `El campo estado no puede superar 30 caracteres (tiene ${estado.length} caracteres).`,
+          code: 'FIELD_TOO_LONG',
         });
       }
 
@@ -43,6 +45,7 @@ export const InscripcionController = {
       if (Number.isNaN(id)) {
         return res.status(400).json({
           error: 'id inválido',
+          code: 'INVALID_ID',
         });
       }
 
@@ -52,6 +55,7 @@ export const InscripcionController = {
       if (!inscripcion) {
         return res.status(404).json({
           error: 'Inscripcion no encontrada',
+          code: 'ENROLLMENT_NOT_FOUND',
         });
       }
 
@@ -83,6 +87,7 @@ export const InscripcionController = {
       if (Number.isNaN(id)) {
         return res.status(400).json({
           error: 'id inválido',
+          code: 'INVALID_ID',
         });
       }
 
@@ -95,6 +100,7 @@ export const InscripcionController = {
       if (!inscripcion) {
         return res.status(404).json({
           error: 'Inscripcion no encontrada',
+          code: 'ENROLLMENT_NOT_FOUND',
         });
       }
 
@@ -113,6 +119,7 @@ export const InscripcionController = {
       if (Number.isNaN(id)) {
         return res.status(400).json({
           error: 'id inválido',
+          code: 'INVALID_ID',
         });
       }
 
@@ -122,6 +129,7 @@ export const InscripcionController = {
       if (!eliminado) {
         return res.status(404).json({
           error: 'Inscripcion no encontrada',
+          code: 'ENROLLMENT_NOT_FOUND',
         });
       }
 
@@ -142,6 +150,7 @@ export const InscripcionController = {
       if (Number.isNaN(id_curso)) {
         return res.status(400).json({
           error: 'id de curso inválido',
+          code: 'INVALID_ID',
         });
       }
 
@@ -154,6 +163,7 @@ export const InscripcionController = {
     } catch (error) {
       res.status(error.status || 500).json({
         error: error.message,
+        code: error.code,
       });
     }
   },
@@ -165,6 +175,7 @@ export const InscripcionController = {
         if (!codigo_acceso) {
           return res.status(400).json({
             error: 'codigo_acceso es obligatorio',
+            code: 'REQUIRED_FIELDS_MISSING',
           });
         }
 
@@ -180,6 +191,7 @@ export const InscripcionController = {
       } catch (error) {
         res.status(error.status || 500).json({
           error: error.message,
+          code: error.code,
         });
       }
     },
@@ -191,6 +203,7 @@ export const InscripcionController = {
       if (Number.isNaN(id_curso)) {
         return res.status(400).json({
           error: 'id de curso inválido',
+          code: 'INVALID_ID',
         });
       }
 
@@ -199,6 +212,7 @@ export const InscripcionController = {
       if (!email) {
         return res.status(400).json({
           error: 'El correo electrónico es obligatorio',
+          code: 'REQUIRED_FIELDS_MISSING',
         });
       }
 
@@ -212,6 +226,7 @@ export const InscripcionController = {
     } catch (error) {
       res.status(error.status || 500).json({
         error: error.message,
+        code: error.code,
       });
     }
   },
@@ -223,6 +238,7 @@ export const InscripcionController = {
       if (Number.isNaN(id_curso)) {
         return res.status(400).json({
           error: 'id de curso inválido',
+          code: 'INVALID_ID',
         });
       }
 

@@ -21,12 +21,14 @@ export const EstudioService = {
     if (!inscripcion) {
       const error = new Error('Inscripción no encontrada');
       error.status = 404;
+      error.code = 'ENROLLMENT_NOT_FOUND';
       throw error;
     }
 
     if (inscripcion.estado !== 'activa') {
       const error = new Error('La inscripción no está activa');
       error.status = 400;
+      error.code = 'ENROLLMENT_INACTIVE';
       throw error;
     }
 
@@ -95,6 +97,7 @@ export const EstudioService = {
         'La tarjeta no está disponible para esta inscripción'
       );
       error.status = 404;
+      error.code = 'STUDY_CARD_NOT_AVAILABLE';
       throw error;
     }
 

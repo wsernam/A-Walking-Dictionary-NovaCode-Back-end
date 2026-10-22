@@ -29,6 +29,7 @@ export const EnriquecimientoController = {
       if (!palabra) {
         return res.status(400).json({
           error: 'La palabra es obligatoria',
+          code: 'REQUIRED_FIELDS_MISSING',
         });
       }
 
@@ -44,6 +45,7 @@ export const EnriquecimientoController = {
 
       return res.status(error.status || 500).json({
         error: error.message || 'Error al obtener sugerencias léxicas',
+        code: error.code,
       });
     }
   },

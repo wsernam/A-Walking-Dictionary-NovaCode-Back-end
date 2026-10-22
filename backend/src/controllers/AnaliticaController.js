@@ -25,11 +25,11 @@ export const AnaliticaController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const mazo = await MazoRepository.obtenerPorId(id);
       if (!mazo) {
-        return res.status(404).json({ error: 'Mazo no encontrado' });
+        return res.status(404).json({ error: 'Mazo no encontrado', code: 'DECK_NOT_FOUND' });
       }
 
       let resumen = await AnaliticaRepository.resumenParticipacionPorMazo(id, mazo.curso_id);

@@ -41,6 +41,7 @@ function obtenerCalidad(valoracion) {
         'Valoración inválida. Valores permitidos: Repetir, Difícil, Buena, Fácil'
       );
       error.status = 400;
+      error.code = 'STUDY_INVALID_RATING';
       throw error;
     }
   }

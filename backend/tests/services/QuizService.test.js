@@ -106,6 +106,7 @@ describe('QuizService.generar — HU-3.1 (CA-3.1.1, CA-3.1.2, CA-3.1.3)', () => 
   it('CA-3.1.3: si faltan campos obligatorios responde 400 indicando cuáles', async () => {
     await expect(QuizService.generar({})).rejects.toMatchObject({
       status: 400,
+      code: 'REQUIRED_FIELDS_MISSING',
       message: expect.stringContaining(
         'curso_id, titulo, mazo_ids, fecha_apertura, fecha_cierre, tiempo_limite_min'
       ),
@@ -113,21 +114,25 @@ describe('QuizService.generar — HU-3.1 (CA-3.1.1, CA-3.1.2, CA-3.1.3)', () => 
   });
 
   it.each([
-    ['fecha_apertura no es una fecha', { fecha_apertura: 'no-es-fecha' }],
-    ['fecha_cierre no es posterior a fecha_apertura', { fecha_cierre: enMinutos(60) }],
-    ['tiempo_limite_min no es entero', { tiempo_limite_min: 1.5 }],
-    ['la ventana es menor que tiempo_limite_min', { tiempo_limite_min: 121 }],
-    ['titulo supera 200 caracteres', { titulo: 'x'.repeat(201) }],
-    ['cantidad_preguntas es 0', { cantidad_preguntas: 0 }],
-    ['mazo_ids contiene valores no enteros', { mazo_ids: [1, 'a'] }],
-  ])('CA-3.1.3: responde 400 cuando %s', async (_caso, cambios) => {
-    await expect(QuizService.generar({ ...datosValidos(), ...cambios })).rejects.toMatchObject({ status: 400 });
+    ['fecha_apertura no es una fecha', { fecha_apertura: 'no-es-fecha' }, 'QUIZ_INVALID_DATES'],
+    ['fecha_cierre no es posterior a fecha_apertura', { fecha_cierre: enMinutos(60) }, 'QUIZ_INVALID_DATES'],
+    ['tiempo_limite_min no es entero', { tiempo_limite_min: 1.5 }, 'QUIZ_INVALID_TIME_LIMIT'],
+    ['la ventana es menor que tiempo_limite_min', { tiempo_limite_min: 121 }, 'QUIZ_WINDOW_TOO_SHORT'],
+    ['titulo supera 200 caracteres', { titulo: 'x'.repeat(201) }, 'QUIZ_INVALID_TITLE'],
+    ['cantidad_preguntas es 0', { cantidad_preguntas: 0 }, 'QUIZ_INVALID_QUESTION_COUNT'],
+    ['mazo_ids contiene valores no enteros', { mazo_ids: [1, 'a'] }, 'QUIZ_INVALID_DECK_IDS'],
+  ])('CA-3.1.3: responde 400 cuando %s', async (_caso, cambios, code) => {
+    await expect(QuizService.generar({ ...datosValidos(), ...cambios })).rejects.toMatchObject({
+      status: 400,
+      code,
+      message: expect.any(String),
+    });
     expect(QuizRepository.crearConMazosYPreguntas).not.toHaveBeenCalled();
   });
 
   it('responde 404 si el curso no existe', async () => {
     CursoRepository.obtenerPorId.mockResolvedValue(null);
-    await expect(QuizService.generar(datosValidos())).rejects.toMatchObject({ status: 404 });
+    await expect(QuizService.generar(datosValidos())).rejects.toMatchObject({ status: 404, code: 'COURSE_NOT_FOUND' });
   });
 
   it('responde 404 si algún mazo no existe', async () => {
@@ -136,13 +141,14 @@ describe('QuizService.generar — HU-3.1 (CA-3.1.1, CA-3.1.2, CA-3.1.3)', () => 
     );
     await expect(QuizService.generar(datosValidos())).rejects.toMatchObject({
       status: 404,
+      code: 'DECK_NOT_FOUND',
       message: 'El mazo 2 no existe',
     });
   });
 
   it('responde 404 si un mazo pertenece a otro curso', async () => {
     MazoRepository.obtenerPorId.mockImplementation(async (id) => ({ id_mazo: id, curso_id: id === 2 ? 11 : 10, semana: 2 }));
-    await expect(QuizService.generar(datosValidos())).rejects.toMatchObject({ status: 404 });
+    await expect(QuizService.generar(datosValidos())).rejects.toMatchObject({ status: 404, code: 'QUIZ_DECK_NOT_IN_COURSE' });
   });
 
   it('CA-3.1.1: consulta solo las tarjetas aprobadas de los mazos elegidos, sin repetir mazos', async () => {
@@ -155,7 +161,11 @@ describe('QuizService.generar — HU-3.1 (CA-3.1.1, CA-3.1.2, CA-3.1.3)', () => 
   it('CA-3.1.2: con menos de 4 traducciones distintas (sin distinguir mayúsculas) responde 400', async () => {
     TarjetaRepository.listarAprobadasPorMazos.mockResolvedValue([POOL[0], POOL[1], POOL[2], POOL[5]]);
 
-    await expect(QuizService.generar(datosValidos())).rejects.toMatchObject({ status: 400 });
+    await expect(QuizService.generar(datosValidos())).rejects.toMatchObject({
+      status: 400,
+      code: 'QUIZ_NOT_ENOUGH_CARDS',
+      message: expect.stringContaining('traducciones distintas'),
+    });
     expect(QuizRepository.crearConMazosYPreguntas).not.toHaveBeenCalled();
   });
 

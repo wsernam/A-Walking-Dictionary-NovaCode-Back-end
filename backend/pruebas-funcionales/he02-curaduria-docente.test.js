@@ -46,8 +46,9 @@ describe('HU-2.1 — Revisar y aprobar tarjetas', () => {
   });
 
   it('CA-2.1.2 Una tarjeta ya aprobada no se vuelve a aprobar (409)', async () => {
-    const { status } = await api('PATCH', `/cards/${tarjeta.id_tarjeta}/approve`, { como: 'ana' });
+    const { status, body } = await api('PATCH', `/cards/${tarjeta.id_tarjeta}/approve`, { como: 'ana' });
     expect(status).toBe(409);
+    expect(body.code).toBe('CARD_NOT_PENDING');
   });
 
   it('CA-2.1.x Un estudiante no puede ver el panel de curaduría (403)', async () => {

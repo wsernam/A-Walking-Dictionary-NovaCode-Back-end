@@ -10,8 +10,9 @@ describe('HU-5.1 — Registrar estudiante autónomamente', () => {
   });
 
   it('CA-5.1.2 Un token de Google inválido se rechaza (401)', async () => {
-    const { status } = await api('POST', '/auth/register', { body: { idToken: 'token-falso' } });
+    const { status, body } = await api('POST', '/auth/register', { body: { idToken: 'token-falso' } });
     expect(status).toBe(401);
+    expect(body.code).toBe('AUTH_GOOGLE_TOKEN_INVALID');
   });
 
   // Requieren un idToken real firmado por Google: no se pueden automatizar sin una cuenta de prueba.
@@ -33,8 +34,9 @@ describe('HU-5.2 — Configurar perfil académico', () => {
   });
 
   it('CA-5.2.1 Un nivel fuera de A1-C2 se rechaza (400)', async () => {
-    const { status } = await api('PATCH', '/users/profile', { como: 'juan', body: { nivel_ingles: 'D1' } });
+    const { status, body } = await api('PATCH', '/users/profile', { como: 'juan', body: { nivel_ingles: 'D1' } });
     expect(status).toBe(400);
+    expect(body.code).toBe('PROFILE_INVALID_LEVEL');
   });
 
   it('CA-5.2.1 El avatar no puede ser un archivo en base64 (400)', async () => {
@@ -56,8 +58,9 @@ describe('HU-5.2 — Configurar perfil académico', () => {
   });
 
   it('CA-5.2.x Un estudiante no puede ver el perfil de otro (403)', async () => {
-    const { status } = await api('GET', '/users/3', { como: 'juan' });
+    const { status, body } = await api('GET', '/users/3', { como: 'juan' });
     expect(status).toBe(403);
+    expect(body.code).toBe('PROFILE_FORBIDDEN');
   });
 });
 
@@ -82,13 +85,15 @@ describe('HU-5.3 — Inscribir o asignar a cursos', () => {
   });
 
   it('CA-5.3.1 Inscribirse dos veces en el mismo curso se rechaza (409)', async () => {
-    const { status } = await api('POST', '/courses/enroll', { como: 'karen', body: { codigo_acceso: codigo } });
+    const { status, body } = await api('POST', '/courses/enroll', { como: 'karen', body: { codigo_acceso: codigo } });
     expect(status).toBe(409);
+    expect(body.code).toBe('ENROLL_ALREADY_ENROLLED');
   });
 
   it('CA-5.3.1 Un código inválido se rechaza (404)', async () => {
-    const { status } = await api('POST', '/courses/enroll', { como: 'manuela', body: { codigo_acceso: 'ZZZZZZZZ' } });
+    const { status, body } = await api('POST', '/courses/enroll', { como: 'manuela', body: { codigo_acceso: 'ZZZZZZZZ' } });
     expect(status).toBe(404);
+    expect(body.code).toBe('ENROLL_INVALID_CODE');
   });
 
   it('CA-5.3.1 El código de acceso solo lo ve la docente', async () => {
@@ -125,19 +130,25 @@ describe('HU-5.4 — Iniciar sesión y control de roles', () => {
   });
 
   it('CA-5.4.1 Sin token, una ruta protegida responde 401', async () => {
-    expect((await api('GET', '/cards/pending')).status).toBe(401);
+    const { status, body } = await api('GET', '/cards/pending');
+    expect(status).toBe(401);
+    expect(body.code).toBe('AUTH_TOKEN_MISSING');
   });
 
   it('CA-5.4.1 Un token alterado o expirado responde 401', async () => {
     const alterado = token(USUARIOS.juan).slice(0, -3) + 'abc';
     const expirado = token(USUARIOS.ana, { expiresIn: -10 });
-    expect((await api('GET', '/cards/pending', { tokenCrudo: alterado })).status).toBe(401);
-    expect((await api('GET', '/cards/pending', { tokenCrudo: expirado })).status).toBe(401);
+    for (const tokenCrudo of [alterado, expirado]) {
+      const { status, body } = await api('GET', '/cards/pending', { tokenCrudo });
+      expect(status).toBe(401);
+      expect(body.code).toBe('AUTH_TOKEN_INVALID');
+    }
   });
 
   it('CA-5.4.1 Login con un token de Google inválido se rechaza (401)', async () => {
-    const { status } = await api('POST', '/auth/google', { body: { idToken: 'token-falso' } });
+    const { status, body } = await api('POST', '/auth/google', { body: { idToken: 'token-falso' } });
     expect(status).toBe(401);
+    expect(body.code).toBe('AUTH_GOOGLE_TOKEN_INVALID');
   });
 
   it.each([
@@ -150,8 +161,9 @@ describe('HU-5.4 — Iniciar sesión y control de roles', () => {
     ['POST', `/courses/${CURSO_ID}/access-code`],
     ['GET', '/decks/1/export-pdf'],
   ])('CA-5.4.2 Un estudiante en una ruta de docente (%s %s) recibe 403', async (metodo, ruta) => {
-    const { status } = await api(metodo, ruta, { como: 'juan', body: metodo === 'GET' ? undefined : {} });
+    const { status, body } = await api(metodo, ruta, { como: 'juan', body: metodo === 'GET' ? undefined : {} });
     expect(status).toBe(403);
+    expect(body.code).toBe('AUTH_FORBIDDEN');
   });
 
   it('CA-5.4.3 Invitado: sin sesión puede consultar mazos y tarjetas (solo lectura)', async () => {

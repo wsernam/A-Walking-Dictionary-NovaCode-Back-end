@@ -52,6 +52,7 @@ export const CursoController = {
       if (camposFaltantes.length > 0) {
         return res.status(400).json({
           error: `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`,
+          code: 'REQUIRED_FIELDS_MISSING',
         });
       }
 
@@ -73,7 +74,7 @@ export const CursoController = {
         );
       }
       if (erroresLongitud.length > 0) {
-        return res.status(400).json({ error: erroresLongitud.join(' ') });
+        return res.status(400).json({ error: erroresLongitud.join(' '), code: 'FIELD_TOO_LONG' });
       }
 
       const curso = await CursoRepository.crear({ ...req.body, docente_id });
@@ -93,11 +94,11 @@ export const CursoController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const curso = await CursoRepository.obtenerPorId(id);
       if (!curso) {
-        return res.status(404).json({ error: 'Curso no encontrado' });
+        return res.status(404).json({ error: 'Curso no encontrado', code: 'COURSE_NOT_FOUND' });
       }
       res.status(200).json(ocultarCodigo(curso, req));
     } catch (error) {
@@ -126,11 +127,11 @@ export const CursoController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const curso = await CursoRepository.actualizar(id, req.body);
       if (!curso) {
-        return res.status(404).json({ error: 'Curso no encontrado' });
+        return res.status(404).json({ error: 'Curso no encontrado', code: 'COURSE_NOT_FOUND' });
       }
       res.status(200).json(curso);
     } catch (error) {
@@ -142,11 +143,11 @@ export const CursoController = {
     try {
       const id = Number(req.params.id);
       if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido' });
+        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const eliminado = await CursoRepository.eliminar(id);
       if (!eliminado) {
-        return res.status(404).json({ error: 'Curso no encontrado' });
+        return res.status(404).json({ error: 'Curso no encontrado', code: 'COURSE_NOT_FOUND' });
       }
       res.status(200).json({ eliminado: true });
     } catch (error) {
