@@ -79,7 +79,9 @@ function estadoCa(estados) {
 const pct = (a, b) => (b ? `${((a / b) * 100).toFixed(1).replace('.', ',')} %` : '—');
 // Códigos de color de la terminal (ESC[...m) que traen los mensajes de error.
 const COLOR_TERMINAL = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g');
-const limpiar = (texto) => String(texto ?? '').replace(COLOR_TERMINAL, '').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
+// La barra invertida se escapa antes que "|": si no, un "\|" del mensaje rompería la tabla Markdown.
+const limpiar = (texto) =>
+  String(texto ?? '').replace(COLOR_TERMINAL, '').replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
 
 function generar() {
   const lineas = [`## ${SUITE}`, ''];
