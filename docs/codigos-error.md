@@ -16,7 +16,7 @@ La columna "Texto sugerido" es una propuesta para `en.json`; el front puede ajus
 
 ## Códigos genéricos
 
-Si un error no tiene código específico, la API le pone uno según su status (`src/app.js`, `src/utils/codigosError.js`). El front debería tener siempre un texto para estos, como respaldo.
+Si un error no tiene código específico, la API le pone uno según su status (`src/app.js`, `src/utils/codigosError.js`). **Todo error 500 sale como `INTERNAL_ERROR`**, aunque internamente traiga otro código (por ejemplo, el de un error de PostgreSQL). El front debería tener siempre un texto para estos, como respaldo.
 
 | code | Status | Texto sugerido |
 |---|---|---|

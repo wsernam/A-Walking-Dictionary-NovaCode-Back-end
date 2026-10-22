@@ -2,7 +2,7 @@
 // mensaje de cada respuesta de error ({ error, code }). Ver docs/codigos-error.md.
 
 import { describe, it, expect } from 'vitest';
-import { codigoPorStatus, errorApi } from '../../src/utils/codigosError.js';
+import { codigoPorStatus, errorApi, esCodigoPropio } from '../../src/utils/codigosError.js';
 
 describe('codigoPorStatus — código genérico cuando el error no trae uno específico', () => {
   it.each([
@@ -29,5 +29,20 @@ describe('errorApi — error que lanzan los servicios', () => {
 
     expect(error).toBeInstanceOf(Error);
     expect(error).toMatchObject({ message: 'Mazo no encontrado', status: 404, code: 'DECK_NOT_FOUND' });
+  });
+});
+
+describe('esCodigoPropio — solo se reenvían nuestros códigos', () => {
+  it.each(['DECK_NOT_FOUND', 'INVALID_ID', 'CONFLICT'])('%s es nuestro', (codigo) => {
+    expect(esCodigoPropio(codigo)).toBe(true);
+  });
+
+  it.each([
+    ['el SQLSTATE de PostgreSQL', '42703'],
+    ['un texto en minúsculas', 'deck_not_found'],
+    ['undefined', undefined],
+    ['un número', 404],
+  ])('%s no es nuestro', (_caso, codigo) => {
+    expect(esCodigoPropio(codigo)).toBe(false);
   });
 });

@@ -29,6 +29,17 @@ export function codigoPorStatus(status) {
 }
 
 /**
+ * @brief Indica si un valor tiene la forma de nuestros códigos (DECK_NOT_FOUND, INVALID_ID...).
+ * Descarta los `code` que traen errores de otras librerías, como el SQLSTATE de PostgreSQL
+ * ("42703") o los de Node ("ECONNREFUSED" llega con status 500, que siempre es INTERNAL_ERROR).
+ * @param {unknown} codigo - Valor de la propiedad `code` de la respuesta.
+ * @return {boolean} true si es un texto en MAYÚSCULAS (con guiones bajos) que empieza por letra.
+ */
+export function esCodigoPropio(codigo) {
+  return typeof codigo === 'string' && /^[A-Z][A-Z0-9_]*$/.test(codigo);
+}
+
+/**
  * @brief Crea un Error con status HTTP y código, para lanzarlo desde un servicio. El controlador
  * que lo atrapa responde { error: err.message, code: err.code } con err.status.
  * @param {number} status - Status HTTP de la respuesta.

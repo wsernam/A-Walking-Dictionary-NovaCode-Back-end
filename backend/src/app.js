@@ -86,7 +86,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import rutasEnriquecimiento from './routes/enriquecimientoRoutes.js';
 import diccionarioRoutes from './routes/diccionarioRoutes.js';
-import { codigoPorStatus } from './utils/codigosError.js';
+import { codigoPorStatus, esCodigoPropio } from './utils/codigosError.js';
 
 
 /** @brief Instancia principal de la aplicación Express. */
@@ -136,8 +136,9 @@ app.use(registroSeguridad);
 
 // Auditoría OWASP H-08: en producción no se devuelve al cliente el detalle de errores 5xx.
 // El mensaje real se deja en los logs para poder depurar.
-// Además, toda respuesta de error lleva `code`: si el controlador no puso uno específico, se usa
-// el genérico de su status (ver utils/codigosError.js).
+// Además, toda respuesta de error lleva un `code` de los nuestros (ver utils/codigosError.js): si
+// el controlador no puso uno, o el que llegó no es nuestro (p. ej. el SQLSTATE "42703" que trae un
+// error de PostgreSQL), se usa el genérico del status. Todo 5xx sale como INTERNAL_ERROR.
 app.use((req, res, next) => {
   const jsonOriginal = res.json.bind(res);
   res.json = (cuerpo) => {
@@ -145,8 +146,9 @@ app.use((req, res, next) => {
       console.error(`[ERROR] ${req.method} ${req.originalUrl}:`, cuerpo);
       return jsonOriginal({ error: 'Error interno del servidor', code: 'INTERNAL_ERROR' });
     }
-    if (res.statusCode >= 400 && cuerpo && typeof cuerpo === 'object' && 'error' in cuerpo && !cuerpo.code) {
-      return jsonOriginal({ ...cuerpo, code: codigoPorStatus(res.statusCode) });
+    if (res.statusCode >= 400 && cuerpo && typeof cuerpo === 'object' && 'error' in cuerpo) {
+      const codigoPropio = res.statusCode < 500 && esCodigoPropio(cuerpo.code);
+      return jsonOriginal({ ...cuerpo, code: codigoPropio ? cuerpo.code : codigoPorStatus(res.statusCode) });
     }
     return jsonOriginal(cuerpo);
   };
