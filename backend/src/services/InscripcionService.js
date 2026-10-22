@@ -1,13 +1,16 @@
+import { randomInt } from 'node:crypto';
 import { CursoRepository } from '../repositories/CursoRepository.js';
 import { UsuarioRepository } from '../repositories/UsuarioRepository.js';
 import { InscripcionRepository } from '../repositories/InscripcionRepository.js';
 
+// Auditoría OWASP H-11: el código da acceso al curso, así que se genera con aleatoriedad
+// criptográfica (node:crypto) y no con Math.random, que es predecible.
 function generarCodigo() {
   const caracteres = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let codigo = '';
 
   for (let i = 0; i < 8; i++) {
-    const posicion = Math.floor(Math.random() * caracteres.length);
+    const posicion = randomInt(caracteres.length);
     codigo += caracteres[posicion];
   }
 
