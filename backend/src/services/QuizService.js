@@ -28,6 +28,7 @@
  *   no especifica ninguna escala. Supuesto pendiente de validar con la docente.
  */
 
+import { randomInt } from 'node:crypto';
 import { CursoRepository } from '../repositories/CursoRepository.js';
 import { InscripcionRepository } from '../repositories/InscripcionRepository.js';
 import { MazoRepository } from '../repositories/MazoRepository.js';
@@ -116,7 +117,8 @@ function esEnteroPositivo(valor) {
 function barajar(arreglo) {
   const copia = [...arreglo];
   for (let i = copia.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
+    // Auditoría OWASP H-11: aleatoriedad criptográfica (node:crypto) en lugar de Math.random.
+    const j = randomInt(i + 1);
     [copia[i], copia[j]] = [copia[j], copia[i]];
   }
   return copia;
