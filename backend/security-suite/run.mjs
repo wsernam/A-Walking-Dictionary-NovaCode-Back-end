@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { runAdvanced } from './advanced.mjs';
 
 import { runSupplyIntegrity } from './supply-integrity.mjs';
+import { checkTlsIntegration } from './tls-integration.mjs';
 
 
 const backend = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -105,6 +106,10 @@ if (!serverAvailable) {
 await runAdvanced({ backend, url, request, results, serverAvailable });
 
 await runSupplyIntegrity({ backend, results });
+
+
+results.push(await checkTlsIntegration());
+
 
 const totals = Object.fromEntries(['PASS','FAIL','WARN','MANUAL','SKIP'].map(s => [s, results.filter(r => r.status === s).length]));
 const escape = (v) => String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');

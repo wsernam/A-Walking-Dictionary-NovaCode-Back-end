@@ -8,6 +8,7 @@
 
 import pg from 'pg';
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 const { Pool } = pg;
 
@@ -30,17 +31,20 @@ export const pool = new Pool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
 
-  ssl:
-    process.env.DB_SSL === 'true'
-      ? {
-          rejectUnauthorized: true,
-          ca: process.env.DB_SSL_CA_PATH
-            ? readFileSync(
-                process.env.DB_SSL_CA_PATH,
-                'utf8'
-              )
-            : undefined,
-        }
-      : false,
+  
+ssl:
+  process.env.DB_SSL === 'true'
+    ? {
+        rejectUnauthorized: true,
+        servername: process.env.DB_HOST,
+        ca: process.env.DB_SSL_CA_PATH
+          ? readFileSync(
+              resolve(process.env.DB_SSL_CA_PATH),
+              'utf8'
+            )
+          : undefined,
+      }
+    : false,
+
 });
 

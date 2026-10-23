@@ -1,8 +1,8 @@
 {
-  "date": "2026-10-23T01:38:41.627Z",
+  "date": "2026-10-23T03:09:57.308Z",
   "url": "http://127.0.0.1:5000",
   "totals": {
-    "PASS": 28,
+    "PASS": 29,
     "FAIL": 0,
     "WARN": 1,
     "MANUAL": 0,
@@ -239,6 +239,13 @@
       "status": "SKIP",
       "reason": "No se pudo completar npm audit (por ejemplo, red o respuesta inválida): spawnSync npm ENOENT",
       "type": "DEPENDENCIAS"
+    },
+    {
+      "id": "H-06-INT",
+      "description": "Conexión real TLS con certificado validado hacia Supabase",
+      "type": "INTEGRACION/TLS",
+      "status": "PASS",
+      "reason": "Conexión real y SELECT 1 correctos; TLS cifrado, cadena de confianza y nombre del servidor validados."
     }
   ]
 }

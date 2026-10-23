@@ -27,7 +27,7 @@ const categoryMap = {
  'XSS-01':['A05'],'XSS-02':['A05'],'CSRF-01':['A01'],'CSRF-02':['A02'],
  'H-12b-01':['A07'],'H-12b-02':['A07'],'H-05a':['A01'],'H-05b':['A01'],
     'A03-01': ['A03'],
-    'A08-01': ['A08'],
+    'A08-01': ['A08'],'H-06-INT': ['A04'],
 
 };
 const guidance = {
@@ -36,6 +36,10 @@ const guidance = {
  'H-12b-02':'Preparar un usuario de prueba, un JWT vigente y un cambio de rol o desactivación controlada. Verificar que las solicitudes posteriores sean rechazadas según la política de revocación. Implementar versión de token o lista de revocación si se requiere invalidación inmediata.',
  'H-05a':'Investigar por qué PostgREST respondió HTTP 406 antes de concluir que el acceso anónimo está bloqueado. Confirmar URL, clave anon, tabla y cabeceras de la consulta; repetir la verificación y comprobar explícitamente acceso denegado a datos privados.',
  'H-05b':'Automatizar una consulta de metadatos RLS con credenciales seguras y de mínimos privilegios dentro del pipeline, sin imprimir secretos. Mientras tanto, adjuntar evidencia de SQL Editor de las tablas y mantener el resultado SKIP en CI.',
+ 
+'H-06-INT':
+  'Verificar la conexión PostgreSQL, la autoridad certificadora y el nombre del servidor. Mantener rejectUnauthorized:true y repetir la prueba de integración TLS. No desactivar la validación del certificado.',
+
 };
 const generic = {
  FAIL:'Investigar la evidencia de la prueba, corregir el control y volver a ejecutar la suite para confirmar PASS.',
