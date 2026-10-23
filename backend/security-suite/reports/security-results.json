@@ -1,12 +1,12 @@
 {
-  "date": "2026-10-18T20:20:35.743Z",
-  "url": null,
+  "date": "2026-10-23T01:00:24.016Z",
+  "url": "http://127.0.0.1:5000",
   "totals": {
-    "PASS": 14,
-    "FAIL": 2,
+    "PASS": 26,
+    "FAIL": 1,
     "WARN": 1,
     "MANUAL": 0,
-    "SKIP": 6
+    "SKIP": 3
   },
   "results": [
     {
@@ -54,7 +54,7 @@
     {
       "id": "H-06",
       "description": "TLS verifica el certificado de PostgreSQL",
-      "status": "FAIL",
+      "status": "PASS",
       "reason": "No debe desactivarse la validación del certificado",
       "type": "CODIGO"
     },
@@ -101,10 +101,52 @@
       "type": "CODIGO"
     },
     {
-      "id": "HTTP",
-      "description": "Pruebas contra backend local",
-      "status": "SKIP",
-      "reason": "No responde http://127.0.0.1:5000/health; iniciar el backend con npm start y volver a ejecutar",
+      "id": "HTTP-H01",
+      "description": "GET /users sin JWT",
+      "status": "PASS",
+      "reason": "HTTP obtenido: 401; esperado: 401",
+      "type": "HTTP"
+    },
+    {
+      "id": "HTTP-H02",
+      "description": "POST /courses/:id/access-code sin JWT",
+      "status": "PASS",
+      "reason": "HTTP obtenido: 401; esperado: 401",
+      "type": "HTTP"
+    },
+    {
+      "id": "HTTP-H03",
+      "description": "POST /study/review-session sin JWT",
+      "status": "PASS",
+      "reason": "HTTP obtenido: 401; esperado: 401",
+      "type": "HTTP"
+    },
+    {
+      "id": "HTTP-H03b",
+      "description": "GET contexto de estudiante sin JWT",
+      "status": "PASS",
+      "reason": "HTTP obtenido: 401; esperado: 401",
+      "type": "HTTP"
+    },
+    {
+      "id": "HTTP-H12",
+      "description": "GET perfil con token inválido",
+      "status": "PASS",
+      "reason": "HTTP obtenido: 401; esperado: 401",
+      "type": "HTTP"
+    },
+    {
+      "id": "HTTP-CORS",
+      "description": "CORS no autoriza un origen desconocido",
+      "status": "PASS",
+      "reason": "Origen externo no incluido en lista de permitidos",
+      "type": "HTTP"
+    },
+    {
+      "id": "HTTP-HELMET",
+      "description": "Cabecera x-content-type-options presente",
+      "status": "PASS",
+      "reason": "Helmet debe establecer X-Content-Type-Options: nosniff",
       "type": "HTTP"
     },
     {
@@ -115,17 +157,24 @@
       "type": "CODIGO"
     },
     {
-      "id": "SQLi-02/03",
-      "description": "Pruebas SQLi con PostgreSQL real",
-      "status": "SKIP",
-      "reason": "Para ejecutar: inicia backend local con BD de pruebas y http://127.0.0.1:5000/health disponible",
+      "id": "SQLi-02",
+      "description": "Entrada SQL maliciosa no altera búsqueda",
+      "status": "PASS",
+      "reason": "HTTP 200; resultados 0; esperado: 200 y sin coincidencias para la cadena",
+      "type": "HTTP/BD"
+    },
+    {
+      "id": "SQLi-03",
+      "description": "Entrada SQL maliciosa no altera búsqueda",
+      "status": "PASS",
+      "reason": "HTTP 200; resultados 0; esperado: 200 y sin coincidencias para la cadena",
       "type": "HTTP/BD"
     },
     {
       "id": "XSS-01",
       "description": "Búsqueda de sinks DOM peligrosos",
       "status": "PASS",
-      "reason": "110 archivos de frontend revisados; no se encontraron sinks de alto riesgo conocidos. No prueba por sí solo ausencia de XSS",
+      "reason": "129 archivos de frontend revisados; no se encontraron sinks de alto riesgo conocidos. No prueba por sí solo ausencia de XSS",
       "type": "ESTATICO"
     },
     {
@@ -151,24 +200,31 @@
     },
     {
       "id": "XSS-02",
-      "description": "Prueba HTTP con payload HTML",
-      "status": "SKIP",
-      "reason": "Requiere backend local y acceso a BD de pruebas",
+      "description": "Payload HTML recibido como JSON en endpoint de búsqueda",
+      "status": "PASS",
+      "reason": "HTTP 200; Content-Type: application/json; charset=utf-8. Esto NO verifica la ejecución de scripts en React; requiere E2E de navegador para ese alcance",
       "type": "HTTP"
     },
     {
       "id": "CSRF-02",
-      "description": "Prueba HTTP de origen no permitido",
-      "status": "SKIP",
-      "reason": "Requiere backend local",
+      "description": "Origen externo no habilitado por CORS",
+      "status": "PASS",
+      "reason": "Access-Control-Allow-Origin: (ausente). CORS no reemplaza protección CSRF con cookies",
       "type": "HTTP"
     },
     {
-      "id": "H-05",
-      "description": "Acceso anónimo a tablas privadas de Supabase",
+      "id": "H-05a",
+      "description": "Acceso anonimo a datos privados de Supabase",
       "status": "SKIP",
-      "reason": "Falta configurar SECURITY_SUPABASE_URL o SECURITY_SUPABASE_ANON_KEY",
+      "reason": "Faltan SECURITY_SUPABASE_URL o SECURITY_SUPABASE_ANON_KEY",
       "type": "SUPABASE/API"
+    },
+    {
+      "id": "H-05b",
+      "description": "Configuracion RLS de las tablas de Supabase",
+      "status": "SKIP",
+      "reason": "Verificacion manual mediante Supabase SQL Editor: 14 tablas con RLS habilitado al momento de la revision. La suite CI no consulta metadatos RLS.",
+      "type": "SUPABASE/RLS"
     }
   ]
 }

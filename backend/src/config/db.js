@@ -7,6 +7,7 @@
  */
 
 import pg from 'pg';
+import { readFileSync } from 'node:fs';
 
 const { Pool } = pg;
 
@@ -21,6 +22,7 @@ pg.types.setTypeParser(pg.types.builtins.TIMESTAMP, (valor) => new Date(`${valor
  * @brief Pool de conexiones de PostgreSQL, configurado desde variables de entorno
  * (DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME).
  */
+
 export const pool = new Pool({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
@@ -30,7 +32,15 @@ export const pool = new Pool({
 
   ssl:
     process.env.DB_SSL === 'true'
-      ? { rejectUnauthorized: false }
+      ? {
+          rejectUnauthorized: true,
+          ca: process.env.DB_SSL_CA_PATH
+            ? readFileSync(
+                process.env.DB_SSL_CA_PATH,
+                'utf8'
+              )
+            : undefined,
+        }
       : false,
-      
 });
+
