@@ -109,6 +109,17 @@ jobs:
           DB_NAME: ''
         run: npm run test:security
 
+      - name: Generar informe OWASP Top 10 con recomendaciones
+        if: always()
+        run: |
+          if [ -f security-suite/reports/security-results.json ]; then
+            node security-suite/generate-owasp-report.mjs \
+              security-suite/reports/security-results.json \
+              security-suite/reports/security-report-owasp.html
+          else
+            echo "No hay security-results.json; revisar los logs de la suite OWASP."
+          fi
+
 
       - name: Adjuntar reporte y logs
         if: always()
