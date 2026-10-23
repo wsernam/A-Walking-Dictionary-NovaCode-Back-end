@@ -1,12 +1,12 @@
 {
-  "date": "2026-10-23T01:00:24.016Z",
+  "date": "2026-10-23T01:28:12.920Z",
   "url": "http://127.0.0.1:5000",
   "totals": {
-    "PASS": 26,
-    "FAIL": 1,
+    "PASS": 28,
+    "FAIL": 0,
     "WARN": 1,
     "MANUAL": 0,
-    "SKIP": 3
+    "SKIP": 4
   },
   "results": [
     {
@@ -82,7 +82,7 @@
     {
       "id": "H-11",
       "description": "Códigos con aleatoriedad criptográfica",
-      "status": "FAIL",
+      "status": "PASS",
       "reason": "Debe emplearse node:crypto, no Math.random",
       "type": "CODIGO"
     },
@@ -225,6 +225,20 @@
       "status": "SKIP",
       "reason": "Verificacion manual mediante Supabase SQL Editor: 14 tablas con RLS habilitado al momento de la revision. La suite CI no consulta metadatos RLS.",
       "type": "SUPABASE/RLS"
+    },
+    {
+      "id": "A08-01",
+      "description": "Integridad y consistencia del package-lock",
+      "status": "PASS",
+      "reason": "309 paquetes con URL de registro; 0 sin hash; 0 con HTTP; 0 desajustes; 0 fuentes no estándar. Sin incidencias en el alcance comprobado.",
+      "type": "INTEGRIDAD"
+    },
+    {
+      "id": "A03-01",
+      "description": "Auditoría de vulnerabilidades en dependencias npm",
+      "status": "SKIP",
+      "reason": "No se pudo completar npm audit (por ejemplo, red o respuesta inválida): spawnSync npm ENOENT",
+      "type": "DEPENDENCIAS"
     }
   ]
 }

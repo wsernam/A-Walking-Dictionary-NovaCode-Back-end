@@ -9,6 +9,9 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runAdvanced } from './advanced.mjs';
 
+import { runSupplyIntegrity } from './supply-integrity.mjs';
+
+
 const backend = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const src = (name) => readFileSync(join(backend, 'src', name), 'utf8');
 const url = (process.env.SECURITY_BASE_URL || 'http://127.0.0.1:5000').replace(/\/$/, '');
@@ -100,6 +103,9 @@ if (!serverAvailable) {
   } catch (err) { skip('HTTP-HEADERS', 'Cabeceras de seguridad', `Error de conexión: ${err.name}`); }
 }
 await runAdvanced({ backend, url, request, results, serverAvailable });
+
+await runSupplyIntegrity({ backend, results });
+
 const totals = Object.fromEntries(['PASS','FAIL','WARN','MANUAL','SKIP'].map(s => [s, results.filter(r => r.status === s).length]));
 const escape = (v) => String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
 const reportDir = join(backend, 'security-suite', 'reports');
