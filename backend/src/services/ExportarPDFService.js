@@ -37,12 +37,12 @@ import { errorApi } from '../utils/codigosError.js';
 
 /** @brief Tamaño de página A4 en puntos PDF (72 puntos = 1 pulgada). */
 const PAGE_SIZE = [595.28, 841.89];
-const [ANCHO_PAGINA, ALTO_PAGINA] = PAGE_SIZE;
+export const [ANCHO_PAGINA, ALTO_PAGINA] = PAGE_SIZE;
 /** @brief Margen lateral en puntos (~2cm), para cumplir "márgenes académicos" (CA-3.3.3). */
-const MARGEN = 56;
+export const MARGEN = 56;
 /** @brief Límite inferior del contenido; deja sitio al pie de página. */
-const LIMITE_INFERIOR = 70;
-const ANCHO_UTIL = ANCHO_PAGINA - MARGEN * 2;
+export const LIMITE_INFERIOR = 70;
+export const ANCHO_UTIL = ANCHO_PAGINA - MARGEN * 2;
 /** @brief Columna donde empieza el texto de cada tarjeta/pregunta, a la derecha del número. */
 const X_CONTENIDO = MARGEN + 30;
 const ANCHO_CONTENIDO = ANCHO_PAGINA - MARGEN - X_CONTENIDO;
@@ -59,7 +59,7 @@ function hex(color) {
 }
 
 /** @brief Paleta de la app (sidebar del docente y del estudiante). */
-const COLORES = {
+export const COLORES = {
   azul: hex('#14237A'),
   rojo: hex('#A51C30'),
   texto: hex('#1F2430'),
@@ -88,7 +88,7 @@ function error(status, code, message) {
  * @param {import('pdf-lib').PDFDocument} doc - Documento PDF.
  * @return {Promise<{texto, negrita, cursiva, titulo}>} Fuentes listas para dibujar.
  */
-async function cargarFuentes(doc) {
+export async function cargarFuentes(doc) {
   return {
     texto: await doc.embedFont(StandardFonts.Helvetica),
     negrita: await doc.embedFont(StandardFonts.HelveticaBold),
@@ -106,7 +106,7 @@ async function cargarFuentes(doc) {
  * @param {number} anchoMax - Ancho máximo disponible, en puntos.
  * @return {string[]} Líneas resultantes; siempre al menos una (posiblemente vacía).
  */
-function partirEnLineas(texto, fuente, tamano, anchoMax) {
+export function partirEnLineas(texto, fuente, tamano, anchoMax) {
   const palabras = String(texto ?? '').split(/\s+/).filter(Boolean);
   const lineas = [];
   let actual = '';
@@ -130,7 +130,7 @@ function partirEnLineas(texto, fuente, tamano, anchoMax) {
  * @param {Object} opciones - { x, y (borde inferior), fuente, tamano, fondo, color }.
  * @return {number} Ancho ocupado, para colocar la siguiente etiqueta a la derecha.
  */
-function dibujarEtiqueta(pagina, texto, { x, y, fuente, tamano = 8, fondo, color }) {
+export function dibujarEtiqueta(pagina, texto, { x, y, fuente, tamano = 8, fondo, color }) {
   const alto = tamano + 8;
   const ancho = fuente.widthOfTextAtSize(texto, tamano) + 16;
   const r = alto / 2;
@@ -170,7 +170,7 @@ function dibujarNumero(pagina, numero, { x, y, fuente, radio = 9 }) {
  * @param {string} tituloCorrido - Texto del encabezado de las páginas de continuación.
  * @return {Object} { pagina, y, bajar(d), asegurarEspacio(alto), nuevaPagina(), paginaLimpia() }.
  */
-function crearMaquetador(doc, fuentes, tituloCorrido) {
+export function crearMaquetador(doc, fuentes, tituloCorrido) {
   let pagina = doc.addPage(PAGE_SIZE);
   let y = ALTO_PAGINA - MARGEN;
 
@@ -209,7 +209,7 @@ function crearMaquetador(doc, fuentes, tituloCorrido) {
  * @param {Object} fuentes - Fuentes de cargarFuentes().
  * @param {Object} datos - { etiqueta, titulo, subtitulo, insignias: [{texto, fondo, color}] }.
  */
-function dibujarEncabezado(m, fuentes, { etiqueta, titulo, subtitulo, insignias = [] }) {
+export function dibujarEncabezado(m, fuentes, { etiqueta, titulo, subtitulo, insignias = [] }) {
   const p = m.pagina;
   const lineasTitulo = partirEnLineas(titulo, fuentes.titulo, 22, ANCHO_UTIL);
   const alto = 46 + lineasTitulo.length * 25 + (subtitulo ? 16 : 0) + (insignias.length ? 26 : 0) + 4;
@@ -245,7 +245,7 @@ function dibujarEncabezado(m, fuentes, { etiqueta, titulo, subtitulo, insignias 
  * @param {import('pdf-lib').PDFDocument} doc - Documento PDF.
  * @param {Object} fuentes - Fuentes de cargarFuentes().
  */
-function dibujarPies(doc, fuentes) {
+export function dibujarPies(doc, fuentes) {
   const paginas = doc.getPages();
   paginas.forEach((p, i) => {
     p.drawLine({ start: { x: MARGEN, y: 44 }, end: { x: ANCHO_PAGINA - MARGEN, y: 44 }, thickness: 0.5, color: COLORES.linea });

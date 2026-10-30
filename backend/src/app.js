@@ -36,6 +36,9 @@
  *   - GET  /api/v1/quizzes/:id/export-pdf         (CA-3.3.2, endpoint adicional — el backlog
  *     solo documenta export-pdf para mazos, no para quizzes; ver docs/CHANGELOG_BACKEND.md)
  *   - GET  /api/v1/decks/:id/export-pdf           (CA-3.3.1, CA-3.3.3)
+*    HE-07 (HU-019 reporte del modo de estudio en PDF; endpoint aprobado por el equipo, falta
+ *   reflejarlo en Backlog_HU.xlsx):
+ *   - GET  /api/v1/reports/study-mode/export-pdf         (CA-19.1, CA-19.2, CA-19.3; ?student_id opcional)
  *
  *   HE-05 (HU-5.4 — login con Google/OAuth y control de roles; HU-5.2 — configurar perfil
  *   académico; HU-5.1/5.3 quedan fuera de esta rama):
@@ -86,6 +89,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import rutasEnriquecimiento from './routes/enriquecimientoRoutes.js';
 import diccionarioRoutes from './routes/diccionarioRoutes.js';
+import reporteRoutes from './routes/reporteRoutes.js';
 import { codigoPorStatus, esCodigoPropio } from './utils/codigosError.js';
 
 
@@ -167,6 +171,7 @@ app.use('/api/v1/aportes', aporteRoutes);
 app.use('/api/v1/quizzes', quizRoutes);
 app.use('/api/v1/enrichment', rutasEnriquecimiento);
 app.use('/api/v1/dictionary', diccionarioRoutes);
+app.use('/api/v1/reports', reporteRoutes);
 
 
 export default app;
