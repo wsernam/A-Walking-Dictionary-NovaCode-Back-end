@@ -122,6 +122,10 @@ Si un error no tiene código específico, la API le pone uno según su status (`
 | `QUIZ_DECK_NOT_IN_COURSE` | 404 | Un mazo elegido no pertenece al curso | One of the decks does not belong to the course. |
 | `QUIZ_NOT_ENOUGH_CARDS` | 400 | Hay menos de 4 traducciones distintas aprobadas | There are not enough approved cards to build the quiz. |
 
+## Exportacion PDF
+
+| `REPORT_FORBIDDEN` | 403 | El usuario no puede ver ese reporte (estudiante que pide el de otro, o rol sin permiso) | You do not have permission to download this report. |
+| `REPORT_STUDENT_NOT_FOUND` | 404 | La docente pidió un student_id que no está en sus cursos | The student was not found. |
 ## Para agregar un código nuevo
 
 - En un controlador: `res.status(404).json({ error: 'Mazo no encontrado', code: 'DECK_NOT_FOUND' })`.
