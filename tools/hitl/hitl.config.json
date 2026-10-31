@@ -1,8 +1,7 @@
 {
   "repos": {
-  "backend":  ".",
-  "frontend": "../A-Walking-Dictionary-NovaCode-Front-end",
-  "infra":    ".."
+    "backend": ".",
+    "frontend": "../A-Walking-Dictionary-NovaCode-Front-end"
   },
   "rama_base": "develop",
   "contract_regex": "(contrato|contract|openapi|swagger|esquema|schema|codigos|(^|[\\W_])api([\\W_]|$))",

@@ -61,8 +61,7 @@ En su computador las carpetas de los repos deben ser **hermanas** y llamarse com
 ```
 proyecto/
 ├── A-Walking-Dictionary-NovaCode-Back-end/      ← aquí se corre python tools/hitl/hitl.py
-├── A-Walking-Dictionary-NovaCode-Front-end/
-└── walking-dictionary-infra/                    ← opcional
+└── A-Walking-Dictionary-NovaCode-Front-end/
 ```
 Si sus carpetas se llaman distinto, cambien `repos` en `tools/hitl/hitl.config.json` (o definan la variable de entorno `HITL_REPOS`).
 
@@ -81,7 +80,7 @@ Si sus carpetas se llaman distinto, cambien `repos` en `tools/hitl/hitl.config.j
 5. Configuración del repo backend en GitHub (la hace quien tenga permisos de administrador, hoy `wsernam`): Settings → Actions → General → Workflow permissions: «Read and write permissions» y marcar «Allow GitHub Actions to create and approve pull requests». Sin eso el flujo no puede abrir el PR.
 6. Los PR que abre un flujo con el token por defecto no disparan otros workflows (backend-tests, CodeQL…); si `develop` exige esos checks para fusionar, creen un secreto `PR_TOKEN` (token personal con permiso de escritura en el repo) y el workflow lo usará solo.
 7. El cron y el botón manual aparecen cuando `superprompt.yml` llega a `main` (con el siguiente `release/sprintX`); mientras tanto el flujo corre solo cuando alguien cambia `docs/ai/**` o `tools/hitl/**` en `develop`.
-8. Opcional: el flujo clona también infra (rama `main`); si ya no lo usan, borren ese paso y la entrada `infra` de `HITL_REPOS`.
+8. El repo infra ya no se lee (solo se usaba para pruebas locales): no está en `hitl.config.json` ni en el workflow. Si algún día se necesita, se agrega `"infra": ".."` en `repos` y un paso de checkout en el workflow.
 
 Si prefieren el frontend como anfitrión, es el mismo árbol: pasen `repos.frontend` a `"."` y `repos.backend` a la carpeta hermana, y ajusten el workflow. Ojo: el CI del front corre SonarQube y E2E, y Vercel construye cada PR.
 

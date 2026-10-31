@@ -6,7 +6,7 @@
 ## 0. Cabecera
 - Plantilla: 3.0 (facdbd59)
 - Sprint en curso: 3 · Integración, Cierre y Despliegue · líder del sprint (aprueba contratos): **Manuela Meneses**
-- Fuentes al construirlo: infra@006a5e2, backend@6b639a1, frontend@50a853c · backlog: 21 HU · bitácora: 33 sesiones
+- Fuentes al construirlo: backend@154484f, frontend@50a853c · backlog: 21 HU · bitácora: 33 sesiones
 - Se reconstruye con: `python tools/hitl/hitl.py build` (o lo hace el flujo de GitHub Actions y abre un PR para revisión humana)
 
 ## 1. Cómo usar este documento
@@ -367,7 +367,6 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 - **[CONTRATO]** `frontend:docs/contrato-reporte-curso.md` — Contrato de datos — Reporte de estudiantes del curso en PDF (HU-020) (9.033 caracteres; último cambio: 4bbc2a6 2026-10-29)
 - `frontend:e2e/README.md` — Pruebas E2E (Playwright) (5.012 caracteres; último cambio: 0c2407c 2026-10-21)
 - `frontend:README.md` — A Walking Dictionary (2.165 caracteres; último cambio: 626f3ab 2026-09-04)
-- `infra:README.md` — Walking Dictionary — Infraestructura (3.707 caracteres; último cambio: 5e22e6e 2026-09-15)
 
 ### Texto de los contratos
 (No se incluye el texto de los contratos: léelos desde el repo con las rutas de arriba. Si trabajas en un chat sin acceso al repo, reconstruye con `--contratos resumen` o `--contratos completo`.)
@@ -562,25 +561,13 @@ detallados faltaban datos del PDF, así que se ajustó:
 
 
 ## 9. Estado e historial de los repositorios
-- `infra`: rama `main`, HEAD `006a5e2`
-- `backend`: rama `feature/HITL`, HEAD `6b639a1`
+- `backend`: rama `feature/HITL`, HEAD `154484f`
 - `frontend`: rama `develop`, HEAD `50a853c`
 
 ### Historial de commits
-**infra** — últimos 11 de 11 commits (incluye merges de PR):
-  - 006a5e2 2026-10-18 wsernam: pasar CORS_ORIGINS al backend en docker-compose
-  - e58e1bb 2026-09-24 wsernam: Agrege google client a dockercompose para ya poder hacer el inicio de sesion
-  - 2f046ee 2026-09-23 wsernam: Agrege comandos de ejemplo para deshabilitar la autentificaciÃ³n
-  - 25db5c3 2026-09-19 wsernam: Update .env.example
-  - ae5a2b1 2026-09-19 wsernam: Configuracion del docker compose para q funcion Oauth de google
-  - 7517475 2026-09-15 Karen Sandoval: Merge pull request #1 from wsernam/fix/env-simulados-frontend
-  - 7b32382 2026-09-15 Karen Sandoval: fix: agregar VITE_DOCENTE_ID_SIMULADO e VITE_INSCRIPCION_ID_SIMULADA al compose
-  - d7523ca 2026-09-15 wsernam: configuracion docker compose
-  - abaf69d 2026-09-15 wsernam: correccion
-  - de609e9 2026-09-15 wsernam: .gitnore configuracion
-  - 5e22e6e 2026-09-15 wsernam: Estrutura clonacion Repositorio
-**backend** — últimos 60 de 160 commits (incluye merges de PR):
-  - 6b639a1 2026-10-30 Manuela Erazo: feat(hitl): SUPERPROMPT maestro, trazabilidad y bitÃ¡cora
+**backend** — últimos 60 de 161 commits (incluye merges de PR):
+  - 154484f 2026-10-30 Manuela Erazo: chore(hitl): versionar backlog y bitÃ¡cora para la reconstrucciÃ³n automÃ¡tica
+  - 9c0f22c 2026-10-30 Manuela Erazo: feat(hitl): SUPERPROMPT maestro, trazabilidad y bitÃ¡cora
   - 0b3c6bb 2026-10-30 Manuela Erazo: Merge pull request #37 from wsernam/feature/hu-19-reporte-modo-estudio
   - d1b226e 2026-10-30 Karen Sandoval: fix(deps): actualizar body-parser y qs para resolver las vulnerabilidades de npm audit
   - e739461 2026-10-30 Karen Sandoval: fix(seguridad): limitar la tasa de peticiones del reporte del modo de estudio (CodeQL js/missing-rate-limiting)
@@ -639,7 +626,6 @@ detallados faltaban datos del PDF, así que se ajustó:
   - b0fff62 2026-10-08 wsernam: Merge pull request #19 from wsernam/feature/owasp-h09-logs-seguridad
   - 31cd3b2 2026-10-08 wsernam: Merge branch 'develop' into feature/owasp-h09-logs-seguridad
   - c95b563 2026-10-08 wsernam: Merge pull request #18 from wsernam/feature/owasp-h01-crud-usuarios
-  - e5b4356 2026-10-08 wsernam: Delete Plantilla_de_levantamiento_Sistema_de_indicadores.docx
 **frontend** — últimos 60 de 234 commits (incluye merges de PR):
   - 50a853c 2026-10-30 thaliabernalepe: Merge pull request #61 from knnsand/feature/HU-020-reporte-curso-pdf
   - 4bbc2a6 2026-10-29 wsernam: feat(HU-020): reporte de estudiantes del curso en PDF

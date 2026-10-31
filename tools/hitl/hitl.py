@@ -369,7 +369,7 @@ def indexar_docs(cfg, root, repo):
 def bloque_docs(cfg, root, modo):
     """modo: indice (solo lista), resumen (primeros caracteres de cada contrato) o completo."""
     lineas, inline_txt = [], []
-    for repo in ("backend", "frontend", "infra"):
+    for repo in [x for x in ("backend", "frontend", "infra") if x in cfg["repos"]]:
         ls, cs = indexar_docs(cfg, root, repo)
         if ls is None:
             lineas.append(f"- ⚠ `{repo}`: carpeta no encontrada en {cfg['repos'][repo]!r} (clónala o ajusta hitl.config.json)")
@@ -390,7 +390,7 @@ def bloque_docs(cfg, root, modo):
 # ----------------------------------------------------------------------------- git
 def estado_git(cfg, root, repo, base_branch):
     out, head = [], {}
-    for r in ("infra", "backend", "frontend"):
+    for r in [x for x in ("infra", "backend", "frontend") if x in cfg["repos"]]:
         p = repo_path(cfg, root, r)
         h = git(p, "rev-parse", "--short", "HEAD") if p and p.exists() else None
         head[r] = h
@@ -429,7 +429,7 @@ def ultima_fila(ws):
 
 def historial_git(cfg, root, n=60):
     out = []
-    for r in ("infra", "backend", "frontend"):
+    for r in [x for x in ("infra", "backend", "frontend") if x in cfg["repos"]]:
         p = repo_path(cfg, root, r)
         if not (p and p.exists() and git(p, "rev-parse", "HEAD")):
             out.append(f"**{r}**: sin historial git accesible.")
@@ -518,7 +518,7 @@ def trazar(root, cfg, fila):
 # ----------------------------------------------------------------------------- build (SUPERPROMPT global)
 def estado_repos(cfg, root):
     out, head = [], {}
-    for r in ("infra", "backend", "frontend"):
+    for r in [x for x in ("infra", "backend", "frontend") if x in cfg["repos"]]:
         p = repo_path(cfg, root, r)
         h = git(p, "rev-parse", "--short", "HEAD") if p and p.exists() else None
         rama = git(p, "rev-parse", "--abbrev-ref", "HEAD") if h else None
@@ -751,7 +751,7 @@ def cmd_check(a, root, cfg):
     traza = (root / cfg["trazabilidad"]).read_text(encoding="utf-8") if (root / cfg["trazabilidad"]).exists() else ""
     rx = re.compile(cfg["contract_regex"], re.I)
     mal = 0
-    repos = [a.repo] if a.repo else ["infra", "backend", "frontend"]
+    repos = [a.repo] if a.repo else [x for x in ("infra", "backend", "frontend") if x in cfg["repos"]]
     for r in repos:
         p = repo_path(cfg, root, r)
         if not p or not p.exists() or not git(p, "rev-parse", "HEAD"):
