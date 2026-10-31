@@ -7,18 +7,28 @@
 #   2. (Opcional, recomendado si develop exige checks) crear el secreto PR_TOKEN con un token personal
 #      con permiso de escritura en este repo: los PR creados con el token por defecto NO disparan
 #      los otros workflows (backend-tests, CodeQL...) y los checks requeridos quedarían pendientes.
-# El cron y el botón manual solo existen cuando este archivo está en la rama por defecto (main).
+# El cron, el botón manual y el aviso del frontend (repository_dispatch) solo funcionan cuando este archivo
+# está en la rama por defecto (main). El disparo por push a develop funciona desde que llega a develop.
 name: Reconstruir SUPERPROMPT
 
 on:
   workflow_dispatch:
   schedule:
     - cron: "0 11 * * 1"        # lunes 6:00 a. m. hora de Colombia
+  # Cada fusión a develop del backend. Se ignora el push que solo toca SUPERPROMPT.md
+  # (es la fusión del propio PR automático): así no se genera un ciclo infinito.
   push:
     branches: [develop]
-    paths:
-      - "docs/ai/**"
-      - "tools/hitl/**"
+    paths-ignore:
+      - "docs/ai/SUPERPROMPT.md"
+  # Cada fusión a develop del frontend: la avisa .github/workflows/avisar-superprompt.yml de ese repo.
+  repository_dispatch:
+    types: [frontend-develop]
+
+# Si llegan varias fusiones seguidas, se espera a que termine la corrida en curso.
+concurrency:
+  group: superprompt
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -34,7 +44,7 @@ jobs:
           ref: develop
           fetch-depth: 0
 
-      # Los Excel (backlog y bitácora) no se versionan por ser repo público. Sin ellos el SUPERPROMPT
+      # Los Excel (backlog y bitácora) deben estar versionados en docs/ai/. Sin ellos el SUPERPROMPT
       # saldría con esas secciones vacías y el PR pisaría el bueno: en ese caso el flujo se detiene aquí.
       - name: Verificar insumos
         id: insumos
