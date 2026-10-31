@@ -1,0 +1,69 @@
+{
+  "_nota": "sprint_actual = 3 se dedujo de los nombres de rama (Sprint_3_HU_...) y de la bitácora de octubre; confírmalo. Las fechas inicio/fin son opcionales: si las llenas, el sprint se detecta solo por la fecha. La rotación sale de la presentación de la entrega 1; la Tabla 5C del documento de entrega difiere: confirma cuál es la vigente.",
+  "sprint_actual": 3,
+  "integrantes": [
+    "Thalia Bernal",
+    "William Serna",
+    "Manuela Meneses",
+    "Karen Sandoval"
+  ],
+  "sprints": {
+    "1": {
+      "nombre": "Fundamentos y Arquitectura",
+      "inicio": null,
+      "fin": null,
+      "lider": "Thalia Bernal",
+      "roles": {
+        "Thalia Bernal": "PO / SM",
+        "William Serna": "Backend",
+        "Manuela Meneses": "QA / Test",
+        "Karen Sandoval": "Frontend"
+      }
+    },
+    "2": {
+      "nombre": "Lógica de Negocio y Algoritmos",
+      "inicio": null,
+      "fin": null,
+      "lider": "William Serna",
+      "roles": {
+        "Thalia Bernal": "Backend",
+        "William Serna": "Dirección",
+        "Manuela Meneses": "Frontend",
+        "Karen Sandoval": "QA / Test"
+      }
+    },
+    "3": {
+      "nombre": "Integración, Cierre y Despliegue",
+      "inicio": null,
+      "fin": null,
+      "lider": "Manuela Meneses",
+      "roles": {
+        "Thalia Bernal": "Frontend",
+        "William Serna": "QA / Test",
+        "Manuela Meneses": "Dirección",
+        "Karen Sandoval": "Backend"
+      }
+    }
+  },
+  "ambito": {
+    "Frontend": [
+      "frontend"
+    ],
+    "Backend": [
+      "backend"
+    ],
+    "QA / Test": [
+      "frontend",
+      "backend",
+      "infra"
+    ],
+    "Dirección": [
+      "docs",
+      "infra"
+    ],
+    "PO / SM": [
+      "docs",
+      "infra"
+    ]
+  }
+}

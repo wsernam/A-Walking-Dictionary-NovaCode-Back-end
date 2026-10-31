@@ -1,0 +1,97 @@
+# Reconstruye docs/ai/SUPERPROMPT.md y abre un Pull Request hacia develop para que una PERSONA lo revise.
+# Vive en el repo BACKEND (anfitrión). Nunca hace push directo a develop ni a main.
+#
+# Antes de que funcione, en el repo backend (Settings):
+#   1. Actions > General > Workflow permissions: "Read and write permissions" y marcar
+#      "Allow GitHub Actions to create and approve pull requests".
+#   2. (Opcional, recomendado si develop exige checks) crear el secreto PR_TOKEN con un token personal
+#      con permiso de escritura en este repo: los PR creados con el token por defecto NO disparan
+#      los otros workflows (backend-tests, CodeQL...) y los checks requeridos quedarían pendientes.
+# El cron y el botón manual solo existen cuando este archivo está en la rama por defecto (main).
+name: Reconstruir SUPERPROMPT
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 11 * * 1"        # lunes 6:00 a. m. hora de Colombia
+  push:
+    branches: [develop]
+    paths:
+      - "docs/ai/**"
+      - "tools/hitl/**"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repo backend (anfitrión)
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+
+      # Los Excel (backlog y bitácora) no se versionan por ser repo público. Sin ellos el SUPERPROMPT
+      # saldría con esas secciones vacías y el PR pisaría el bueno: en ese caso el flujo se detiene aquí.
+      - name: Verificar insumos
+        id: insumos
+        run: |
+          if [ -f docs/ai/Backlog_HU.xlsx ] && [ -f docs/ai/Bitacora_de_prompts.xlsx ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Faltan Backlog_HU.xlsx o Bitacora_de_prompts.xlsx en docs/ai/. No se reconstruye el SUPERPROMPT; genéralo en local con: python tools/hitl/hitl.py build"
+          fi
+
+      - name: Repo frontend
+        if: steps.insumos.outputs.ok == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: knnsand/A-Walking-Dictionary-NovaCode-Front-end
+          ref: develop
+          path: _repos/frontend
+          fetch-depth: 0
+
+      # Opcional: infra ya casi no se usa. Si prefieres omitirlo, borra este paso y la entrada "infra" de HITL_REPOS.
+      - name: Repo infra
+        if: steps.insumos.outputs.ok == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: wsernam/walking-dictionary-infra
+          ref: main
+          path: _repos/infra
+          fetch-depth: 0
+
+      - if: steps.insumos.outputs.ok == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - if: steps.insumos.outputs.ok == 'true'
+        run: pip install -r tools/hitl/requirements.txt
+
+      - name: Construir SUPERPROMPT
+        if: steps.insumos.outputs.ok == 'true'
+        env:
+          HITL_REPOS: '{"frontend": "_repos/frontend", "infra": "_repos/infra"}'
+        run: python tools/hitl/hitl.py build
+
+      - name: Abrir PR para revisión humana
+        if: steps.insumos.outputs.ok == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.PR_TOKEN || secrets.GITHUB_TOKEN }}
+          branch: bot/superprompt
+          base: develop
+          add-paths: docs/ai/SUPERPROMPT.md
+          commit-message: "docs(ai): reconstruir SUPERPROMPT"
+          title: "docs(ai): reconstruir SUPERPROMPT"
+          body: |
+            SUPERPROMPT regenerado automáticamente desde backend, frontend e infra, el backlog,
+            los roles, la bitácora y la trazabilidad.
+
+            **Revisión humana obligatoria antes de fusionar:** lee el diff, confirma que no cambió
+            nada inesperado (contratos, decisiones, roles) y que no se coló información sensible.
