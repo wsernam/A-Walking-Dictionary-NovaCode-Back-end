@@ -746,6 +746,118 @@ def cmd_log(a, root, cfg):
     print("Recuerda subir TRAZABILIDAD.md en el mismo PR. Cierra el Excel antes de correr este comando.")
 
 
+# ----------------------------------------------------------------------------- registrar-prs (automático, desde PR fusionados)
+CAMPOS_PR = r"(?:Herramienta|Alcance|Validaci[óo]n|Revisi[óo]n manual)"
+
+
+def seccion_pr(cuerpo, titulo):
+    m = re.search(rf"^##[ \t]+{titulo}[^\n]*\n(.*?)(?=^##[ \t]|\Z)", cuerpo or "", re.M | re.S)
+    return m.group(1).strip() if m else ""
+
+
+def campo_pr(cuerpo, nombre):
+    m = re.search(rf"^{nombre}[^\n:]*:[ \t]*(.*?)(?=^{CAMPOS_PR}|\Z)", cuerpo or "", re.M | re.S)
+    return one_line(m.group(1)) if m else ""
+
+
+def sprint_en_fecha(roles, dia):
+    for k, sp in roles["sprints"].items():
+        if sp.get("inicio") and sp.get("fin") and sp["inicio"] <= dia <= sp["fin"]:
+            return k
+    return str(roles.get("sprint_actual") or "")
+
+
+def cmd_registrar_prs(a, root, cfg):
+    """Lee PR fusionados (JSON de `gh pr list --json ...` con el campo extra `repo`) y registra los que usaron IA.
+    La decisión humana es el PR: lo revisó y fusionó una persona, y el estado sale de sus etiquetas hitl:*.
+    Es idempotente: un PR ya registrado (repo#número en TRAZABILIDAD.md) no se vuelve a registrar."""
+    prs = json.loads(Path(a.entrada).read_text(encoding="utf-8"))
+    roles = json.loads((root / cfg["roles"]).read_text(encoding="utf-8"))
+    desde = cfg.get("registrar_desde", "2000-01-01")
+    gh = roles.get("github", {})
+    p_tr = root / cfg["trazabilidad"]
+    traza_txt = p_tr.read_text(encoding="utf-8") if p_tr.exists() else ""
+    p_x = root / cfg["bitacora_xlsx"]
+    wb = openpyxl.load_workbook(p_x) if p_x.exists() else None
+    nuevos, omitidos = 0, []
+
+    for pr in sorted(prs, key=lambda x: x.get("mergedAt") or ""):
+        repo, n = pr.get("repo"), pr.get("number")
+        ref = f"{repo}#{n}"
+        if repo not in cfg["hoja_por_repo"] or not pr.get("mergedAt"):
+            continue
+        dia = pr["mergedAt"][:10]
+        cuerpo = pr.get("body") or ""
+        if dia < desde or not re.search(r"^\s*-\s*\[[xX]\]\s*Se us[óo] IA", cuerpo, re.M):
+            continue
+        if f"| {ref} |" in traza_txt:
+            continue
+        herramienta = campo_pr(cuerpo, "Herramienta")
+        validacion = campo_pr(cuerpo, "Validaci[óo]n")
+        revision = campo_pr(cuerpo, "Revisi[óo]n manual")
+        alcance = campo_pr(cuerpo, "Alcance")
+        faltan = [t for t, v, m in (("Herramienta y modelo", herramienta, 3), ("Validación", validacion, 15),
+                                    ("Revisión manual (quién y cuándo)", revision, 5)) if len(v) < m]
+        if faltan:
+            omitidos.append((ref, faltan))
+            continue
+        etiquetas = {(l.get("name") if isinstance(l, dict) else str(l)).lower() for l in pr.get("labels", [])}
+        estado = next((e for e in ESTADOS if f"hitl:{e.lower()}" in etiquetas), "VALIDADO")
+        login = (pr.get("author") or {}).get("login", "")
+        quien = ((pr.get("mergedBy") or {}).get("login")) or login
+        autor, responsable = gh.get(login, login), gh.get(quien, quien)
+        sprint = sprint_en_fecha(roles, dia)
+        rol = roles["sprints"].get(sprint, {}).get("roles", {}).get(autor, "N/D")
+        hu = None
+        for txt in (seccion_pr(cuerpo, "Historia de usuario"), pr.get("headRefName") or "", pr.get("title") or ""):
+            m = re.search(r"\bhu[-_ ]?0*(\d+)(?:[._](\d+))?\b", txt, re.I)
+            if m:
+                cand = f"HU-{m.group(1)}.{m.group(2)}" if m.group(2) else f"HU-{int(m.group(1)):03d}"
+                try:
+                    hu = resolver_hu(root / cfg["backlog_xlsx"], cand)
+                except SystemExit:
+                    hu = None
+                if hu:
+                    break
+        hora = (pr["mergedAt"][11:16] or "0000").replace(":", "")
+        pid = f"P-{dia.replace('-', '')}-{hora}" + (f"-{hu}" if hu else "")
+        tarea = one_line(pr.get("title") or ref)
+        resultado = one_line(seccion_pr(cuerpo, "Cambios realizados")) or tarea
+        commits = alcance or ((pr.get("mergeCommit") or {}).get("oid") or "N/D")[:7]
+        hoja_txt = f"{cfg['hoja_por_repo'][repo]} · (sin Excel)"
+        if wb is not None:
+            ws = hoja_bitacora(wb, cfg, repo)
+            ult = ultima_fila(ws)
+            nueva = ult + 1
+            fila = [dt.datetime.fromisoformat(dia), tarea, herramienta, resultado,
+                    f"{estado}: {validacion} (Revisión: {revision})", responsable]
+            for i, v in enumerate(fila):
+                c = ws.cell(nueva, 2 + i)
+                c.value = v
+                src = ws.cell(ult, 2 + i) if ult >= 2 else None
+                if src is not None and src.has_style:
+                    c._style = copy(src._style)
+            if ult >= 2 and ws.row_dimensions[ult].height:
+                ws.row_dimensions[nueva].height = ws.row_dimensions[ult].height
+            hoja_txt = f"{ws.title} · fila {nueva}"
+        fila_t = [dia, pid, sprint, f"{autor} ({rol})", repo, hu or "—", pr.get("headRefName") or "N/D",
+                  commits, ref, estado, hoja_txt, "automático (PR)"]
+        trazar(root, cfg, fila_t)
+        traza_txt += f"| {ref} |"
+        nuevos += 1
+        print(f"Registrado {ref} → {pid} · {estado} · {hoja_txt}")
+
+    if nuevos and wb is not None:
+        shutil.copy2(p_x, p_x.with_suffix(".xlsx.bak"))
+        tmp = p_x.with_suffix(".tmp.xlsx")
+        wb.save(tmp)
+        tmp.replace(p_x)
+        p_x.with_suffix(".xlsx.bak").unlink(missing_ok=True)
+    for ref, faltan in omitidos:
+        print(f"::warning::{ref} usó IA pero no se registró: completa en la descripción del PR {', '.join(faltan)}.")
+    print(f"PR registrados: {nuevos}; omitidos por datos incompletos: {len(omitidos)}.")
+
+
 # ----------------------------------------------------------------------------- check
 def cmd_check(a, root, cfg):
     traza = (root / cfg["trazabilidad"]).read_text(encoding="utf-8") if (root / cfg["trazabilidad"]).exists() else ""
@@ -817,6 +929,10 @@ def main():
     l.add_argument("--confirmo", action="store_true", help="una persona revisó el resultado (puerta P5)")
     l.add_argument("--dry-run", action="store_true")
     l.set_defaults(fn=cmd_log)
+
+    r = sub.add_parser("registrar-prs", help="registra solo los PR fusionados que usaron IA (lo ejecuta el workflow)")
+    r.add_argument("--entrada", required=True, help="JSON de `gh pr list --state merged --json ...` con el campo extra `repo`")
+    r.set_defaults(fn=cmd_registrar_prs)
 
     c = sub.add_parser("check", help="verifica trazabilidad de los commits de la rama")
     c.add_argument("--repo", choices=("frontend", "backend", "infra"))

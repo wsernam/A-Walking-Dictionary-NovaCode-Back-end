@@ -122,3 +122,20 @@ Con los repos reales, el modo por defecto mide ≈ 120.000 caracteres (≈ 40.00
 - Para que el SUPERPROMPT no cambie sin motivo, no lleva fecha: solo cambia cuando cambian sus fuentes. Construyanlo desde `develop` actualizado.
 - Quien lo construya en su PC ve la rama local de cada repo; el del Actions siempre ve `develop`.
 - Si cambian la plantilla, súbanle `plantilla_version`; la huella queda en cada fila de trazabilidad.
+
+
+## Modo automático: el PR es la decisión humana
+
+No hace falta correr `sesion` ni `log` a mano. Cuando se fusiona a `develop` un PR (backend o frontend) que marcó
+«Se usó IA en este PR», el workflow «Reconstruir SUPERPROMPT» copia los datos que el equipo ya escribió en la
+descripción a `TRAZABILIDAD.md` y a la bitácora, y reconstruye el SUPERPROMPT en un PR `bot/superprompt`.
+
+Lo que tiene que haber en la descripción del PR (plantilla del repo, sección «Uso de IA»):
+- `Herramienta y modelo:` (mín. 3 caracteres), `Validación:` (mín. 15) y `Revisión manual (quién y cuándo):` (mín. 5).
+  Si falta alguno, el PR no se registra y el job muestra una advertencia con lo que falta.
+- La HU sale de la sección «Historia de usuario» o del nombre de la rama (acepta `HU-009` y `HU-3.3`).
+- Estado: por defecto `VALIDADO`. Se cambia con una etiqueta antes de fusionar: `hitl:adaptado`, `hitl:corregido` o `hitl:rechazado`.
+- Responsable: quien fusionó el PR. Autor: quien lo abrió. El mapa usuario de GitHub → persona está en `roles.json` (`github`).
+- Solo se registran PR fusionados desde `registrar_desde` (`hitl.config.json`). Registrar dos veces el mismo PR no es posible.
+
+La persona sigue decidiendo: revisa y fusiona el PR, y revisa y fusiona el PR automático. La máquina solo copia.

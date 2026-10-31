@@ -15,12 +15,14 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 11 * * 1"        # lunes 6:00 a. m. hora de Colombia
-  # Cada fusión a develop del backend. Se ignora el push que solo toca SUPERPROMPT.md
-  # (es la fusión del propio PR automático): así no se genera un ciclo infinito.
+  # Cada fusión a develop del backend. Se ignora el push que solo toca los archivos que genera este mismo
+  # flujo (es la fusión de su PR automático): así no se genera un ciclo infinito.
   push:
     branches: [develop]
     paths-ignore:
       - "docs/ai/SUPERPROMPT.md"
+      - "docs/ai/TRAZABILIDAD.md"
+      - "docs/ai/Bitacora_de_prompts.xlsx"
   # Cada fusión a develop del frontend: la avisa .github/workflows/avisar-superprompt.yml de ese repo.
   repository_dispatch:
     types: [frontend-develop]
@@ -73,6 +75,22 @@ jobs:
       - if: steps.insumos.outputs.ok == 'true'
         run: pip install -r tools/hitl/requirements.txt
 
+      # La decisión humana es el PR: una persona lo revisó y lo fusionó, y puso (o no) la etiqueta
+      # hitl:validado / adaptado / corregido. Aquí solo se copian a la bitácora y a TRAZABILIDAD.md los datos
+      # que el equipo ya escribió en la descripción del PR (sección «Uso de IA»). Es idempotente.
+      - name: Registrar en bitácora y trazabilidad los PR fusionados que usaron IA
+        if: steps.insumos.outputs.ok == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CAMPOS=number,title,body,author,mergedBy,labels,headRefName,mergeCommit,mergedAt
+          gh pr list -R wsernam/A-Walking-Dictionary-NovaCode-Back-end --state merged --base develop --limit 100 --json $CAMPOS \
+            | jq 'map(. + {repo:"backend"})' > "$RUNNER_TEMP/back.json"
+          gh pr list -R knnsand/A-Walking-Dictionary-NovaCode-Front-end --state merged --base develop --limit 100 --json $CAMPOS \
+            | jq 'map(. + {repo:"frontend"})' > "$RUNNER_TEMP/front.json"
+          jq -s 'add' "$RUNNER_TEMP/back.json" "$RUNNER_TEMP/front.json" > "$RUNNER_TEMP/prs.json"
+          python tools/hitl/hitl.py registrar-prs --entrada "$RUNNER_TEMP/prs.json"
+
       - name: Construir SUPERPROMPT
         if: steps.insumos.outputs.ok == 'true'
         env:
@@ -86,12 +104,15 @@ jobs:
           token: ${{ secrets.PR_TOKEN || secrets.GITHUB_TOKEN }}
           branch: bot/superprompt
           base: develop
-          add-paths: docs/ai/SUPERPROMPT.md
-          commit-message: "docs(ai): reconstruir SUPERPROMPT"
-          title: "docs(ai): reconstruir SUPERPROMPT"
+          add-paths: |
+            docs/ai/SUPERPROMPT.md
+            docs/ai/TRAZABILIDAD.md
+            docs/ai/Bitacora_de_prompts.xlsx
+          commit-message: "docs(ai): reconstruir SUPERPROMPT y registrar PR con IA"
+          title: "docs(ai): reconstruir SUPERPROMPT y registrar PR con IA"
           body: |
-            SUPERPROMPT regenerado automáticamente desde backend y frontend, el backlog,
-            los roles, la bitácora y la trazabilidad.
+            Generado automáticamente: registra en la bitácora y en TRAZABILIDAD.md los PR fusionados que
+            declararon uso de IA (con los datos de su descripción) y reconstruye el SUPERPROMPT.
 
             **Revisión humana obligatoria antes de fusionar:** lee el diff, confirma que no cambió
             nada inesperado (contratos, decisiones, roles) y que no se coló información sensible.

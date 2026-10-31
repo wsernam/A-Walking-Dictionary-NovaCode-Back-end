@@ -46,5 +46,6 @@
       "max_chars": 20000
     }
   ],
-  "inline_contract_resumen_chars": 2500
+  "inline_contract_resumen_chars": 2500,
+  "registrar_desde": "2026-10-30"
 }

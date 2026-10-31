@@ -6,7 +6,7 @@
 ## 0. Cabecera
 - Plantilla: 3.0 (facdbd59)
 - Sprint en curso: 3 · Integración, Cierre y Despliegue · líder del sprint (aprueba contratos): **Manuela Meneses**
-- Fuentes al construirlo: backend@154484f, frontend@50a853c · backlog: 21 HU · bitácora: 33 sesiones
+- Fuentes al construirlo: backend@ee8631f, frontend@119e1fb · backlog: 21 HU · bitácora: 33 sesiones
 - Se reconstruye con: `python tools/hitl/hitl.py build` (o lo hace el flujo de GitHub Actions y abre un PR para revisión humana)
 
 ## 1. Cómo usar este documento
@@ -561,11 +561,13 @@ detallados faltaban datos del PDF, así que se ajustó:
 
 
 ## 9. Estado e historial de los repositorios
-- `backend`: rama `feature/HITL`, HEAD `154484f`
-- `frontend`: rama `develop`, HEAD `50a853c`
+- `backend`: rama `feature/HITL`, HEAD `ee8631f`
+- `frontend`: rama `chore/avisar-superprompt`, HEAD `119e1fb`
 
 ### Historial de commits
-**backend** — últimos 60 de 161 commits (incluye merges de PR):
+**backend** — últimos 60 de 163 commits (incluye merges de PR):
+  - ee8631f 2026-10-30 Manuela Erazo: chore(hitl): reconstruir el SUPERPROMPT en cada fusiÃ³n a develop (backend y frontend)
+  - adfd369 2026-10-30 Manuela Erazo: chore(hitl): quitar infra del SUPERPROMPT y del workflow
   - 154484f 2026-10-30 Manuela Erazo: chore(hitl): versionar backlog y bitÃ¡cora para la reconstrucciÃ³n automÃ¡tica
   - 9c0f22c 2026-10-30 Manuela Erazo: feat(hitl): SUPERPROMPT maestro, trazabilidad y bitÃ¡cora
   - 0b3c6bb 2026-10-30 Manuela Erazo: Merge pull request #37 from wsernam/feature/hu-19-reporte-modo-estudio
@@ -624,9 +626,12 @@ detallados faltaban datos del PDF, así que se ajustó:
   - afed2d5 2026-10-08 Manuela Erazo: fix(security): respuestas 5xx genericas en produccion y handlers de proceso (OWASP H-08)
   - e717735 2026-10-08 Manuela Erazo: fix(security): endurecer JWT y DISABLE_AUTH (OWASP H-04, H-12)
   - b0fff62 2026-10-08 wsernam: Merge pull request #19 from wsernam/feature/owasp-h09-logs-seguridad
-  - 31cd3b2 2026-10-08 wsernam: Merge branch 'develop' into feature/owasp-h09-logs-seguridad
-  - c95b563 2026-10-08 wsernam: Merge pull request #18 from wsernam/feature/owasp-h01-crud-usuarios
-**frontend** — últimos 60 de 234 commits (incluye merges de PR):
+**frontend** — últimos 60 de 239 commits (incluye merges de PR):
+  - 119e1fb 2026-10-30 Manuela Erazo: chore(ci): avisar al backend para reconstruir el SUPERPROMPT en cada fusiÃ³n a develop
+  - 5153652 2026-10-30 wsernam: Merge pull request #63 from knnsand/feature/HU-019-reporte-modo-estudio-pdf
+  - c0e41a6 2026-10-30 thaliabernalepe: feat: implementacion HU-019 reporte del modo de estudio PDF
+  - 78927cc 2026-10-30 Karen Sandoval: Merge pull request #62 from knnsand/chore/ci-frontend
+  - 4a64b5b 2026-10-30 Karen Sandoval: Fix: Ajuste de modo oscuro
   - 50a853c 2026-10-30 thaliabernalepe: Merge pull request #61 from knnsand/feature/HU-020-reporte-curso-pdf
   - 4bbc2a6 2026-10-29 wsernam: feat(HU-020): reporte de estudiantes del curso en PDF
   - 0d5cf5e 2026-10-29 wsernam: feat(HU-020): reporte de estudiantes del curso en PDF
@@ -682,11 +687,6 @@ detallados faltaban datos del PDF, así que se ajustó:
   - 3cec3ed 2026-10-19 Karen Sandoval: feat(i18n): migrar MazoItem a ingles
   - 910da9e 2026-10-19 Karen Sandoval: feat(i18n): migrar MazosEstudio a ingles
   - fcc7742 2026-10-19 Karen Sandoval: feat(i18n): migrar Sidebar a ingles
-  - 9c4e2f6 2026-10-18 Manuela Erazo: fix(HU-011): mostrar sugerencias en el dorso de la tarjeta y aplanar la respuesta del backend
-  - dc27b74 2026-10-18 Manuela Erazo: Merge pull request #44 from knnsand/feature/HU-009-exportar-pdf
-  - 8dbf7fc 2026-10-18 Manuela Erazo: feat: sugerencias de palabras y cliente API de enriquecimiento
-  - 520fe4c 2026-10-18 wsernam: test(e2e): probar el autoenvÃ­o del quiz al agotarse el tiempo (CA-3.2.1)
-  - 3c3626f 2026-10-18 wsernam: Merge pull request #45 from knnsand/feature/pruebas-e2e
 
 ## 10. Historial de prompts y validaciones (bitácora)
 33 sesiones registradas (una sesión copiada en varias hojas cuenta una vez), en orden cronológico (2026-08-18 a 2026-10-23). Estados: ADAPTADO 11, CORREGIDO 1, VALIDACIÓN 1, VALIDADO 20.
