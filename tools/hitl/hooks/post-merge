@@ -1,0 +1,4 @@
+#!/bin/sh
+# Copia este archivo a .git/hooks/post-merge del repo backend (chmod +x) para reconstruir
+# el SUPERPROMPT cada vez que haces `git pull` en infra. No hace commit: lo revisas tú.
+python tools/hitl/hitl.py build || echo "No se pudo reconstruir el SUPERPROMPT (¿falta openpyxl?)"

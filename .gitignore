@@ -20,3 +20,8 @@ Thumbs.db
 
 # Logs
 *.log
+
+# HITL
+docs/ai/generated/
+docs/ai/*.bak
+_repos/

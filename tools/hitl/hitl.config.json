@@ -1,0 +1,50 @@
+{
+  "repos": {
+    "backend": ".",
+    "frontend": "../A-Walking-Dictionary-NovaCode-Front-end"
+  },
+  "rama_base": "develop",
+  "contract_regex": "(contrato|contract|openapi|swagger|esquema|schema|codigos|(^|[\\W_])api([\\W_]|$))",
+  "inline_contract_max_chars": 12000,
+  "bitacora_xlsx": "docs/ai/Bitacora_de_prompts.xlsx",
+  "backlog_xlsx": "docs/ai/Backlog_HU.xlsx",
+  "hoja_por_repo": {
+    "frontend": "Frontend",
+    "backend": "Backend",
+    "infra": "Backend",
+    "docs": "Presentaciones - Documentos"
+  },
+  "plantilla_superprompt": "docs/ai/SUPERPROMPT.plantilla.md",
+  "plantilla_sesion": "docs/ai/SESION.plantilla.md",
+  "superprompt": "docs/ai/SUPERPROMPT.md",
+  "contexto": "docs/ai/CONTEXTO_PROYECTO.md",
+  "decisiones": "docs/ai/DECISIONES.md",
+  "reglas": "docs/ai/REGLAS.md",
+  "roles": "docs/ai/roles.json",
+  "salida": "docs/ai/generated",
+  "trazabilidad": "docs/ai/TRAZABILIDAD.md",
+  "fuentes_md": [
+    {
+      "repo": "backend",
+      "ruta": "CLAUDE.md",
+      "titulo": "CLAUDE.md del backend (reglas del equipo, DER oficial, discrepancias y decisiones)",
+      "secciones": [
+        "Regla de trabajo más importante",
+        "Protocolo Human-in-the-Loop",
+        "Modelo de datos oficial",
+        "Discrepancias pendientes",
+        "Convenciones generales",
+        "Decisiones del equipo"
+      ],
+      "max_chars": 45000
+    },
+    {
+      "repo": "frontend",
+      "ruta": "docs/bitacora.md",
+      "titulo": "Bitácora de trabajo con IA del frontend",
+      "secciones": null,
+      "max_chars": 20000
+    }
+  ],
+  "inline_contract_resumen_chars": 2500
+}
