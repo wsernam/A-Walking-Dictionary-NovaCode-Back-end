@@ -23,6 +23,12 @@ describe('HU-2.1 — Revisar y aprobar tarjetas', () => {
     expect(body.map((t) => t.id_tarjeta)).toContain(tarjeta.id_tarjeta);
   });
 
+  it('CA-2.1.1 Filtrado: cada tarjeta pendiente trae el nombre del estudiante que la aportó', async () => {
+    const { body } = await api('GET', '/cards/pending', { como: 'ana' });
+    const propia = body.find((t) => t.id_tarjeta === tarjeta.id_tarjeta);
+    expect(propia.estudiante).toBe('Juan Estudiante');
+  });
+
   it('CA-2.1.2 Edición: la docente corrige la definición de una tarjeta pendiente', async () => {
     const { status, body } = await api('PUT', `/cards/${tarjeta.id_tarjeta}`, {
       como: 'ana',
