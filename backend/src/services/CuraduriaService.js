@@ -13,8 +13,18 @@ import { AporteRepository } from '../repositories/AporteRepository.js';
 
 export const CuraduriaService = {
 
+  // Cada tarjeta pendiente lleva el nombre del estudiante que la creó, igual que el historial
+  // de aprobadas, para que la docente vea quién la aportó en "Revisión de palabras".
   async listarPendientes() {
-    return TarjetaRepository.listarPorEstado('pendiente_revision');
+    const tarjetas = await TarjetaRepository.listarPorEstado('pendiente_revision');
+    const autores = await AporteRepository.obtenerAutoresOriginales(
+      tarjetas.map((t) => t.id_tarjeta)
+    );
+
+    return tarjetas.map((tarjeta) => ({
+      ...tarjeta,
+      estudiante: autores.get(tarjeta.id_tarjeta) ?? 'Desconocido',
+    }));
   },
 
   // Historial de aprobadas: cada tarjeta lleva además su registro, variante_regional

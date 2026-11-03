@@ -48,9 +48,34 @@ beforeEach(() => {
 describe('CuraduriaService.listarPendientes — CA-2.1.1', () => {
   it('CA-2.1.1: lista exclusivamente las tarjetas en "pendiente_revision"', async () => {
     TarjetaRepository.listarPorEstado.mockResolvedValue([tarjetaPendiente]);
+    AporteRepository.obtenerAutoresOriginales.mockResolvedValue(new Map([[7, 'Juan Estudiante']]));
 
-    await expect(CuraduriaService.listarPendientes()).resolves.toEqual([tarjetaPendiente]);
+    await expect(CuraduriaService.listarPendientes()).resolves.toEqual([
+      { ...tarjetaPendiente, estudiante: 'Juan Estudiante' },
+    ]);
     expect(TarjetaRepository.listarPorEstado).toHaveBeenCalledWith('pendiente_revision');
+  });
+
+  it('CA-2.1.1: cada tarjeta pendiente incluye el nombre del estudiante que la creó', async () => {
+    TarjetaRepository.listarPorEstado.mockResolvedValue([
+      tarjetaPendiente,
+      { ...tarjetaPendiente, id_tarjeta: 8, palabra: 'baking' },
+    ]);
+    AporteRepository.obtenerAutoresOriginales.mockResolvedValue(new Map([[7, 'Juan Estudiante']]));
+
+    const pendientes = await CuraduriaService.listarPendientes();
+
+    expect(AporteRepository.obtenerAutoresOriginales).toHaveBeenCalledWith([7, 8]);
+    expect(pendientes[0]).toMatchObject({ id_tarjeta: 7, estudiante: 'Juan Estudiante' });
+    // Sin aporte "creada" no hay autor conocido: mismo valor que el historial de aprobadas.
+    expect(pendientes[1]).toMatchObject({ id_tarjeta: 8, estudiante: 'Desconocido' });
+  });
+
+  it('CA-2.1.1: sin tarjetas pendientes responde una lista vacía', async () => {
+    TarjetaRepository.listarPorEstado.mockResolvedValue([]);
+    AporteRepository.obtenerAutoresOriginales.mockResolvedValue(new Map());
+
+    await expect(CuraduriaService.listarPendientes()).resolves.toEqual([]);
   });
 });
 
