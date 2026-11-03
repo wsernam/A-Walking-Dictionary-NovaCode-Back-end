@@ -5,8 +5,8 @@
 
 ## 0. Cabecera
 - Plantilla: 3.0 (facdbd59)
-- Sprint en curso: 3 · Integración, Cierre y Despliegue · líder del sprint (aprueba contratos): **Manuela Meneses**
-- Fuentes al construirlo: backend@ee8631f, frontend@119e1fb · backlog: 21 HU · bitácora: 33 sesiones
+- Sprint en curso: 4 · Reportes en PDF (HE-07) · líder del sprint (aprueba contratos): **Karen Sandoval**
+- Fuentes al construirlo: backend@ad6a82d, frontend@119e1fb · backlog: 21 HU · bitácora: 33 sesiones
 - Se reconstruye con: `python tools/hitl/hitl.py build` (o lo hace el flujo de GitHub Actions y abre un PR para revisión humana)
 
 ## 1. Cómo usar este documento
@@ -30,10 +30,11 @@ Eres un asistente de desarrollo del equipo NovaCode. Propones, implementas y exp
 ### 2.1 Origen del proyecto
 *Fuentes: Propuesta v2, Entrega 1 (Definición del Producto) y Presentación de la entrega 1.*
 
-- **Asignatura y equipo.** Proyecto II, Ingeniería de Sistemas, Universidad del Cauca (Departamento de Sistemas). Grupo **NovaCode**, cuatro integrantes: Thalia Bernal, William Serna, Manuela Meneses y Karen Sandoval. Duración: 16 semanas del semestre, metodología Scrum en 3 sprints.
+- **Asignatura y equipo.** Proyecto II, Ingeniería de Sistemas, Universidad del Cauca (Departamento de Sistemas). Grupo **NovaCode**, cuatro integrantes: Thalia Bernal, William Serna, Manuela Meneses y Karen Sandoval. Duración: 16 semanas del semestre, metodología Scrum; se planeó en 3 sprints y desde el Sprint 1 está ampliada a **4 sprints** (DP-28).
 - **Antecedente técnico.** Parte del trabajo de Arquitectura de la Información «Sistema de tarjetas de aprendizaje de idiomas con base a un tesauro» (Ashlee V. Campaz Valencia y Karen N. Sandoval Sánchez): mazos, tarjetas, etiquetas de contexto, búsqueda y navegación. Era un producto genérico («un Anki mejorado») con usuarios hipotéticos, GraphDB y estándar SKOS.
 - **Giro del proyecto.** Se adaptó ese trabajo a un caso real y validado: el curso de **Literatura Anglófona** de la Licenciatura en Educación Bilingüe. La docente fue entrevistada en dos reuniones; en la segunda validó punto por punto cada funcionalidad. Cambió quién sube el contenido, para quién es y con qué tecnología se construye; se conservó la arquitectura de información.
 - **Rúbrica que gobierna el proyecto.** Sustentación (15 %), Introducción y justificación (10 %), Estado del arte técnico (20 %), Diseño del producto y arquitectura (20 %), Gestión de proyecto y roles (20 %), Uso responsable de IA generativa (10 %). Exige evidencia de usuarios reales, bitácora de prompts, validación crítica de la IA y rotación de roles.
+- **Rúbrica de la entrega de cada sprint** (documento del Sprint 1): Cumplimiento (5 %), Presentación y demo (10 %), Refinamiento de ítems anteriores (5 %), Pipeline CI/CD + QA + Seguridad (20 %), Avance de desarrollo (25 %), Code walkthrough (15 %), Plataforma de gestión + rotación (10 %) y Uso de IA en código (10 %: bitácora actualizada, código asistido marcado en PR y commits, validación y pruebas).
 
 ### 2.2 Problema
 El curso trabaja una lectura por semana (aprox. un libro cada dos semanas) y los estudiantes deben incorporar vocabulario nuevo. El ejercicio **«A Walking Dictionary»** se hacía en papel: cada semana un estudiante distinto reportaba palabras nuevas y al final se compilaban para un quiz. Problemas: pérdida de información, consulta limitada del vocabulario de semanas anteriores, ausencia de registro digital reutilizable, sin repaso espaciado, sin nota individual, y sin capturar lo central del curso: el **contexto cultural, dialectal y de registro** de cada palabra. La docente lo había intentado con Classroom y una tabla de Excel no interactiva.
@@ -93,7 +94,7 @@ Relaciones clave: Curso 1:N Mazo; Mazo 1:N Tarjeta; Usuario N:N Tarjeta vía Apo
 ### 2.9 Restricciones y atributos de calidad *(metas de la Entrega 1)*
 - Navegadores: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+.
 - Rendimiento: carga < 2 s y latencia de API < 500 ms. Disponibilidad 99 % durante las 16 semanas. Escalabilidad: 60 usuarios concurrentes. Almacenamiento: tope de 1 GB en capa gratuita.
-- Seguridad: 0 vulnerabilidades críticas, contraseñas con bcrypt, JWT con claims de rol, suite OWASP Top 10 en pruebas. *(La Entrega 1 menciona OAuth; el backlog y la presentación hablan de JWT + bcrypt. Lo vigente es lo que esté implementado en el backend: no asumas.)*
+- Seguridad: 0 vulnerabilidades críticas, **inicio de sesión con Google OAuth y registro con correo institucional sin contraseña, con JWT con claims de rol** (DP-26; la Entrega 1 contemplaba correo y contraseña con bcrypt, ya no vigente), suite OWASP Top 10 en pruebas. Ante dudas, manda lo implementado en el backend.
 - Usabilidad: accesibilidad > 90. Mantenibilidad: **cobertura de pruebas > 70 %** y API documentada. Confiabilidad: MTBF > 30 días.
 
 ### 2.10 Limitaciones asumidas
@@ -109,7 +110,8 @@ Relaciones clave: Curso 1:N Mazo; Mazo 1:N Tarjeta; Usuario N:N Tarjeta vía Apo
 Disponibilidad de la docente (reuniones los miércoles en la mañana, grupo de WhatsApp); baja participación (datos de prueba y piloto en su clase del jueves 9 a. m. a 1 p. m.); inexperiencia con SM-2 (pruebas unitarias tempranas); ambigüedad legal de frases de ejemplo (límite de 150 caracteres, opcional); expansión de alcance hacia GraphDB/SKOS o diccionarios de pago (fuera del MVP); duplicados (restricción en el motor); pronunciación que consume tiempo (corte a mitad del Sprint 2).
 
 ### 2.12 Gestión del proyecto
-- **Scrum** en 3 sprints: 1 Fundamentos y Arquitectura; 2 Lógica de Negocio y Algoritmos; 3 Integración, Cierre y Despliegue (pruebas de rendimiento y seguridad, despliegue en producción).
+- **Scrum** en 4 sprints: 1 Fundamentos y Arquitectura (27-ago a 9-sep); 2 Lógica de Negocio y Algoritmos (10 a 23-sep); 3 Integración, Cierre y Despliegue (24-sep a 21-oct); 4 Reportes en PDF, épica HE-07 completa, HU-018 a HU-021 (22-oct a 19-nov). Trello: listas Backlog y Sprint 0 a Sprint 4.
+- **Siete épicas** (HE-01 a HE-07): las cinco originales más HE-06 (consulta centralizada de vocabulario y mazos) y HE-07 (reportes); 21 HU y 61 criterios de aceptación con ID (DP-24 y DP-25). El detalle vigente está en la sección 6.
 - **Rotación de roles obligatoria**: cada integrante debe pasar por al menos dos roles distintos; el liderazgo cambia cada sprint. **La rotación vigente es la de la sección 5 (se genera desde `docs/ai/roles.json`); no uses otra.**
 - Gitflow: ramas `feature/...` desde `develop`, PR hacia `develop` con al menos una revisión, `main` protegida, un repo por capa (frontend, backend, infra).
 - Épicas, historias y criterios de aceptación: los define el backlog (sección 6), con prioridad, estado y estimaciones. Cada HU se trabaja contra sus criterios Dado/Cuando/Entonces.
@@ -118,7 +120,7 @@ Disponibilidad de la docente (reuniones los miércoles en la mañana, grupo de W
 - **Declarado**: ChatGPT, Claude y Gemini para estructurar documentación y fundamentación; Claude para componentes React, endpoints Node.js y refactorización; Stitch para mockups; Google AI Studio para prototipado de flujos.
 - **Límites declarados**: la IA propone; las decisiones de diseño, requisitos y planeación son del equipo. No hay decisiones de arquitectura autónomas de la IA. Todo el código se revisa, se prueba y se verifica manualmente (incluida seguridad OWASP Top 10).
 - **Validación crítica**: verificar cada referencia, corregir errores, adaptar al contexto del proyecto, reescribir con tono académico. Toda cifra o afirmación fáctica generada se contrasta con una fuente confiable.
-- **Diferenciación**: el contenido asistido por IA se marca de forma explícita («[Asistido por IA]» o «Esta sección fue estructurada con asistencia de …») indicando herramienta y validación hecha; el contenido propio no lleva etiqueta.
+- **Diferenciación**: el contenido asistido por IA se marca de forma explícita («[Asistido por IA]» o «Esta sección fue estructurada con asistencia de …») indicando herramienta y validación hecha; el contenido propio no lleva etiqueta. **En el código, los PR llevan `[IA-ASSISTED]` al comienzo del título**, con `Herramienta:` y `Validación:` en la descripción; los commits hechos con Claude Code llevan `Co-Authored-By`, y lo hecho en una conversación se declara en el PR y en la bitácora (DP-30).
 - **Bitácora de prompts**: cada uso relevante se registra con fecha, prompt, herramienta, resultado y validación (VALIDADO, ADAPTADO, CORREGIDO o RECHAZADO), con el responsable. Es criterio crítico de la rúbrica.
 
 ### 2.14 Convenciones para entender el historial
@@ -152,6 +154,13 @@ Registro de decisiones del proyecto (de lo más antiguo a lo más reciente). Agr
 - **DP-21 · Entrega 1, sección 6; Presentación** · Uso de IA bajo política de validación crítica; sin decisiones de arquitectura autónomas de la IA; contenido asistido etiquetado; bitácora de prompts obligatoria. · Rúbrica y transparencia. · — · Equipo.
 - **DP-22 · CLAUDE.md del backend, 2026-10-17** · Las pruebas de la API viven en el repo del backend (`backend/pruebas-funcionales/`, workflow `funcionales.yml`) y las E2E de Playwright en el del frontend (`e2e.yml`); nada de CI va en el repo de infra porque no tiene CI. · Cada repo prueba lo suyo. · Poner pruebas en infra. · Equipo.
 - **DP-23 · Equipo** · El SUPERPROMPT y la trazabilidad de IA viven en el repo del backend (`docs/ai/`). · El repo de infra ya no se usa salvo pruebas locales. · Instalarlo en infra. · Equipo.
+- **DP-24 · Documento del Sprint 1, sección 3 (2026-10-23)** · Las cinco épicas de la Entrega 1 (EPIC-001…005) pasan a **HE-01…HE-05**, con prioridad y estimación de riesgo, y se agregan **HE-06** (consulta centralizada de vocabulario y mazos) y **HE-07** (generación de reportes): en total **siete épicas**; HE-06 y HE-07 son de prioridad Media y riesgo Medio. · Cubrir necesidades que surgieron al desarrollar (consultar el vocabulario y los mazos aprobados; reportes para la docente) sin desplazar el núcleo ya priorizado. · Dejarlas dentro de las cinco épicas originales. · Equipo.
+- **DP-25 · Documento del Sprint 1, sección 3** · Las HU pasan de 15 a **21**: HU-016 (diccionario global) y HU-017 (consulta de mazos) en HE-06; HU-018 a HU-021 (reportes PDF de progreso individual, modo de estudio, estudiantes del curso y resultados por quiz) en HE-07. Los criterios de aceptación pasan de viñetas en prosa a **61 criterios con ID** (CA-1.1…CA-21.3) en formato Dado/Cuando/Entonces, incluidos el bloqueo por mazo cerrado (CA-2.3), el reintento no autorizado del quiz (CA-8.3), el modo Invitado (CA-15.3) y el control de acceso a reportes con HTTP 403 (CA-18.3, 19.3, 20.3 y 21.3). HU-017 no estaba en la planeación: surgió durante la implementación y se formalizó cuando ya estaba construida. · Trazabilidad entre épicas, HU y tareas, y criterios que se convierten directamente en pruebas. · — · Equipo.
+- **DP-26 · Documento del Sprint 1, sección 3 (HU-012 y HU-015)** · El registro se hace con el correo institucional, **sin contraseña**, y el inicio de sesión es con **Google OAuth** (`POST /api/v1/auth/google`, validación del `idToken` y JWT con rol). Reemplaza el correo + contraseña con bcrypt de la Entrega 1. · No manejar contraseñas y limitar el acceso a cuentas institucionales. · Correo y contraseña con bcrypt. · Equipo.
+- **DP-27 · Documento del Sprint 1, sección 3** · La API se unifica bajo `/api/v1/…` y el endpoint de mazos pasa de `/api/v1/desk` a `/api/v1/decks`. · Contrato de API consistente entre frontend y backend. · — · Equipo.
+- **DP-28 · Documento del Sprint 1, secciones 3 y 5.2** · La planificación pasa de **tres a cuatro sprints**: Sprint 1 (27-ago a 9-sep), Sprint 2 (10-sep a 23-sep), Sprint 3 (24-sep a 21-oct) y Sprint 4 (22-oct a 19-nov, en curso), al que se asigna la épica HE-07 completa (HU-018 a HU-021). El tablero de Trello pasa de listas genéricas a listas por sprint (Backlog, Sprint 0 a Sprint 4). · Espacio para completar los reportes sin comprimir el Sprint 3. · Mantener tres sprints. · Equipo.
+- **DP-29 · Documento del Sprint 1, sección 7.2** · La rotación vigente es la **Tabla 5C** de la Entrega 1 (no la de la presentación): Thalía PO/SM → Backend → Frontend; Karen DevOps → Frontend → Backend; William Backend → PO/SM → DevOps; Manuela Frontend → DevOps → PO/SM. Con el Sprint 4 cada integrante pasa por los cuatro roles y el PO/SM del Sprint 4 es distinto al del Sprint 3. · Cumplir la rúbrica: el PO/SM no repite. · — · Equipo.
+- **DP-30 · Documento del Sprint 1, sección 8.2** · Marca de código con IA: los PR llevan **`[IA-ASSISTED]` al comienzo del título**, con herramienta y modelo y la validación en la descripción. Los commits hechos con Claude Code llevan la línea `Co-Authored-By`; el trabajo hecho en una conversación (sin esa línea automática) se declara en el PR y en la bitácora de prompts. · Código asistido marcado y verificable (rúbrica de uso de IA). · — · Equipo.
 
 ## 5. Reglas del equipo
 Reglas del equipo (obligatorias para todos y para el agente):
@@ -164,29 +173,32 @@ Reglas del equipo (obligatorias para todos y para el agente):
 6. Gitflow: rama `feature/...` desde `develop` (minúsculas, guiones, sin tildes; puede incluir el ID de la HU), Pull Request hacia `develop`, con al menos un compañero que apruebe. Al cierre de cada sprint: `release/sprintX` desde `develop` → `main`, y `main` de vuelta a `develop`. `main` está protegida. Commits con prefijo `feat:`, `fix:`, `docs:` o `chore:`.
 7. Nunca subir `.env` con valores reales; solo `.env.example`.
 8. Cobertura de pruebas del front: más del 70 % (rúbrica del documento de entrega).
+9. **Marca de IA en PR y commits.** Todo PR con código o contenido asistido por IA lleva `[IA-ASSISTED]` al comienzo del título, marca «Se usó IA en este PR» y completa en «Uso de IA»: `Herramienta y modelo:`, `Alcance (commits):`, `Validación:` y `Revisión manual (quién y cuándo):`. Los commits hechos con Claude Code llevan la línea `Co-Authored-By`; lo hecho en una conversación se declara en el PR y en la bitácora de prompts.
+10. **Estado del registro.** Al fusionar un PR con IA, el flujo automático lo registra como `VALIDADO`; para otro estado se pone una etiqueta antes de fusionar: `hitl:adaptado`, `hitl:corregido` o `hitl:rechazado`.
 
 ## 6. Roles y rotación
-Roles en el sprint en curso (Sprint 3 · Integración, Cierre y Despliegue):
+Roles en el sprint en curso (Sprint 4 · Reportes en PDF (HE-07)):
 
-| Integrante | Rol en el Sprint 3 | |
+| Integrante | Rol en el Sprint 4 | |
 |---|---|---|
-| Thalia Bernal | Frontend |  |
-| William Serna | QA / Test |  |
-| Manuela Meneses | Dirección |  |
-| Karen Sandoval | Backend |  |
+| Thalia Bernal | DevOps / QA-Seguridad |  |
+| William Serna | Frontend |  |
+| Manuela Meneses | Backend |  |
+| Karen Sandoval | PO / SM |  |
 
 Rotación completa del proyecto (única fuente vigente):
 
-| Integrante | Sprint 1 | Sprint 2 | Sprint 3 |
-|---|---|---|---|
-| Thalia Bernal | PO / SM | Backend | Frontend |
-| William Serna | Backend | Dirección | QA / Test |
-| Manuela Meneses | QA / Test | Frontend | Dirección |
-| Karen Sandoval | Frontend | QA / Test | Backend |
+| Integrante | Sprint 1 | Sprint 2 | Sprint 3 | Sprint 4 |
+|---|---|---|---|---|
+| Thalia Bernal | PO / SM | Backend | Frontend | DevOps / QA-Seguridad |
+| William Serna | Backend | PO / SM | DevOps / QA-Seguridad | Frontend |
+| Manuela Meneses | Frontend | DevOps / QA-Seguridad | PO / SM | Backend |
+| Karen Sandoval | DevOps / QA-Seguridad | Frontend | Backend | PO / SM |
 
-- Sprint 1 · Fundamentos y Arquitectura: líder Thalia Bernal
-- Sprint 2 · Lógica de Negocio y Algoritmos: líder William Serna
-- Sprint 3 · Integración, Cierre y Despliegue: líder Manuela Meneses
+- Sprint 1 · Fundamentos y Arquitectura (2026-08-27 a 2026-09-09): líder Thalia Bernal
+- Sprint 2 · Lógica de Negocio y Algoritmos (2026-09-10 a 2026-09-23): líder William Serna
+- Sprint 3 · Integración, Cierre y Despliegue (2026-09-24 a 2026-10-21): líder Manuela Meneses
+- Sprint 4 · Reportes en PDF (HE-07) (2026-10-22 a 2026-11-19): líder Karen Sandoval
 
 Ámbito de trabajo de cada rol (repos donde normalmente trabaja):
 
@@ -194,9 +206,8 @@ Rotación completa del proyecto (única fuente vigente):
 |---|---|
 | Frontend | frontend |
 | Backend | backend |
-| QA / Test | frontend, backend, infra |
-| Dirección | docs, infra |
-| PO / SM | docs, infra |
+| DevOps / QA-Seguridad | frontend, backend |
+| PO / SM | docs |
 
 Si la tarea de una sesión cae fuera del ámbito del rol de quien trabaja, avísalo antes de empezar: requiere visto bueno del líder del sprint.
 
@@ -561,11 +572,12 @@ detallados faltaban datos del PDF, así que se ajustó:
 
 
 ## 9. Estado e historial de los repositorios
-- `backend`: rama `feature/HITL`, HEAD `ee8631f`
+- `backend`: rama `feature/HITL`, HEAD `ad6a82d`
 - `frontend`: rama `chore/avisar-superprompt`, HEAD `119e1fb`
 
 ### Historial de commits
-**backend** — últimos 60 de 163 commits (incluye merges de PR):
+**backend** — últimos 60 de 164 commits (incluye merges de PR):
+  - ad6a82d 2026-10-30 Manuela Erazo: feat(hitl): registro automÃ¡tico de PR con IA en bitÃ¡cora y trazabilidad
   - ee8631f 2026-10-30 Manuela Erazo: chore(hitl): reconstruir el SUPERPROMPT en cada fusiÃ³n a develop (backend y frontend)
   - adfd369 2026-10-30 Manuela Erazo: chore(hitl): quitar infra del SUPERPROMPT y del workflow
   - 154484f 2026-10-30 Manuela Erazo: chore(hitl): versionar backlog y bitÃ¡cora para la reconstrucciÃ³n automÃ¡tica
@@ -625,7 +637,6 @@ detallados faltaban datos del PDF, así que se ajustó:
   - ab71549 2026-10-08 Manuela Erazo: fix(security): docente_id desde el token y solo docentes crean cursos (OWASP H-13)
   - afed2d5 2026-10-08 Manuela Erazo: fix(security): respuestas 5xx genericas en produccion y handlers de proceso (OWASP H-08)
   - e717735 2026-10-08 Manuela Erazo: fix(security): endurecer JWT y DISABLE_AUTH (OWASP H-04, H-12)
-  - b0fff62 2026-10-08 wsernam: Merge pull request #19 from wsernam/feature/owasp-h09-logs-seguridad
 **frontend** — últimos 60 de 239 commits (incluye merges de PR):
   - 119e1fb 2026-10-30 Manuela Erazo: chore(ci): avisar al backend para reconstruir el SUPERPROMPT en cada fusiÃ³n a develop
   - 5153652 2026-10-30 wsernam: Merge pull request #63 from knnsand/feature/HU-019-reporte-modo-estudio-pdf
@@ -730,7 +741,7 @@ detallados faltaban datos del PDF, así que se ajustó:
 (todavía no hay filas de trazabilidad; la primera se crea con `hitl.py log`)
 
 ## 12. Protocolo HITL (puertas obligatorias)
-Te detienes en cada puerta y esperas la frase indicada de la persona responsable de la sesión (o del líder del sprint, **Manuela Meneses**, en P2). Sin esa frase no avanzas.
+Te detienes en cada puerta y esperas la frase indicada de la persona responsable de la sesión (o del líder del sprint, **Karen Sandoval**, en P2). Sin esa frase no avanzas.
 
 | Puerta | Cuándo | Qué entregas | Frase para continuar |
 |---|---|---|---|

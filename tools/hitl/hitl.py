@@ -788,7 +788,9 @@ def cmd_registrar_prs(a, root, cfg):
             continue
         dia = pr["mergedAt"][:10]
         cuerpo = pr.get("body") or ""
-        if dia < desde or not re.search(r"^\s*-\s*\[[xX]\]\s*Se us[óo] IA", cuerpo, re.M):
+        marcado = bool(re.search(r"^\s*-\s*\[[xX]\]\s*Se us[óo] IA", cuerpo, re.M))
+        etiquetado = bool(re.match(r"\s*\[IA-ASSISTED\]", pr.get("title") or "", re.I))
+        if dia < desde or not (marcado or etiquetado):
             continue
         if f"| {ref} |" in traza_txt:
             continue
@@ -821,7 +823,10 @@ def cmd_registrar_prs(a, root, cfg):
                     break
         hora = (pr["mergedAt"][11:16] or "0000").replace(":", "")
         pid = f"P-{dia.replace('-', '')}-{hora}" + (f"-{hu}" if hu else "")
-        tarea = one_line(pr.get("title") or ref)
+        tarea = one_line(re.sub(r"^\s*\[IA-ASSISTED\]\s*", "", pr.get("title") or "", flags=re.I)) or ref
+        if marcado != etiquetado:
+            print(f"::notice::{ref}: " + ("falta «[IA-ASSISTED]» al comienzo del título del PR." if marcado
+                                          else "tiene «[IA-ASSISTED]» pero no marca «Se usó IA en este PR»."))
         resultado = one_line(seccion_pr(cuerpo, "Cambios realizados")) or tarea
         commits = alcance or ((pr.get("mergeCommit") or {}).get("oid") or "N/D")[:7]
         hoja_txt = f"{cfg['hoja_por_repo'][repo]} · (sin Excel)"

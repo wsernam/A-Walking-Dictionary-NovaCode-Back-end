@@ -1,6 +1,6 @@
 {
-  "_nota": "sprint_actual = 3 se dedujo de los nombres de rama (Sprint_3_HU_...) y de la bitácora de octubre; confírmalo. Las fechas inicio/fin son opcionales: si las llenas, el sprint se detecta solo por la fecha. La rotación sale de la presentación de la entrega 1; la Tabla 5C del documento de entrega difiere: confirma cuál es la vigente.",
-  "sprint_actual": 3,
+  "_nota": "Rotación = Tabla 5C de la Entrega 1 (confirmada en el documento del Sprint 1, sección 7.2). Sprint 4 (22-oct a 19-nov, HE-07 reportes en PDF) se dedujo: cada integrante pasa por los cuatro roles y el PO/SM del Sprint 4 es distinto al del Sprint 3; el documento no lista los roles del Sprint 4, confírmalos. Las fechas de los sprints salen del documento del Sprint 1 (sección 5.2); con fechas llenas el sprint se detecta solo. El mapa `github` (usuario de GitHub -> persona) falta por completar con el de Thalia.",
+  "sprint_actual": 4,
   "integrantes": [
     "Thalia Bernal",
     "William Serna",
@@ -10,38 +10,50 @@
   "sprints": {
     "1": {
       "nombre": "Fundamentos y Arquitectura",
-      "inicio": null,
-      "fin": null,
+      "inicio": "2026-08-27",
+      "fin": "2026-09-09",
       "lider": "Thalia Bernal",
       "roles": {
         "Thalia Bernal": "PO / SM",
+        "Karen Sandoval": "DevOps / QA-Seguridad",
         "William Serna": "Backend",
-        "Manuela Meneses": "QA / Test",
-        "Karen Sandoval": "Frontend"
+        "Manuela Meneses": "Frontend"
       }
     },
     "2": {
       "nombre": "Lógica de Negocio y Algoritmos",
-      "inicio": null,
-      "fin": null,
+      "inicio": "2026-09-10",
+      "fin": "2026-09-23",
       "lider": "William Serna",
       "roles": {
         "Thalia Bernal": "Backend",
-        "William Serna": "Dirección",
-        "Manuela Meneses": "Frontend",
-        "Karen Sandoval": "QA / Test"
+        "Karen Sandoval": "Frontend",
+        "William Serna": "PO / SM",
+        "Manuela Meneses": "DevOps / QA-Seguridad"
       }
     },
     "3": {
       "nombre": "Integración, Cierre y Despliegue",
-      "inicio": null,
-      "fin": null,
+      "inicio": "2026-09-24",
+      "fin": "2026-10-21",
       "lider": "Manuela Meneses",
       "roles": {
         "Thalia Bernal": "Frontend",
-        "William Serna": "QA / Test",
-        "Manuela Meneses": "Dirección",
-        "Karen Sandoval": "Backend"
+        "Karen Sandoval": "Backend",
+        "William Serna": "DevOps / QA-Seguridad",
+        "Manuela Meneses": "PO / SM"
+      }
+    },
+    "4": {
+      "nombre": "Reportes en PDF (HE-07)",
+      "inicio": "2026-10-22",
+      "fin": "2026-11-19",
+      "lider": "Karen Sandoval",
+      "roles": {
+        "Thalia Bernal": "DevOps / QA-Seguridad",
+        "Karen Sandoval": "PO / SM",
+        "William Serna": "Frontend",
+        "Manuela Meneses": "Backend"
       }
     }
   },
@@ -52,18 +64,12 @@
     "Backend": [
       "backend"
     ],
-    "QA / Test": [
+    "DevOps / QA-Seguridad": [
       "frontend",
-      "backend",
-      "infra"
-    ],
-    "Dirección": [
-      "docs",
-      "infra"
+      "backend"
     ],
     "PO / SM": [
-      "docs",
-      "infra"
+      "docs"
     ]
   },
   "github": {

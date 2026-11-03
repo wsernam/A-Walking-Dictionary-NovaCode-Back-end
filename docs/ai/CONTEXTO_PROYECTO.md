@@ -1,10 +1,11 @@
 ### 2.1 Origen del proyecto
 *Fuentes: Propuesta v2, Entrega 1 (Definición del Producto) y Presentación de la entrega 1.*
 
-- **Asignatura y equipo.** Proyecto II, Ingeniería de Sistemas, Universidad del Cauca (Departamento de Sistemas). Grupo **NovaCode**, cuatro integrantes: Thalia Bernal, William Serna, Manuela Meneses y Karen Sandoval. Duración: 16 semanas del semestre, metodología Scrum en 3 sprints.
+- **Asignatura y equipo.** Proyecto II, Ingeniería de Sistemas, Universidad del Cauca (Departamento de Sistemas). Grupo **NovaCode**, cuatro integrantes: Thalia Bernal, William Serna, Manuela Meneses y Karen Sandoval. Duración: 16 semanas del semestre, metodología Scrum; se planeó en 3 sprints y desde el Sprint 1 está ampliada a **4 sprints** (DP-28).
 - **Antecedente técnico.** Parte del trabajo de Arquitectura de la Información «Sistema de tarjetas de aprendizaje de idiomas con base a un tesauro» (Ashlee V. Campaz Valencia y Karen N. Sandoval Sánchez): mazos, tarjetas, etiquetas de contexto, búsqueda y navegación. Era un producto genérico («un Anki mejorado») con usuarios hipotéticos, GraphDB y estándar SKOS.
 - **Giro del proyecto.** Se adaptó ese trabajo a un caso real y validado: el curso de **Literatura Anglófona** de la Licenciatura en Educación Bilingüe. La docente fue entrevistada en dos reuniones; en la segunda validó punto por punto cada funcionalidad. Cambió quién sube el contenido, para quién es y con qué tecnología se construye; se conservó la arquitectura de información.
 - **Rúbrica que gobierna el proyecto.** Sustentación (15 %), Introducción y justificación (10 %), Estado del arte técnico (20 %), Diseño del producto y arquitectura (20 %), Gestión de proyecto y roles (20 %), Uso responsable de IA generativa (10 %). Exige evidencia de usuarios reales, bitácora de prompts, validación crítica de la IA y rotación de roles.
+- **Rúbrica de la entrega de cada sprint** (documento del Sprint 1): Cumplimiento (5 %), Presentación y demo (10 %), Refinamiento de ítems anteriores (5 %), Pipeline CI/CD + QA + Seguridad (20 %), Avance de desarrollo (25 %), Code walkthrough (15 %), Plataforma de gestión + rotación (10 %) y Uso de IA en código (10 %: bitácora actualizada, código asistido marcado en PR y commits, validación y pruebas).
 
 ### 2.2 Problema
 El curso trabaja una lectura por semana (aprox. un libro cada dos semanas) y los estudiantes deben incorporar vocabulario nuevo. El ejercicio **«A Walking Dictionary»** se hacía en papel: cada semana un estudiante distinto reportaba palabras nuevas y al final se compilaban para un quiz. Problemas: pérdida de información, consulta limitada del vocabulario de semanas anteriores, ausencia de registro digital reutilizable, sin repaso espaciado, sin nota individual, y sin capturar lo central del curso: el **contexto cultural, dialectal y de registro** de cada palabra. La docente lo había intentado con Classroom y una tabla de Excel no interactiva.
@@ -64,7 +65,7 @@ Relaciones clave: Curso 1:N Mazo; Mazo 1:N Tarjeta; Usuario N:N Tarjeta vía Apo
 ### 2.9 Restricciones y atributos de calidad *(metas de la Entrega 1)*
 - Navegadores: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+.
 - Rendimiento: carga < 2 s y latencia de API < 500 ms. Disponibilidad 99 % durante las 16 semanas. Escalabilidad: 60 usuarios concurrentes. Almacenamiento: tope de 1 GB en capa gratuita.
-- Seguridad: 0 vulnerabilidades críticas, contraseñas con bcrypt, JWT con claims de rol, suite OWASP Top 10 en pruebas. *(La Entrega 1 menciona OAuth; el backlog y la presentación hablan de JWT + bcrypt. Lo vigente es lo que esté implementado en el backend: no asumas.)*
+- Seguridad: 0 vulnerabilidades críticas, **inicio de sesión con Google OAuth y registro con correo institucional sin contraseña, con JWT con claims de rol** (DP-26; la Entrega 1 contemplaba correo y contraseña con bcrypt, ya no vigente), suite OWASP Top 10 en pruebas. Ante dudas, manda lo implementado en el backend.
 - Usabilidad: accesibilidad > 90. Mantenibilidad: **cobertura de pruebas > 70 %** y API documentada. Confiabilidad: MTBF > 30 días.
 
 ### 2.10 Limitaciones asumidas
@@ -80,7 +81,8 @@ Relaciones clave: Curso 1:N Mazo; Mazo 1:N Tarjeta; Usuario N:N Tarjeta vía Apo
 Disponibilidad de la docente (reuniones los miércoles en la mañana, grupo de WhatsApp); baja participación (datos de prueba y piloto en su clase del jueves 9 a. m. a 1 p. m.); inexperiencia con SM-2 (pruebas unitarias tempranas); ambigüedad legal de frases de ejemplo (límite de 150 caracteres, opcional); expansión de alcance hacia GraphDB/SKOS o diccionarios de pago (fuera del MVP); duplicados (restricción en el motor); pronunciación que consume tiempo (corte a mitad del Sprint 2).
 
 ### 2.12 Gestión del proyecto
-- **Scrum** en 3 sprints: 1 Fundamentos y Arquitectura; 2 Lógica de Negocio y Algoritmos; 3 Integración, Cierre y Despliegue (pruebas de rendimiento y seguridad, despliegue en producción).
+- **Scrum** en 4 sprints: 1 Fundamentos y Arquitectura (27-ago a 9-sep); 2 Lógica de Negocio y Algoritmos (10 a 23-sep); 3 Integración, Cierre y Despliegue (24-sep a 21-oct); 4 Reportes en PDF, épica HE-07 completa, HU-018 a HU-021 (22-oct a 19-nov). Trello: listas Backlog y Sprint 0 a Sprint 4.
+- **Siete épicas** (HE-01 a HE-07): las cinco originales más HE-06 (consulta centralizada de vocabulario y mazos) y HE-07 (reportes); 21 HU y 61 criterios de aceptación con ID (DP-24 y DP-25). El detalle vigente está en la sección 6.
 - **Rotación de roles obligatoria**: cada integrante debe pasar por al menos dos roles distintos; el liderazgo cambia cada sprint. **La rotación vigente es la de la sección 5 (se genera desde `docs/ai/roles.json`); no uses otra.**
 - Gitflow: ramas `feature/...` desde `develop`, PR hacia `develop` con al menos una revisión, `main` protegida, un repo por capa (frontend, backend, infra).
 - Épicas, historias y criterios de aceptación: los define el backlog (sección 6), con prioridad, estado y estimaciones. Cada HU se trabaja contra sus criterios Dado/Cuando/Entonces.
@@ -89,7 +91,7 @@ Disponibilidad de la docente (reuniones los miércoles en la mañana, grupo de W
 - **Declarado**: ChatGPT, Claude y Gemini para estructurar documentación y fundamentación; Claude para componentes React, endpoints Node.js y refactorización; Stitch para mockups; Google AI Studio para prototipado de flujos.
 - **Límites declarados**: la IA propone; las decisiones de diseño, requisitos y planeación son del equipo. No hay decisiones de arquitectura autónomas de la IA. Todo el código se revisa, se prueba y se verifica manualmente (incluida seguridad OWASP Top 10).
 - **Validación crítica**: verificar cada referencia, corregir errores, adaptar al contexto del proyecto, reescribir con tono académico. Toda cifra o afirmación fáctica generada se contrasta con una fuente confiable.
-- **Diferenciación**: el contenido asistido por IA se marca de forma explícita («[Asistido por IA]» o «Esta sección fue estructurada con asistencia de …») indicando herramienta y validación hecha; el contenido propio no lleva etiqueta.
+- **Diferenciación**: el contenido asistido por IA se marca de forma explícita («[Asistido por IA]» o «Esta sección fue estructurada con asistencia de …») indicando herramienta y validación hecha; el contenido propio no lleva etiqueta. **En el código, los PR llevan `[IA-ASSISTED]` al comienzo del título**, con `Herramienta:` y `Validación:` en la descripción; los commits hechos con Claude Code llevan `Co-Authored-By`, y lo hecho en una conversación se declara en el PR y en la bitácora (DP-30).
 - **Bitácora de prompts**: cada uso relevante se registra con fecha, prompt, herramienta, resultado y validación (VALIDADO, ADAPTADO, CORREGIDO o RECHAZADO), con el responsable. Es criterio crítico de la rúbrica.
 
 ### 2.14 Convenciones para entender el historial
