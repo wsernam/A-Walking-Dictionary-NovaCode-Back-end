@@ -39,6 +39,8 @@
 *    HE-07 (HU-019 reporte del modo de estudio en PDF; endpoint aprobado por el equipo, falta
  *   reflejarlo en Backlog_HU.xlsx):
  *   - GET  /api/v1/reports/study-mode/export-pdf         (CA-19.1, CA-19.2, CA-19.3; ?student_id opcional)
+ *   HE-07 (HU-018 reporte de progreso individual en PDF; endpoint del backlog):
+ *   - GET  /api/v1/reports/students/:id/progress/export-pdf  (CA-18.1, CA-18.2, CA-18.3)
  *
  *   HE-05 (HU-5.4 — login con Google/OAuth y control de roles; HU-5.2 — configurar perfil
  *   académico; HU-5.1/5.3 quedan fuera de esta rama):
