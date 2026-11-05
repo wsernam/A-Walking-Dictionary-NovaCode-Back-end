@@ -3,6 +3,25 @@
 ## Fecha
 2026-10-17 (última actualización — ver historial de sesiones más abajo)
 
+## Cambios aplicados en esta sesión (2026-11-04) — HU-021: reporte de resultados por quiz en PDF
+
+Pedido del frontend en `docs/contrato-reporte-resultados-quiz.md` (PR #65 del front, ya en develop).
+
+- Nuevo `GET /api/v1/reports/quizzes/:id/results/export-pdf` (solo docente, con `limiteReportes`):
+  PDF con calificación, puntaje, tiempo y fecha de envío por estudiante ("No presentó" para los
+  inscritos sin resultado), estadísticas del grupo (promedio, máxima, mínima, % que presentó) y las
+  5 preguntas con mayor % de error. Sin resultados responde 200 con el aviso en el PDF (CA-21.2).
+- Archivos nuevos: `ReporteResultadosQuizRepository.js`, `ReporteResultadosQuizService.js`,
+  `ReporteResultadosQuizPDFService.js`, `ReporteResultadosQuizController.js` y sus pruebas.
+  Modificado: `reporteRoutes.js`. Sin cambios en `init.sql` ni migraciones.
+- Acceso (CA-21.3): `authenticate` + `requireRole('docente')`, y además el quiz debe ser de un curso
+  de la docente del token (`curso.docente_id`); si no, 403 `AUTH_FORBIDDEN`. Con `DISABLE_AUTH` (solo
+  desarrollo) se omite esa comprobación, igual que en HU-019.
+- Decisiones aceptadas: S1-S6 (ver "Decisiones del equipo" en `CLAUDE.md`).
+- Colección Postman `Sprint 4 HU-021 pruebas reporte resultados quiz.postman_collection.json` y
+  script `datos-prueba-hu21.sql` para crear los quices de prueba.
+- Pendiente: reflejar el endpoint en `Backlog_HU.xlsx. 
+
 ## Cambios aplicados en esta sesión (2026-10-17) — Suite de pruebas funcionales de la API
 
 La suite no cambia `src/`; la única corrección que salió de ella (zona horaria, ver abajo) fue
