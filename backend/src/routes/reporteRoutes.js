@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import { authenticate } from '../middleware/autenticacionMiddleware.js';
+import { authenticate, requireRole } from '../middleware/autenticacionMiddleware.js';
 import { ReporteEstudioController } from '../controllers/ReporteEstudioController.js';
 import { ReporteProgresoController } from '../controllers/ReporteProgresoController.js';
+import { ReporteResultadosQuizController } from '../controllers/ReporteResultadosQuizController.js';
 
 const router = Router();
 
@@ -26,5 +27,15 @@ router.get('/study-mode/export-pdf', limiteReportes, authenticate, ReporteEstudi
 // solo el suyo. Igual que HU-019, no lleva requireRole: la regla de acceso (CA-18.3) está en
 // ReporteProgresoService y responde 403 antes de consultar la BD. Comparte el límite de peticiones.
 router.get('/students/:id/progress/export-pdf', limiteReportes, authenticate, ReporteProgresoController.exportarPdf);
+
+// HU-021 (CA-21.3): solo docente. Además, ReporteResultadosQuizService exige que el quiz sea de
+// un curso de la docente que inicia sesión.
+router.get(
+  '/quizzes/:id/results/export-pdf',
+  limiteReportes,
+  authenticate,
+  requireRole('docente'),
+  ReporteResultadosQuizController.exportarPdf,
+);
 
 export default router;
