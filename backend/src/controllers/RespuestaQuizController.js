@@ -1,6 +1,14 @@
-// Controlador REST de RespuestaQuiz: recibe la petición HTTP, llama directamente al repositorio
-// (RespuestaQuizRepository) y devuelve la respuesta. Cuando exista lógica de negocio en services/,
-// se insertará entre el controlador y el repositorio sin cambiar esta firma.
+/**
+ * @file RespuestaQuizController.js
+ * @brief Controlador REST (CRUD genérico) de RespuestaQuiz: recibe la petición HTTP, llama
+ * directamente al repositorio (RespuestaQuizRepository) y devuelve la respuesta. Cuando exista
+ * lógica de negocio en services/, se insertará entre el controlador y el repositorio sin cambiar
+ * esta firma.
+ *
+ * @note Ninguna ruta montada en app.js usa este controlador; las respuestas se registran al
+ * enviar el quiz (POST /api/v1/quizzes/:id/submit). Sus errores no llevan el campo "code"
+ * (decisión del 2026-10-22).
+ */
 
 import { RespuestaQuizRepository } from '../repositories/RespuestaQuizRepository.js';
 

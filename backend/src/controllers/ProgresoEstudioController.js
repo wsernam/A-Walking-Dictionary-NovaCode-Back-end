@@ -1,10 +1,25 @@
-// Controlador REST de ProgresoEstudio: recibe la petición HTTP, llama directamente al repositorio
-// (ProgresoEstudioRepository) y devuelve la respuesta. Cuando exista lógica de negocio en services/,
-// se insertará entre el controlador y el repositorio sin cambiar esta firma.
+/**
+ * @file ProgresoEstudioController.js
+ * @brief Controlador REST (CRUD genérico) de ProgresoEstudio: recibe la petición HTTP, llama
+ * directamente al repositorio (ProgresoEstudioRepository) y devuelve la respuesta. Cuando exista
+ * lógica de negocio en services/, se insertará entre el controlador y el repositorio sin cambiar
+ * esta firma.
+ *
+ * @note Ninguna ruta montada en app.js usa este controlador; el progreso SM-2 se registra con
+ * POST /api/v1/study/review-session/review (EstudioController). Sus errores no llevan el campo
+ * "code" (decisión del 2026-10-22).
+ */
 
 import { ProgresoEstudioRepository } from '../repositories/ProgresoEstudioRepository.js';
 
 export const ProgresoEstudioController = {
+
+  /**
+   * @brief Crea un registro de progreso. Solo limita ultima_valoracion a 30 caracteres (varchar 30
+   * del DER); es nullable, por eso no es obligatoria.
+   * @param {import('express').Request} req - req.body: columnas de progreso_estudio.
+   * @param {import('express').Response} res - 201 con el progreso, 400 si ultima_valoracion excede su longitud, 500 ante error inesperado.
+   */
   async crear(req, res) {
     try {
       const { ultima_valoracion } = req.body;
@@ -25,6 +40,11 @@ export const ProgresoEstudioController = {
     }
   },
 
+  /**
+   * @brief Consulta un progreso por su id_progreso.
+   * @param {import('express').Request} req - req.params.id es el id_progreso.
+   * @param {import('express').Response} res - 200 con el progreso, 400 si el id no es numérico, 404 si no existe, 500 ante error inesperado.
+   */
   async obtenerPorId(req, res) {
     try {
       const id = Number(req.params.id);
@@ -41,6 +61,11 @@ export const ProgresoEstudioController = {
     }
   },
 
+  /**
+   * @brief Lista todos los registros de progreso.
+   * @param {import('express').Request} req - Sin parámetros.
+   * @param {import('express').Response} res - 200 con el listado, 500 ante error inesperado.
+   */
   async listar(req, res) {
     try {
       const progresos = await ProgresoEstudioRepository.listar();
@@ -50,6 +75,11 @@ export const ProgresoEstudioController = {
     }
   },
 
+  /**
+   * @brief Actualiza un registro de progreso.
+   * @param {import('express').Request} req - req.params.id es el id_progreso; req.body trae las columnas.
+   * @param {import('express').Response} res - 200 con el progreso actualizado, 400 si el id no es numérico, 404 si no existe, 500 ante error inesperado.
+   */
   async actualizar(req, res) {
     try {
       const id = Number(req.params.id);
@@ -66,6 +96,11 @@ export const ProgresoEstudioController = {
     }
   },
 
+  /**
+   * @brief Elimina un registro de progreso.
+   * @param {import('express').Request} req - req.params.id es el id_progreso.
+   * @param {import('express').Response} res - 200 con { eliminado: true }, 400 si el id no es numérico, 404 si no existe, 500 ante error inesperado.
+   */
   async eliminar(req, res) {
     try {
       const id = Number(req.params.id);
