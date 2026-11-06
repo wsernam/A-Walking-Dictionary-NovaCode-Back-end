@@ -44,12 +44,12 @@ describe('ReporteEstudioService.obtenerDatos — HU-019 (CA-19.1, CA-19.2, CA-19
     vi.unstubAllEnvs();
   });
 
-  it('CA-19.1: la docente sin student_id consulta los estudiantes de sus cursos', async () => {
+  it('CA-19.1: la docente sin student_id consulta a todos los estudiantes, sin filtrar por curso', async () => {
     ReporteEstudioRepository.resumenPorInscripcion.mockResolvedValue([fila()]);
 
     const datos = await ReporteEstudioService.obtenerDatos(docente, undefined);
 
-    expect(ReporteEstudioRepository.resumenPorInscripcion).toHaveBeenCalledWith({ docenteId: 7, estudianteId: null });
+    expect(ReporteEstudioRepository.resumenPorInscripcion).toHaveBeenCalledWith({ docenteId: null, estudianteId: null });
     expect(datos.generado_en).toBeInstanceOf(Date);
     expect(datos.estudiantes).toHaveLength(1);
     expect(datos.estudiantes[0]).toMatchObject({
@@ -104,7 +104,7 @@ describe('ReporteEstudioService.obtenerDatos — HU-019 (CA-19.1, CA-19.2, CA-19
     const { estudiantes } = await ReporteEstudioService.obtenerDatos(docente, undefined);
 
     expect(ReporteEstudioRepository.palabrasDificiles).toHaveBeenCalledWith({
-      docenteId: 7,
+      docenteId: null,
       estudianteId: null,
       limite: 10,
     });
@@ -116,15 +116,15 @@ describe('ReporteEstudioService.obtenerDatos — HU-019 (CA-19.1, CA-19.2, CA-19
     expect(estudiantes[1].palabras_dificiles[0].palabra).toBe('ominous');
   });
 
-  it('CA-19.1: la docente con student_id consulta solo a ese estudiante dentro de sus cursos', async () => {
+  it('CA-19.1: la docente con student_id consulta solo a ese estudiante', async () => {
     ReporteEstudioRepository.resumenPorInscripcion.mockResolvedValue([fila()]);
 
     await ReporteEstudioService.obtenerDatos(docente, '3');
 
-    expect(ReporteEstudioRepository.resumenPorInscripcion).toHaveBeenCalledWith({ docenteId: 7, estudianteId: 3 });
+    expect(ReporteEstudioRepository.resumenPorInscripcion).toHaveBeenCalledWith({ docenteId: null, estudianteId: 3 });
   });
 
-  it('[SUPUESTO PENDIENTE] la docente que pide un estudiante fuera de sus cursos recibe 404 (REPORT_STUDENT_NOT_FOUND)', async () => {
+  it('la docente que pide un estudiante sin inscripción activa recibe 404 (REPORT_STUDENT_NOT_FOUND)', async () => {
     await expect(ReporteEstudioService.obtenerDatos(docente, '999')).rejects.toMatchObject({
       status: 404,
       code: 'REPORT_STUDENT_NOT_FOUND',
@@ -175,11 +175,14 @@ describe('ReporteEstudioService.obtenerDatos — HU-019 (CA-19.1, CA-19.2, CA-19
     expect(ReporteEstudioRepository.resumenPorInscripcion).not.toHaveBeenCalled();
   });
 
-  it('con DISABLE_AUTH (solo desarrollo) la docente no se limita a sus cursos', async () => {
-    vi.stubEnv('DISABLE_AUTH', 'true');
-
-    await ReporteEstudioService.obtenerDatos({ id_usuario: 0, rol: 'docente' }, undefined);
+  it('el alcance de la docente no depende de su id_usuario: cualquier docente ve a todos los estudiantes', async () => {
+    await ReporteEstudioService.obtenerDatos({ id_usuario: 99, rol: 'docente' }, undefined);
 
     expect(ReporteEstudioRepository.resumenPorInscripcion).toHaveBeenCalledWith({ docenteId: null, estudianteId: null });
+    expect(ReporteEstudioRepository.palabrasDificiles).toHaveBeenCalledWith({
+      docenteId: null,
+      estudianteId: null,
+      limite: 10,
+    });
   });
 });
