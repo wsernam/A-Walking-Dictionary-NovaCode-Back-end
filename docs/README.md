@@ -41,7 +41,7 @@ Colecciones Postman: en la raíz del repositorio (`*.postman_collection*`).
 | [`FLUJO_REVISION_TARJETAS.md`](FLUJO_REVISION_TARJETAS.md) | Revisión de tarjetas: individual vs. coautoría |
 | [`CAMBIO_APORTE_ESTADO.md`](CAMBIO_APORTE_ESTADO.md) | Columna `aporte.estado` y ajustes de coautorías |
 | [`CAMBIO_REPASO_SM2.md`](CAMBIO_REPASO_SM2.md) | Repaso SM-2 (HU-4.1) |
-| [`CHANGELOG_BACKEND.md`](CHANGELOG_BACKEND.md) | Historial de cambios del backend por sesión |
+| [`CHANGELOG_BACKEND.md`](CHANGELOG_BACKEND.md) | Detalle técnico por sesión (el resumen está en [`../CHANGELOG.md`](../CHANGELOG.md)) |
 
 ## Pruebas y seguridad
 
@@ -65,3 +65,11 @@ Colecciones Postman: en la raíz del repositorio (`*.postman_collection*`).
 | `ai/Bitacora_de_prompts.xlsx` | Bitácora de prompts |
 
 Otros archivos de la raíz relevantes: [`../CLAUDE.md`](../CLAUDE.md) (contexto y decisiones del equipo), `../init.sql` (esquema oficial) y `../seed.sql` (datos de prueba).
+
+## Gobernanza del proyecto
+
+| Documento | Contenido |
+| --- | --- |
+| [`../CONTRIBUTING.md`](../CONTRIBUTING.md) | Flujo de ramas, commits, Pull Requests y uso de IA |
+| [`../SECURITY.md`](../SECURITY.md) | Cómo reportar vulnerabilidades (Security Advisories de GitHub) |
+| [`../CHANGELOG.md`](../CHANGELOG.md) | Resumen de cambios (formato Keep a Changelog) |
