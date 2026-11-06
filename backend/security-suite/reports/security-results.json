@@ -1,12 +1,12 @@
 {
-  "date": "2026-10-23T03:09:57.308Z",
+  "date": "2026-11-06T22:10:16.330Z",
   "url": "http://127.0.0.1:5000",
   "totals": {
-    "PASS": 29,
+    "PASS": 27,
     "FAIL": 0,
-    "WARN": 1,
+    "WARN": 0,
     "MANUAL": 0,
-    "SKIP": 4
+    "SKIP": 7
   },
   "results": [
     {
@@ -172,30 +172,30 @@
     },
     {
       "id": "XSS-01",
-      "description": "Búsqueda de sinks DOM peligrosos",
-      "status": "PASS",
-      "reason": "129 archivos de frontend revisados; no se encontraron sinks de alto riesgo conocidos. No prueba por sí solo ausencia de XSS",
+      "description": "Inspección XSS del frontend",
+      "status": "SKIP",
+      "reason": "Define SECURITY_FRONTEND_PATH con la carpeta raíz del frontend",
       "type": "ESTATICO"
     },
     {
       "id": "CSRF-01",
-      "description": "Evaluación del transporte de credenciales",
-      "status": "PASS",
-      "reason": "La API usa Bearer explícito desde JavaScript y no se observó autenticación automática por cookies en los archivos inspeccionados. Riesgo CSRF clásico reducido; no evalúa todos los flujos.",
+      "description": "Evaluación de CSRF",
+      "status": "SKIP",
+      "reason": "Define SECURITY_FRONTEND_PATH para evaluar frontend y API",
       "type": "ARQUITECTURA"
     },
     {
       "id": "H-12b-01",
-      "description": "Almacenamiento de JWT en navegador",
-      "status": "WARN",
-      "reason": "El JWT permanece en localStorage; riesgo residual ante XSS. No se declara corregido.",
+      "description": "JWT en navegador",
+      "status": "SKIP",
+      "reason": "Define SECURITY_FRONTEND_PATH",
       "type": "ESTATICO"
     },
     {
       "id": "H-12b-02",
-      "description": "Revocación inmediata de JWT",
+      "description": "Revocación de JWT",
       "status": "SKIP",
-      "reason": "Para comprobar revocación se necesitan usuario de prueba, JWT vigente y prueba controlada de desactivación/cambio de rol; no se simula",
+      "reason": "Se requieren usuarios de prueba y escenario explícito de revocación",
       "type": "INTEGRACION"
     },
     {
@@ -236,16 +236,16 @@
     {
       "id": "A03-01",
       "description": "Auditoría de vulnerabilidades en dependencias npm",
-      "status": "SKIP",
-      "reason": "No se pudo completar npm audit (por ejemplo, red o respuesta inválida): spawnSync npm ENOENT",
+      "status": "PASS",
+      "reason": "npm audit: 0 críticas, 0 altas, 0 moderadas, 0 bajas. Sin vulnerabilidades críticas, altas ni moderadas reportadas.",
       "type": "DEPENDENCIAS"
     },
     {
       "id": "H-06-INT",
       "description": "Conexión real TLS con certificado validado hacia Supabase",
       "type": "INTEGRACION/TLS",
-      "status": "PASS",
-      "reason": "Conexión real y SELECT 1 correctos; TLS cifrado, cadena de confianza y nombre del servidor validados."
+      "status": "SKIP",
+      "reason": "Integración no habilitada; configurar SECURITY_TLS_ENABLED=true y credenciales de Supabase de prueba."
     }
   ]
 }

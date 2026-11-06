@@ -6,7 +6,8 @@ const DOMINIO_INSTITUCIONAL = '@unicauca.edu.co';
 export const RegistroService = {
 
   /**
-   * HU-5.1: registra un estudiante mediante Google OAuth.
+   * HU-5.1: registra un estudiante mediante Google OAuth. Si todavía no existe ningún docente,
+   * la primera cuenta registrada queda como docente (ver paso 4).
    *
    * No hay contraseña: la identidad la verifica Google (el login de HU-5.4 es solo con Google),
    * por eso no se usa bcrypt ni aplica la validación de "clave débil" de CA-5.1.2.
@@ -38,13 +39,15 @@ export const RegistroService = {
       throw correoYaRegistrado();
     }
 
-    // 4. CA-5.1.1: se crea siempre con rol "estudiante".
+    // 4. CA-5.1.1: se crea con rol "estudiante". Excepción (decisión 2026-11-06, pendiente de
+    // aprobación P2): si todavía no hay ningún docente en la plataforma (lanzamiento con la BD
+    // vacía), la primera cuenta se crea como "docente". La regla la aplica el repositorio en una
+    // transacción para que dos registros simultáneos no queden ambos como docente.
     let usuario;
     try {
-      usuario = await UsuarioRepository.crearDesdeGoogle({
+      usuario = await UsuarioRepository.crearDesdeGoogleConRolInicial({
         nombre_completo: payload.name || email.split('@')[0],
         email,
-        rol: 'estudiante',
       });
     } catch (error) {
       // Dos registros simultáneos del mismo correo: la restricción UNIQUE de usuario.email
