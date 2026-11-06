@@ -1,6 +1,30 @@
-// Modelo de dominio: representa la tabla "wordnet_cache" del DER oficial.
+/**
+ * @file WordNetCache.js
+ * @brief Modelo de dominio: representa la tabla "wordnet_cache" del DER oficial.
+ */
 
+/**
+ * @class WordNetCache
+ * @brief Caché de consultas léxicas por palabra y sentido (HU-4.2 / HU-011). Única por
+ * (palabra, sentido) según el DER. La política de qué se guarda y cuándo está explicada en el
+ * comentario al final de este archivo.
+ */
 export class WordNetCache {
+  /**
+   * @brief Construye un WordNetCache a partir de una fila de la base de datos (o de un payload equivalente).
+   * @param {number} config.id_cache - Id autoincremental (pk).
+   * @param {string} config.palabra - Palabra consultada (varchar 150).
+   * @param {number} config.sentido - Número de sentido de la palabra (int, default 1).
+   * @param {string|null} config.definicion - Definición (text).
+   * @param {string|null} config.sinonimos - Sinónimos (text).
+   * @param {string|null} config.hiperonimos - Hiperónimos (text).
+   * @param {string|null} config.hiponimos - Hipónimos (text).
+   * @param {string} config.fuente - Origen del dato (varchar 20, por ejemplo "WordNet 3.1" o
+   * "free_dictionary").
+   * @param {boolean} config.confirmado_por_estudiante - Si un estudiante confirmó el resultado
+   * (default false).
+   * @param {string} config.fecha_consulta - Marca de tiempo de la consulta (default NOW()).
+   */
   constructor({
     id_cache,
     palabra,
