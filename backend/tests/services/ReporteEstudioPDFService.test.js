@@ -206,6 +206,19 @@ describe('ReporteEstudioPDFService.generarPdf — HU-019 (CA-19.1, CA-19.2)', ()
     expect(textos).toContain('No hay estudiantes inscritos para este reporte.');
   });
 
+  it('una lista vacía deja la nota de distribución debajo del aviso, sin solaparse', async () => {
+    ReporteEstudioService.obtenerDatos.mockResolvedValue(datos([]));
+
+    await ReporteEstudioPDFService.generarPdf(docente, undefined);
+
+    const yDe = (inicio) => espia.mock.calls.find(([texto]) => String(texto).startsWith(inicio))[1].y;
+    const yAviso = yDe('No hay estudiantes inscritos');
+    const yNota = yDe('La distribución de valoraciones');
+    // El recuadro del aviso mide 40 pt y su texto va a 24 pt del borde superior (borde inferior = yAviso - 16).
+    expect(yNota).toBeLessThan(yAviso - 16);
+  });
+
+
   it('incluye la nota sobre la distribución (limitación S1)', async () => {
     ReporteEstudioService.obtenerDatos.mockResolvedValue(datos([estudiante()]));
 
