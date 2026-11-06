@@ -6,9 +6,8 @@
  * Reutiliza el maquetado de ExportarPDFService (mismos márgenes, colores, encabezado y pie).
  * Los datos y la regla de acceso (CA-19.3) vienen de ReporteEstudioService.
  *
- * @note Limitación conocida (igual que ExportarPDFService): se usan las fuentes estándar de
- * pdf-lib (WinAnsi). Para que un nombre con caracteres fuera de Latin-1 (emoji, alfabetos no
- * latinos) no haga fallar todo el reporte, esos caracteres se sustituyen por "?".
+ * @note Limitación conocida: se usan las fuentes estándar de pdf-lib (WinAnsi); los caracteres
+ * fuera de Latin-1 se sustituyen por "?" (ver utils/formatoPdf.js).
  */
 
 import { PDFDocument } from 'pdf-lib';
@@ -23,6 +22,7 @@ import {
   dibujarPies,
 } from './ExportarPDFService.js';
 import { ReporteEstudioService } from './ReporteEstudioService.js';
+import { limpiar, recortar, formatearFecha } from '../utils/formatoPdf.js';
 
 const ALTO_FILA = 16;
 /** @brief Posición horizontal de cada columna de la tabla de palabras difíciles. */
@@ -33,28 +33,6 @@ const COLUMNAS = {
   proximo: MARGEN + 380,
 };
 const ANCHO_PALABRA = 180;
-
-/** @brief Deja solo caracteres que las fuentes estándar de pdf-lib pueden dibujar (Latin-1). */
-function limpiar(texto) {
-  return String(texto ?? '').replace(/[^\u0020-\u007E\u00A0-\u00FF]/g, '?');
-}
-
-/** @brief Recorta un texto con "..." para que quepa en un ancho máximo. */
-function recortar(texto, fuente, tamano, ancho) {
-  let cadena = limpiar(texto);
-  if (fuente.widthOfTextAtSize(cadena, tamano) <= ancho) return cadena;
-  while (cadena.length > 1 && fuente.widthOfTextAtSize(`${cadena}...`, tamano) > ancho) {
-    cadena = cadena.slice(0, -1);
-  }
-  return `${cadena}...`;
-}
-
-/** @brief Formatea una fecha como AAAA-MM-DD (UTC) o "Sin registro" si no hay valor. */
-function formatearFecha(valor) {
-  if (!valor) return 'Sin registro';
-  const fecha = new Date(valor);
-  return Number.isNaN(fecha.getTime()) ? 'Sin registro' : fecha.toISOString().slice(0, 10);
-}
 
 /**
  * @brief Dibuja (o solo mide) el bloque de un estudiante: datos, resumen de repaso,

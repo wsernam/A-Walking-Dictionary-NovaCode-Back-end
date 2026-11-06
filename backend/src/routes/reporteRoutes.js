@@ -4,6 +4,7 @@ import { authenticate, requireRole } from '../middleware/autenticacionMiddleware
 import { ReporteEstudioController } from '../controllers/ReporteEstudioController.js';
 import { ReporteProgresoController } from '../controllers/ReporteProgresoController.js';
 import { ReporteCursoController } from '../controllers/ReporteCursoController.js';
+import { ReporteResultadosQuizController } from '../controllers/ReporteResultadosQuizController.js';
 
 const router = Router();
 
@@ -33,5 +34,15 @@ router.get('/students/:id/progress/export-pdf', limiteReportes, authenticate, Re
 // puede pedirlo (CA-20.3) y el contrato del front espera el mismo 403 de las demás rutas de
 // docente. Que el curso sea de la docente del JWT lo comprueba ReporteCursoService (403 si no).
 router.get('/students/export-pdf', limiteReportes, authenticate, requireRole('docente'), ReporteCursoController.exportarPdf);
+
+// HU-021 (CA-21.3): solo docente. Además, ReporteResultadosQuizService exige que el quiz sea de
+// un curso de la docente que inicia sesión.
+router.get(
+  '/quizzes/:id/results/export-pdf',
+  limiteReportes,
+  authenticate,
+  requireRole('docente'),
+  ReporteResultadosQuizController.exportarPdf,
+);
 
 export default router;
