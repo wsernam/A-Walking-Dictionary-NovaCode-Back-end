@@ -1,4 +1,12 @@
-// Rutas REST del recurso PreguntaQuiz.
+/**
+ * @file preguntaQuizRoutes.js
+ * @brief Rutas REST (CRUD genérico) del recurso PreguntaQuiz: POST /, GET /, GET /:id,
+ * PUT /:id, DELETE /:id.
+ *
+ * @warning Este router NO está montado en app.js (solo lo importa routes/index.js, que tampoco se
+ * usa) y sus rutas no llevan authenticate ni requireRole. Si algún día se monta, hay que
+ * protegerlas antes. Las preguntas del estudiante salen de GET /api/v1/quizzes/:id/preguntas.
+ */
 
 import { Router } from 'express';
 import { PreguntaQuizController } from '../controllers/PreguntaQuizController.js';
