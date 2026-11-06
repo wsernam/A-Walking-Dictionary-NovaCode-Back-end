@@ -6,7 +6,7 @@
 ## 0. Cabecera
 - Plantilla: 3.0 (facdbd59)
 - Sprint en curso: 4 · Reportes en PDF (HE-07) · líder del sprint (aprueba contratos): **Karen Sandoval**
-- Fuentes al construirlo: backend@71dd9bd, frontend@ea7738f · backlog: 21 HU · bitácora: 41 sesiones
+- Fuentes al construirlo: backend@2217be6, frontend@f8cc6dc · backlog: 21 HU · bitácora: 42 sesiones
 - Se reconstruye con: `python tools/hitl/hitl.py build` (o lo hace el flujo de GitHub Actions y abre un PR para revisión humana)
 
 ## 1. Cómo usar este documento
@@ -350,7 +350,7 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 
 - `backend:.github/pull_request_template.md` — (sin título) (497 caracteres; último cambio: 3c9f121 2026-10-22)
 - `backend:CLAUDE.md` — CLAUDE.md — Contexto del proyecto (39.819 caracteres; último cambio: bf915d7 2026-11-04)
-- `backend:README.md` — A Walking Dictionary (3.375 caracteres; último cambio: 15a7928 2026-08-22)
+- `backend:README.md` — A Walking Dictionary (9.841 caracteres; último cambio: fed40f1 2026-11-06)
 - `backend:backend/Auditoria_OWASP_Top10_2025.md` — Auditoría de seguridad — OWASP Top 10:2025 (22.729 caracteres; último cambio: 6dcb4bc 2026-10-08)
 - `backend:backend/pruebas-funcionales/README.md` — Pruebas funcionales de la API (2.981 caracteres; último cambio: f95d046 2026-10-17)
 - `backend:backend/security-suite/README.md` — NovaCode — Suite OWASP v2 (2.101 caracteres; último cambio: ad52a8c 2026-10-18)
@@ -366,9 +366,11 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 - `backend:docs/FLUJO_PERFIL_ACADEMICO.md` — Flujo de Perfil Académico (HU-5.2) (7.115 caracteres; último cambio: 3adfb5a 2026-09-19)
 - `backend:docs/FLUJO_REVISION_TARJETAS.md` — Flujo de Revisión de Tarjetas — Individual vs. Coautoría (5.697 caracteres; último cambio: 5d3877e 2026-09-29)
 - `backend:docs/INFORME_PRUEBAS_FUNCIONALES.md` — Informe de pruebas funcionales (10.748 caracteres; último cambio: 4bb640b 2026-10-18)
+- `backend:docs/README.md` — Documentación — A Walking Dictionary (Back-end) (3.979 caracteres; último cambio: fed40f1 2026-11-06)
 - **[CONTRATO]** `backend:docs/codigos-error.md` — Códigos de error de la API (9.214 caracteres; último cambio: 1df171d 2026-10-30)
 - `frontend:.github/pull_request_template.md` — (sin título) (495 caracteres; último cambio: ca73e2e 2026-10-23)
-- `frontend:README.md` — A Walking Dictionary (2.165 caracteres; último cambio: 626f3ab 2026-09-04)
+- `frontend:README.md` — A Walking Dictionary (6.214 caracteres; último cambio: 60750c3 2026-11-06)
+- `frontend:docs/README.md` — Documentación — A Walking Dictionary (Front-end) (2.305 caracteres; último cambio: 60750c3 2026-11-06)
 - `frontend:docs/bitacora.md` — Bitácora de trabajo con IA — Frontend (9.952 caracteres; último cambio: dd6f6b3 2026-10-31)
 - **[CONTRATO]** `frontend:docs/contrato-exportacion.md` — Contrato de datos — Exportar mazos y quices a PDF (HU-3.3) (6.027 caracteres; último cambio: 8611b65 2026-10-16)
 - **[CONTRATO]** `frontend:docs/contrato-inscripcion.md` — Contrato de inscripción a cursos — HU-014 (4.496 caracteres; último cambio: c951225 2026-09-23)
@@ -650,11 +652,15 @@ detallados faltaban datos del PDF, así que se ajustó:
 
 
 ## 9. Estado e historial de los repositorios
-- `backend`: rama `develop`, HEAD `71dd9bd`
-- `frontend`: rama `develop`, HEAD `ea7738f`
+- `backend`: rama `develop`, HEAD `2217be6`
+- `frontend`: rama `develop`, HEAD `f8cc6dc`
 
 ### Historial de commits
-**backend** — últimos 60 de 186 commits (incluye merges de PR):
+**backend** — últimos 60 de 190 commits (incluye merges de PR):
+  - 2217be6 2026-11-06 Karen Sandoval: Merge pull request #45 from wsernam/docs/readme-e-indices
+  - fed40f1 2026-11-06 Karen Sandoval: docs: README con instalación y estructura real, e índice de documentación
+  - 0dd545c 2026-11-04 Karen Sandoval: Merge pull request #43 from wsernam/bot/superprompt
+  - fd1c137 2026-11-05 ManuelaE08: docs(ai): reconstruir SUPERPROMPT y registrar PR con IA
   - 71dd9bd 2026-11-04 Manuela Erazo: Merge pull request #44 from wsernam/feature/hu-21-reporte-resultados-quiz
   - bf915d7 2026-11-04 Karen Sandoval: merge: actualizar feature/hu-21-reporte-resultados-quiz con develop
   - 74bd306 2026-11-04 Karen Sandoval: docs(reportes): HU-021 colección Postman, datos de prueba y changelog
@@ -711,11 +717,9 @@ detallados faltaban datos del PDF, así que se ajustó:
   - 9124636 2026-10-18 wsernam: Merge pull request #29 from wsernam/feature/pruebas-funcionales
   - 0665de8 2026-10-18 wsernam: docs: marcar como corregida la zona horaria de los quices
   - 344090d 2026-10-18 wsernam: Merge pull request #28 from wsernam/fix/quiz-zona-horaria
-  - fd77a2a 2026-10-18 wsernam: Merge pull request #27 from wsernam/fix/quiz-zona-horaria
-  - 554545c 2026-10-18 wsernam: Update db.js
-  - f95d046 2026-10-17 wsernam: test: agregar suite de pruebas funcionales de la API con su workflow
-  - ee8d36e 2026-10-16 thaliabernalepe: H-10 nueva correccion de vulnerabilidades respecto a vitest
-**frontend** — últimos 60 de 242 commits (incluye merges de PR):
+**frontend** — últimos 60 de 244 commits (incluye merges de PR):
+  - f8cc6dc 2026-11-06 Karen Sandoval: Merge pull request #66 from knnsand/docs/readme-e-indices
+  - 60750c3 2026-11-06 Karen Sandoval: docs: README con instalación y estructura real, e índice de documentación
   - ea7738f 2026-11-02 thaliabernalepe: Merge pull request #65 from knnsand/feature/HU-021-reporte-resultados-quiz-pdf
   - dd6f6b3 2026-10-31 wsernam: feat: implementacion HU-021 reporte de resultados por quiz en PDF (frontend)
   - 566687d 2026-10-30 thaliabernalepe: Merge pull request #64 from knnsand/chore/avisar-superprompt
@@ -774,11 +778,9 @@ detallados faltaban datos del PDF, así que se ajustó:
   - ba29d5b 2026-10-19 Karen Sandoval: feat(i18n): migrar formulario de registro de palabra a ingles
   - 4adb519 2026-10-19 Karen Sandoval: feat(i18n): migrar sesion de estudio con flashcards a ingles
   - 4e47960 2026-10-19 Karen Sandoval: feat(i18n): migrar panel, perfil y union a curso del estudiante a ingles
-  - 0e2690c 2026-10-19 Karen Sandoval: feat(i18n): migrar encabezado, login y registro a ingles
-  - af9fb6b 2026-10-19 Karen Sandoval: feat(i18n): migrar formulario de creacion de mazo a ingles
 
 ## 10. Historial de prompts y validaciones (bitácora)
-41 sesiones registradas (una sesión copiada en varias hojas cuenta una vez), en orden cronológico (2026-08-18 a 2026-11-05). Estados: ADAPTADO 11, CORREGIDO 1, VALIDACIÓN 1, VALIDADO 28.
+42 sesiones registradas (una sesión copiada en varias hojas cuenta una vez), en orden cronológico (2026-08-18 a 2026-11-06). Estados: ADAPTADO 11, CORREGIDO 1, VALIDACIÓN 1, VALIDADO 29.
 Úsalo para no repetir trabajo, respetar lo ya adaptado o corregido y copiar el estilo de registro.
 
 - 2026-08-18 · Presentaciones - Documentos · ChatGPT · Karen Sandoval: «Compara tecnologías de frontend, para un proyecto de diccionario colaborativo de vocabulario (mazos semanales, aportes de estudiantes, validación docente, repetición espaciada). Evalúa React, Vue y Angular.» → Tres tablas comparativas (Tabla 1A, 1B, 1C) con cifras de adopción citadas a una encuesta de Stack Overflow proporcionada por integrante del proyecto | VALIDADO: Se contrastaron las características y cifras presentadas con fuentes externas y se verificó que la comparación fuera coherente con las necesidades del proyecto. Los resultados sirvieron como recurso para seleccionar la tecnología frontend.
@@ -822,6 +824,7 @@ detallados faltaban datos del PDF, así que se ajustó:
 - 2026-11-03 · Backend · Claude (Claude Code, Anthropic), configurado como claude-sonnet-5-5. · Karen Sandoval: «feat(hitl): SUPERPROMPT maestro, trazabilidad y bitácora» → - `tools/hitl/`: script `hitl.py` (solo `openpyxl`, no llama a ningún modelo), configuración, `requirements.txt` y hook opcional `post-merge`. - `docs/ai/`: `SUPERPROMPT.md` generado, plantillas, con… | VALIDADO: `hitl.py build --verificar` devuelve «SUPERPROMPT al día», y el script se probó contra copias de los tres repos y los Excel reales. Las 416 pruebas del backend pasan (`npm test`). El workflow no se ha ejecutado todavía en GitHub. (Revisión: Manuela …
 - 2026-11-04 · Backend · Claude Code (Claude Sonnet 5.5) · Karen Sandoval: «feat: HU-018 reporte de progreso individual en PDF» → - Nuevo repositorio, servicio de datos, maquetado PDF, controlador y ruta de reportes de progreso, siguiendo la estructura de HU-019. - `utils/formatoPdf.js`: helpers de texto del PDF compartidos con… | VALIDADO: 468 pruebas unitarias y lint en cada commit; SQL ejecutado contra PostgreSQL con `init.sql` y datos de prueba; PDF revisado visualmente; probado en local por <tu nombre> (Revisión: <tu nombre, 2026-11-03>)
 - 2026-11-05 · Backend · Claude (Sonnet 5.5), usado en conversación; no escribió directamente en el repositorio. · Manuela Meneses: «feat(HU-021): reporte de resultados por quiz en PDF» → - `ReporteResultadosQuizRepository.js`: consultas de solo lectura sobre quiz, resultado_quiz, pregunta_quiz y respuesta_quiz. - `ReporteResultadosQuizService.js`: acceso (403 si no es docente o si el… | VALIDADO: <ej. "npm run lint sin errores; npm run test:coverage con 514 pruebas aprobadas; colección Postman con 7 requests en verde contra el backend local y la BD de Docker; PDF descargado y revisado a mano"> (Revisión: Karen Nathalia Sandoval, 04-11-2026)
+- 2026-11-06 · Backend · Claude Code (Claude Sonnet 5.5) · Karen Sandoval: «docs: README con instalación y estructura real» → - `README.md`: reemplazo de «Estructura del repositorio» y «Stack técnico»; nuevas secciones de repositorios, requisitos, instalación, variables de entorno, scripts, login y datos de prueba. - `docs/… | VALIDADO: Vista previa en GitHub y revisión de enlaces (Revisión: Karen Nathalia Sandoval - 06-11-2026)
 
 ## 11. Trazabilidad registrada
 | Fecha | Prompt-ID | Sprint | Autor (rol) | Repo | HU | Rama | Commits | PR | Estado | Hoja · fila bitácora | Plantilla |
@@ -834,6 +837,7 @@ detallados faltaban datos del PDF, así que se ajustó:
 | 2026-11-03 | P-20261103-0238 | 4 | Manuela Meneses (Backend) | backend | — | feature/HITL | 9c0f22c, el único commit del PR: script, SUPERPROMPT, plantillas, documentación y workflow. | backend#38 | VALIDADO | Backend · fila 10 | automático (PR) |
 | 2026-11-04 | P-20261104-2101-HU-018 | 4 | Manuela Meneses (Backend) | backend | HU-018 | feature/hu-18-reporte-progreso-individual | los 6 commits de la rama | backend#41 | VALIDADO | Backend · fila 11 | automático (PR) |
 | 2026-11-05 | P-20261105-0029-HU-021 | 4 | Karen Sandoval (PO / SM) | backend | HU-021 | feature/hu-21-reporte-resultados-quiz | plan, servicios de datos y de PDF, pruebas, colección Postman y script de datos propuestos por la IA en una conversación, y escritos, adaptados y ejecutados por Karen Nathalia Sandoval. Commits: 7e27fd3, fe165a0, dddcf5c, 03b96f5, 74bd306 y el de la fusión con develop. | backend#44 | VALIDADO | Backend · fila 12 | automático (PR) |
+| 2026-11-06 | P-20261106-2026 | 4 | Karen Sandoval (PO / SM) | backend | — | docs/readme-e-indices | redacción del contenido de `README.md` y `docs/README.md` a partir de la revisión del código y la documentación existente; el contenido fue aplicado y subido manualmente por Karen Nathalia Sandoval. | backend#45 | VALIDADO | Backend · fila 13 | automático (PR) |
 
 ## 12. Protocolo HITL (puertas obligatorias)
 Te detienes en cada puerta y esperas la frase indicada de la persona responsable de la sesión (o del líder del sprint, **Karen Sandoval**, en P2). Sin esa frase no avanzas.
