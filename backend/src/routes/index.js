@@ -1,7 +1,12 @@
-// Agrupa y expone los routers de recursos genéricos que aún no forman parte de ningún flujo
-// de negocio activo (Mazo y Tarjeta ya NO están aquí: su creación vive en mazoRoutes.js/
-// tarjetaRoutes.js, montados directamente en app.js). Este archivo mismo tampoco se importa desde
-// app.js por ahora; queda como referencia para cuando se decida exponer estas 11 entidades.
+/**
+ * @file index.js
+ * @brief Agrupa los routers de recursos genéricos (CRUD) que aún no forman parte de ningún flujo
+ * de negocio activo.
+ *
+ * @note Este archivo NO se importa desde app.js por ahora; queda como referencia para cuando se
+ * decida exponer estas 11 entidades. Mazo y Tarjeta ya no están aquí: su creación vive en
+ * mazoRoutes.js y tarjetaRoutes.js, montados directamente en app.js.
+ */
 
 import { Router } from 'express';
 import usuarioRoutes from './usuarioRoutes.js';

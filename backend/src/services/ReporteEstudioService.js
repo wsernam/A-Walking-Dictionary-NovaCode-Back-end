@@ -4,9 +4,10 @@
  *
  * Endpoint relacionado: GET /api/v1/reports/study-mode/export-pdf (parámetro opcional student_id).
  * Reglas de acceso (CA-19.3, supuestos S5 y S6 aceptados por el equipo):
- *   - docente: ve a los estudiantes inscritos en SUS cursos (curso.docente_id = su id_usuario).
- *     Sin student_id recibe a todos; con student_id solo a ese estudiante, y si no pertenece a
- *     sus cursos se responde 404 como si no existiera (recomendación pendiente de validar).
+ *   - docente: ve a todos los estudiantes con inscripción activa, de cualquier curso (decisión del
+ *     equipo 2026-11-06; antes se limitaba a los cursos con curso.docente_id = su id_usuario).
+ *     Sin student_id recibe a todos; con student_id solo a ese estudiante, y si no tiene
+ *     inscripción activa se responde 404.
  *   - estudiante: solo su propio repaso. Sin student_id recibe el suyo; con el student_id de otro
  *     usuario se responde 403 y no se genera nada.
  *   - cualquier otro rol (Invitado, etc.): 403.
@@ -17,7 +18,6 @@
  */
 
 import { ReporteEstudioRepository } from '../repositories/ReporteEstudioRepository.js';
-import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
 import { errorApi } from '../utils/codigosError.js';
 
 /** @brief Cantidad de palabras difíciles por estudiante (S7/S8). */
@@ -51,11 +51,9 @@ export const ReporteEstudioService = {
 
     let filtros;
     if (usuario.rol === 'docente') {
-      // Con DISABLE_AUTH (solo desarrollo local) no hay usuario real: se omite el alcance por docente.
-      filtros = {
-        docenteId: authDeshabilitado() ? null : idUsuario,
-        estudianteId: estudianteSolicitado,
-      };
+      // Decisión del equipo (2026-11-06): la docente ve a todos los estudiantes con inscripción
+      // activa, de cualquier curso. No se filtra por curso.docente_id.
+      filtros = { docenteId: null, estudianteId: estudianteSolicitado };
     } else if (usuario.rol === 'estudiante') {
       if (estudianteSolicitado !== null && estudianteSolicitado !== idUsuario) {
         throw errorApi(403, 'REPORT_FORBIDDEN', 'No tiene permisos para ver el reporte de otro estudiante');

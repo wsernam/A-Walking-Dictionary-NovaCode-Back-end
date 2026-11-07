@@ -1,10 +1,25 @@
-// Controlador REST de EtiquetaContexto: recibe la petición HTTP, llama directamente al repositorio
-// (EtiquetaContextoRepository) y devuelve la respuesta. Cuando exista lógica de negocio en services/,
-// se insertará entre el controlador y el repositorio sin cambiar esta firma.
+/**
+ * @file EtiquetaContextoController.js
+ * @brief Controlador REST (CRUD genérico) de EtiquetaContexto: recibe la petición HTTP, llama
+ * directamente al repositorio (EtiquetaContextoRepository) y devuelve la respuesta. Cuando
+ * exista lógica de negocio en services/, se insertará entre el controlador y el repositorio sin
+ * cambiar esta firma.
+ *
+ * @note Ninguna ruta montada en app.js usa este controlador; la asignación real de etiquetas es
+ * PUT /api/v1/cards/:id/context (HU-2.2). Sus errores no llevan el campo "code" (decisión del
+ * 2026-10-22: los controladores sin ruta montada no se tocaron).
+ */
 
 import { EtiquetaContextoRepository } from '../repositories/EtiquetaContextoRepository.js';
 
 export const EtiquetaContextoController = {
+
+  /**
+   * @brief Crea una etiqueta. Exige tipo y valor (obligatorios) y respeta sus longitudes del DER
+   * (tipo 40, valor 150).
+   * @param {import('express').Request} req - req.body: tipo, valor y demás columnas de etiqueta_contexto.
+   * @param {import('express').Response} res - 201 con la etiqueta, 400 si falta un campo o excede su longitud, 500 ante error inesperado.
+   */
   async crear(req, res) {
     try {
       const { tipo, valor } = req.body;
@@ -42,6 +57,11 @@ export const EtiquetaContextoController = {
     }
   },
 
+  /**
+   * @brief Consulta una etiqueta por su id_etiqueta.
+   * @param {import('express').Request} req - req.params.id es el id_etiqueta.
+   * @param {import('express').Response} res - 200 con la etiqueta, 400 si el id no es numérico, 404 si no existe, 500 ante error inesperado.
+   */
   async obtenerPorId(req, res) {
     try {
       const id = Number(req.params.id);
@@ -58,6 +78,11 @@ export const EtiquetaContextoController = {
     }
   },
 
+  /**
+   * @brief Lista todas las etiquetas.
+   * @param {import('express').Request} req - Sin parámetros.
+   * @param {import('express').Response} res - 200 con el listado, 500 ante error inesperado.
+   */
   async listar(req, res) {
     try {
       const etiquetas = await EtiquetaContextoRepository.listar();
@@ -67,6 +92,11 @@ export const EtiquetaContextoController = {
     }
   },
 
+  /**
+   * @brief Actualiza una etiqueta.
+   * @param {import('express').Request} req - req.params.id es el id_etiqueta; req.body trae las columnas.
+   * @param {import('express').Response} res - 200 con la etiqueta actualizada, 400 si el id no es numérico, 404 si no existe, 500 ante error inesperado.
+   */
   async actualizar(req, res) {
     try {
       const id = Number(req.params.id);
@@ -83,6 +113,11 @@ export const EtiquetaContextoController = {
     }
   },
 
+  /**
+   * @brief Elimina una etiqueta.
+   * @param {import('express').Request} req - req.params.id es el id_etiqueta.
+   * @param {import('express').Response} res - 200 con { eliminado: true }, 400 si el id no es numérico, 404 si no existe, 500 ante error inesperado.
+   */
   async eliminar(req, res) {
     try {
       const id = Number(req.params.id);

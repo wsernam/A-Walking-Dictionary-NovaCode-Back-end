@@ -6,7 +6,7 @@
 ## 0. Cabecera
 - Plantilla: 3.0 (facdbd59)
 - Sprint en curso: 4 · Reportes en PDF (HE-07) · líder del sprint (aprueba contratos): **Karen Sandoval**
-- Fuentes al construirlo: backend@71dd9bd, frontend@ea7738f · backlog: 21 HU · bitácora: 41 sesiones
+- Fuentes al construirlo: backend@72d7236, frontend@47d766e · backlog: 21 HU · bitácora: 46 sesiones
 - Se reconstruye con: `python tools/hitl/hitl.py build` (o lo hace el flujo de GitHub Actions y abre un PR para revisión humana)
 
 ## 1. Cómo usar este documento
@@ -349,14 +349,17 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 **Antes de proponer nada, lee los markdowns que apliquen a la tarea** (README y carpeta `docs/` o `doc/` de cada repo). Los marcados como CONTRATO son vinculantes: si tu cambio los contradice, aplica la puerta P2.
 
 - `backend:.github/pull_request_template.md` — (sin título) (497 caracteres; último cambio: 3c9f121 2026-10-22)
-- `backend:CLAUDE.md` — CLAUDE.md — Contexto del proyecto (39.819 caracteres; último cambio: bf915d7 2026-11-04)
-- `backend:README.md` — A Walking Dictionary (3.375 caracteres; último cambio: 15a7928 2026-08-22)
+- `backend:CHANGELOG.md` — Changelog (4.022 caracteres; último cambio: bfe993e 2026-11-06)
+- `backend:CLAUDE.md` — CLAUDE.md — Contexto del proyecto (40.754 caracteres; último cambio: 39c76fe 2026-11-06)
+- `backend:CONTRIBUTING.md` — Guía de contribución — A Walking Dictionary (Back-end) (5.073 caracteres; último cambio: bfe993e 2026-11-06)
+- `backend:README.md` — A Walking Dictionary (7.472 caracteres; último cambio: 6a6db77 2026-11-06)
+- `backend:SECURITY.md` — Política de seguridad (1.571 caracteres; último cambio: bfe993e 2026-11-06)
 - `backend:backend/Auditoria_OWASP_Top10_2025.md` — Auditoría de seguridad — OWASP Top 10:2025 (22.729 caracteres; último cambio: 6dcb4bc 2026-10-08)
 - `backend:backend/pruebas-funcionales/README.md` — Pruebas funcionales de la API (2.981 caracteres; último cambio: f95d046 2026-10-17)
 - `backend:backend/security-suite/README.md` — NovaCode — Suite OWASP v2 (2.101 caracteres; último cambio: ad52a8c 2026-10-18)
 - `backend:docs/CAMBIO_APORTE_ESTADO.md` — Cambio: columna `aporte.estado` y ajustes a la PR #5 (coautorías) (6.606 caracteres; último cambio: c2c2503 2026-09-23)
 - `backend:docs/CAMBIO_REPASO_SM2.md` — Cambio: el repaso SM-2 ya no se queda sin tarjetas (HU-4.1) (7.128 caracteres; último cambio: 4364fa2 2026-09-30)
-- `backend:docs/CHANGELOG_BACKEND.md` — Changelog - Estructura Backend (48.139 caracteres; último cambio: 74bd306 2026-11-04)
+- `backend:docs/CHANGELOG_BACKEND.md` — Changelog - Estructura Backend (48.139 caracteres; último cambio: bfe993e 2026-11-06)
 - **[CONTRATO]** `backend:docs/CONTRATO_AUTENTICACION_FRONTEND.md` — Contrato de Autenticación (login con Google) — para Frontend (9.675 caracteres; último cambio: bc07c4f 2026-09-24)
 - **[CONTRATO]** `backend:docs/CONTRATO_FRONTEND_HU-2.3.md` — Contrato Backend → Frontend — HU-2.3 (HU-006 en la numeración de sprint del equipo) (5.140 caracteres; último cambio: 36f0ae3 2026-10-04)
 - **[CONTRATO]** `backend:docs/CONTRATO_FRONTEND_HU-3.1.md` — Contrato Backend → Frontend — HU-3.1 (HU-007 en la numeración de sprint del equipo) (11.950 caracteres; último cambio: 9be996e 2026-10-11)
@@ -366,9 +369,11 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 - `backend:docs/FLUJO_PERFIL_ACADEMICO.md` — Flujo de Perfil Académico (HU-5.2) (7.115 caracteres; último cambio: 3adfb5a 2026-09-19)
 - `backend:docs/FLUJO_REVISION_TARJETAS.md` — Flujo de Revisión de Tarjetas — Individual vs. Coautoría (5.697 caracteres; último cambio: 5d3877e 2026-09-29)
 - `backend:docs/INFORME_PRUEBAS_FUNCIONALES.md` — Informe de pruebas funcionales (10.748 caracteres; último cambio: 4bb640b 2026-10-18)
-- **[CONTRATO]** `backend:docs/codigos-error.md` — Códigos de error de la API (9.214 caracteres; último cambio: 1df171d 2026-10-30)
+- `backend:docs/README.md` — Documentación — A Walking Dictionary (Back-end) (4.382 caracteres; último cambio: db32a70 2026-11-06)
+- **[CONTRATO]** `backend:docs/codigos-error.md` — Códigos de error de la API (9.278 caracteres; último cambio: 779c5ad 2026-11-06)
 - `frontend:.github/pull_request_template.md` — (sin título) (495 caracteres; último cambio: ca73e2e 2026-10-23)
-- `frontend:README.md` — A Walking Dictionary (2.165 caracteres; último cambio: 626f3ab 2026-09-04)
+- `frontend:README.md` — A Walking Dictionary (6.214 caracteres; último cambio: 60750c3 2026-11-06)
+- `frontend:docs/README.md` — Documentación — A Walking Dictionary (Front-end) (2.305 caracteres; último cambio: 60750c3 2026-11-06)
 - `frontend:docs/bitacora.md` — Bitácora de trabajo con IA — Frontend (9.952 caracteres; último cambio: dd6f6b3 2026-10-31)
 - **[CONTRATO]** `frontend:docs/contrato-exportacion.md` — Contrato de datos — Exportar mazos y quices a PDF (HU-3.3) (6.027 caracteres; último cambio: 8611b65 2026-10-16)
 - **[CONTRATO]** `frontend:docs/contrato-inscripcion.md` — Contrato de inscripción a cursos — HU-014 (4.496 caracteres; último cambio: c951225 2026-09-23)
@@ -476,15 +481,17 @@ Registro de decisiones humanas que Claude debe respetar en todas las sesiones. F
 - 2026-10-11 — Se aprueban los endpoints adicionales `GET /api/v1/quizzes/mine` (estudiante, inscripción activa, con `resultado`) y `GET /api/v1/quizzes/:id/result` (estudiante inscrito, sin depender del estado del quiz; 404 si no ha enviado) pedidos en `docs/contrato-quiz-estudiante.md` del front. Además `POST/PUT/DELETE /quizzes` exigen docente y `GET /quizzes` y `GET /quizzes/:id` exigen token. Falta reflejarlo en Backlog_HU.xlsx — wsernam — HU-3.2 (CA-3.2.3), CA-5.4.2
 - 2026-10-11 — Pruebas de controladores y cobertura (rama `feature/pruebas-unitarias`): se excluyen además de la cobertura 5 controladores que solo usan rutas NO montadas en app.js (PreguntaQuiz, EtiquetaContexto, RespuestaQuiz, ProgresoEstudio, QuizMazo); misma lista en `sonar-project.properties` y `vitest.config.js`. El código de HU pendientes o fuera del backlog (WordNet, Estudio, Diccionario) NO se excluye: cuenta como no cubierto y, si la cobertura no llegara al 70 %, se reporta el número real. Los métodos de controladores alcanzables que ninguna ruta montada usa se prueban marcados `[SIN RUTA MONTADA]`. Resultado: 367 pruebas, cobertura 75.75 % — wsernam — CA-1.1.x, CA-1.2.x, CA-1.3.x, CA-2.1.x, CA-2.2.x, CA-2.3.x, CA-3.1.x, CA-3.2.x, CA-3.3.x, CA-5.1.x, CA-5.2.x, CA-5.3.x, CA-5.4.1
 - 2026-10-17 — Suite de pruebas funcionales (tarea asignada a William en la reunión del equipo): las de la API viven en el repo del back (`backend/pruebas-funcionales/`, `npm run test:funcional`, workflow propio `funcionales.yml`) y las E2E de Playwright en el repo del front con su propio workflow `e2e.yml`, que descarga el back (ambos repos son públicos). No se ponen en el repo de infra porque no tiene CI. Login simulado firmando el JWT con `JWT_SECRET`; la suite reinicia la BD local/CI con `init.sql` + `seed.sql`. Resultado: 82 pruebas + 4 `todo`. Observaciones: `quiz.fecha_apertura/fecha_cierre` son `TIMESTAMP` sin zona (desfase de 5 h si el backend no corre en UTC) — CORREGIDO 2026-10-18 en `src/config/db.js` sin migración (pg lee/escribe TIMESTAMP en UTC; PR #27, aprobado por wsernam); los puntajes de `resultado_quiz` llegan como string — sin corregir, lo decide el equipo. Rama `feature/pruebas-funcionales` — wsernam — CA-1.1.x a CA-5.4.x (sin HU-4.x)
-- 2026-10-21 — Auditoría OWASP H-11: `InscripcionService.generarCodigo` usa `randomInt` de `node:crypto` en vez de `Math.random` para el código de acceso al curso (mismo alfabeto y longitud de 8). El `Math.random` de `QuizService` (barajar opciones) no se cambia: no protege ningún acceso. Rama `fix/owasp-h11-codigo-crypto` — wsernam — CA-5.3.1
+- 2026-10-21 — Auditoría OWASP H-11: `InscripcionService.generarCodigo` usa `randomInt` de `node:crypto` en vez de `Math.random` para el código de acceso al curso (mismo alfabeto y longitud de 8). El barajado de opciones de QuizService se cambió después a node:crypto (PR #33, 2026-10-22, rama fix/owasp-h11-barajado-crypto). Rama `fix/owasp-h11-codigo-crypto` — wsernam — CA-5.3.1
 - 2026-10-22 — Códigos de error de la API (propuesta del equipo tras la migración del front a inglés, PR #48 del front): toda respuesta de error es `{ error, code }`; `error` (español) y el status HTTP NO cambian, `code` es un código fijo en inglés que el front traduce con `en.json`. Códigos específicos en controladores, servicios (`errorApi(status, code, mensaje)` de `src/utils/codigosError.js`) y middleware de autenticación (`AUTH_TOKEN_MISSING`, `AUTH_TOKEN_INVALID`, `AUTH_FORBIDDEN`, `AUTH_USER_NOT_REGISTERED`); los errores sin código propio reciben uno genérico por status en el interceptor de `app.js` (`BAD_REQUEST`, `NOT_FOUND`, `INTERNAL_ERROR`, …). Se agregó `AUTH_ACCOUNT_INACTIVE` (cuenta desactivada, no estaba en la propuesta). Lista completa en `docs/codigos-error.md`. Los 5 controladores sin ruta montada no se tocaron. Todo 5xx sale con `INTERNAL_ERROR` y solo se reenvían códigos con forma de los nuestros (`esCodigoPropio`): los errores de PostgreSQL traen su SQLSTATE en `error.code` (ej. "42703") y no deben llegar al cliente. `WordnetService` ahora responde 400 (`REQUIRED_FIELDS_MISSING` / `FIELD_TOO_LONG`) en vez de 500 ante una palabra vacía o de más de 150 caracteres; no tiene pruebas unitarias porque `node-wordnet` carga `es6-shim`, que reemplaza la Promise global y rompe Vitest. Tarea asignada a William y Thalía; William la hizo completa. Rama `feature/codigos-error` — wsernam — sin HU (transversal; afecta CA-5.4.1/5.4.2 en los códigos de auth)
 
 - 2026-10-30 — HU-019 (reporte del modo de estudio en PDF): endpoint `GET /api/v1/reports/study-mode/export-pdf` con `student_id` opcional (aprobado por el equipo; falta reflejarlo en Backlog_HU.xlsx). Ruta con `authenticate` sin `requireRole`: la regla vive en `ReporteEstudioService` (CA-19.3): el estudiante solo ve su propio repaso (403 `REPORT_FORBIDDEN` si pide otro `student_id`), la docente ve a los estudiantes de sus cursos (`curso.docente_id`) y un `student_id` fuera de sus cursos responde 404 `REPORT_STUDENT_NOT_FOUND` (supuesto pendiente de validar). S1: la distribución de valoraciones cuenta la última valoración de cada tarjeta, porque `progreso_estudio` no guarda historial (limitación documentada en el propio PDF). S4: repaso vencido = `fecha_proximo_repaso < NOW() AT TIME ZONE 'UTC'`. S7/S8: 10 palabras de menor `factor_facilidad` por estudiante. Se exportan con `export` los helpers de maquetado de `ExportarPDFService.js` para reutilizarlos. Archivos nuevos: `ReporteEstudioRepository.js`, `ReporteEstudioService.js`, `ReporteEstudioPDFService.js`, `ReporteEstudioController.js`, `reporteRoutes.js` y sus pruebas. Rama `feature/hu-19-reporte-modo-estudio` — Karen Sandoval — HU-019 (CA-19.1, CA-19.2, CA-19.3)
 
-
 - 2026-11-04 — HU-021 (reporte de resultados por quiz en PDF, `GET /api/v1/reports/quizzes/:id/results/export-pdf`): S1 el quiz debe ser de un curso de la docente (403 `AUTH_FORBIDDEN` si no); S2 cuentan los inscritos `activa` más los no activos que tengan resultado; S3 la calificación se muestra tal cual (0-5) convertida con `Number()`; S4 se muestran las 5 preguntas con mayor % de error, desempate por `pregunta_quiz.orden`; S5 una pregunta sin fila en `respuesta_quiz` no cuenta como error; S6 el % que presentó se calcula sobre todas las filas listadas. Falta reflejar el endpoint en Backlog_HU.xlsx — <quién confirmó>  — Karen Sandoval— HU-021 (CA-21.1, CA-21.2, CA-21.3)
 
 - 2026-11-03 — HU-018 (reporte de progreso individual en PDF): endpoint `GET /api/v1/reports/students/:id/progress/export-pdf`, el que ya trae el backlog (y el que llama `reportesApi.js` del front). Misma regla de acceso que HU-019 (`authenticate` sin `requireRole`; la regla vive en `ReporteProgresoService`, CA-18.3): el estudiante solo ve su propio reporte (403 `REPORT_FORBIDDEN` si el `:id` es de otro, sin consultar la BD), la docente ve a los estudiantes inscritos en sus cursos y un `:id` fuera de sus cursos responde 404 `REPORT_STUDENT_NOT_FOUND` (supuesto pendiente de validar); `:id` inválido responde 400 `INVALID_ID`. No hay códigos de error nuevos. Supuestos pendientes de validar: «palabras aportadas» = aportes `tipo_aporte = 'creada'` contados por el estado de su tarjeta (`rechazada` saldrá en 0 mientras el rechazo no exista, ver HE-02); «coautorías» = `tipo_aporte IN ('coautoria','acepcion_nueva')` (mismo criterio que `AnaliticaRepository`); nota promedio = promedio simple de `resultado_quiz.calificacion` (escala 0-5); «tarjetas repasadas» = filas de `progreso_estudio` del estudiante (igual que HU-019). Sin quices o sin repasos el PDF muestra «Sin actividad registrada» (CA-18.2). Los helpers de texto del PDF (`limpiar`, `recortar`, `formatearFecha`) pasaron de `ReporteEstudioPDFService.js` a `src/utils/formatoPdf.js` para compartirlos. Archivos nuevos: `ReporteProgresoRepository.js`, `ReporteProgresoService.js`, `ReporteProgresoPDFService.js`, `ReporteProgresoController.js`, `utils/formatoPdf.js` y sus pruebas. Rama `feature/hu-18-reporte-progreso-individual` — HU-018 (CA-18.1, CA-18.2, CA-18.3)
+
+
+- 2026-11-06 — HU-019, alcance de la docente (reemplaza el supuesto S5 de la decisión del 2026-10-30): el reporte del modo de estudio incluye a todos los estudiantes con inscripción activa, sin filtrar por `curso.docente_id`. Motivo: en el despliegue hay un solo curso, asignado al docente con id 1, y las demás cuentas docentes recibían un reporte vacío; la HU dice "la docente sobre todos los estudiantes" y el MVP es un solo curso cerrado. Se mantiene: el estudiante solo ve su propio repaso (403 `REPORT_FORBIDDEN` si pide otro `student_id`) y un `student_id` sin inscripción activa responde 404 `REPORT_STUDENT_NOT_FOUND`. Se corrige además la nota de distribución que se encimaba con el aviso de lista vacía. Rama `fix/hu-19-alcance-docente-reporte` — decisión de Karen Sandoval, pendiente de que el equipo la confirme (falta verificar si el docente 1 es del seed) — HU-019 (CA-19.1, CA-19.3)
 
 #### Bitácora de trabajo con IA del frontend — `frontend:docs/bitacora.md`
 
@@ -650,11 +657,37 @@ detallados faltaban datos del PDF, así que se ajustó:
 
 
 ## 9. Estado e historial de los repositorios
-- `backend`: rama `develop`, HEAD `71dd9bd`
-- `frontend`: rama `develop`, HEAD `ea7738f`
+- `backend`: rama `develop`, HEAD `72d7236`
+- `frontend`: rama `develop`, HEAD `47d766e`
 
 ### Historial de commits
-**backend** — últimos 60 de 186 commits (incluye merges de PR):
+**backend** — últimos 60 de 212 commits (incluye merges de PR):
+  - 72d7236 2026-11-06 Karen Sandoval: Merge pull request #49 from wsernam/feature/HU-020-reporte-estudiantes-curso-pdf
+  - 39c76fe 2026-11-06 Manuela Erazo: Merge branch 'develop' into feature/HU-020-reporte-estudiantes-curso-pdf
+  - 5d72147 2026-11-06 Karen Sandoval: Merge pull request #51 from wsernam/fix/hu-19-alcance-docente-reporte
+  - 8ecd4bf 2026-11-06 Karen Sandoval: docs(reportes): registrar el alcance de la docente en el reporte del modo de estudio
+  - 3682ed3 2026-11-06 Karen Sandoval: fix(reportes): bajar el cursor tras el aviso de lista vacía para que no se encime la nota
+  - d217b29 2026-11-06 Karen Sandoval: fix(reportes): la docente ve a todos los estudiantes con inscripción activa en el reporte del modo de estudio
+  - 955e10f 2026-11-06 Manuela Erazo: merge: actualizar feature/HU-020 con develop (gobernanza y Doxygen)
+  - b3c213f 2026-11-06 Manuela Erazo: Merge pull request #48 from wsernam/docs/doxygen-backend
+  - d3866cc 2026-11-06 Manuela Erazo: Merge pull request #47 from wsernam/docs/gobernanza-y-changelog
+  - b6a631c 2026-11-06 Manuela Erazo: merge: actualizar feature/HU-020 con develop (HU-018, HU-019 y HU-021)
+  - bd804bf 2026-11-06 Manuela Erazo: Merge pull request #46 from wsernam/bot/superprompt
+  - 779c5ad 2026-11-06 Manuela Erazo: docs(reportes): registrar HU-020 en app.js, códigos de error y decisiones del equipo
+  - 6e7ddc7 2026-11-06 Manuela Erazo: feat(reportes): HU-020 endpoint GET /api/v1/reports/students/export-pdf
+  - d94a3c4 2026-11-06 Manuela Erazo: feat(reportes): HU-020 maquetado del PDF de estudiantes del curso (CA-20.1, CA-20.2)
+  - 9aecdc1 2026-11-06 Manuela Erazo: feat(reportes): HU-020 reglas de acceso y consolidación de datos (CA-20.1, CA-20.2, CA-20.3)
+  - 7ee746c 2026-11-06 Manuela Erazo: feat(reportes): HU-020 consultas del reporte de estudiantes del curso
+  - 39ddd14 2026-11-06 Manuela Erazo: chore(reportes): extraer helpers de tabla de PDF a utils/tablasPdf.js
+  - de23e2e 2026-11-06 Karen Sandoval: docs: documentar con Doxygen los archivos del backend sin comentarios
+  - db32a70 2026-11-06 Karen Sandoval: docs v2: CONTRIBUTING, SECURITY y CHANGELOG
+  - 6a6db77 2026-11-06 Karen Sandoval: Merge branch 'develop' into docs/gobernanza-y-changelog
+  - bfe993e 2026-11-06 Karen Sandoval: docs: CONTRIBUTING, SECURITY y CHANGELOG
+  - 2b828d4 2026-11-06 knnsand: docs(ai): reconstruir SUPERPROMPT y registrar PR con IA
+  - 2217be6 2026-11-06 Karen Sandoval: Merge pull request #45 from wsernam/docs/readme-e-indices
+  - fed40f1 2026-11-06 Karen Sandoval: docs: README con instalación y estructura real, e índice de documentación
+  - 0dd545c 2026-11-04 Karen Sandoval: Merge pull request #43 from wsernam/bot/superprompt
+  - fd1c137 2026-11-05 ManuelaE08: docs(ai): reconstruir SUPERPROMPT y registrar PR con IA
   - 71dd9bd 2026-11-04 Manuela Erazo: Merge pull request #44 from wsernam/feature/hu-21-reporte-resultados-quiz
   - bf915d7 2026-11-04 Karen Sandoval: merge: actualizar feature/hu-21-reporte-resultados-quiz con develop
   - 74bd306 2026-11-04 Karen Sandoval: docs(reportes): HU-021 colección Postman, datos de prueba y changelog
@@ -689,33 +722,12 @@ detallados faltaban datos del PDF, así que se ajustó:
   - 539b1e7 2026-10-23 thaliabernalepe: fix(seguridad): actualizacion reporte owasp
   - 35753e5 2026-10-22 wsernam: Merge pull request #34 from wsernam/chore/plantilla-pr
   - 3c9f121 2026-10-22 wsernam: se creo la plantilla para las pull reques
-  - 00703c4 2026-10-22 thaliabernalepe: fix(deps): actualizacion vulnerabilidades
-  - 3f11a72 2026-10-22 Karen Sandoval: Merge pull request #33 from wsernam/fix/owasp-h11-barajado-crypto
-  - a9bc32c 2026-10-22 Karen Sandoval: fix(seguridad): H-11 barajado de preguntas del quiz con node:crypto en lugar de Math.random
-  - 54b18b0 2026-10-22 thaliabernalepe: test(security): agregar pruebas OWASP A03 y A08
-  - 7fff6ae 2026-10-22 thaliabernalepe: Add OWASP report generation step
-  - 86d5607 2026-10-22 thaliabernalepe: feat(security): generar reporte OWASP Top 10 con recomendaciones
-  - 2b376f8 2026-10-21 wsernam: Merge pull request #32 from wsernam/feature/codigos-error
-  - c6e7ff4 2026-10-21 wsernam: fix(api): no reenviar códigos ajenos y responder 400 en WordnetService
-  - 66bec37 2026-10-21 wsernam: feat(api): agregar "code" fijo en inglés a todas las respuestas de error
-  - 58856cc 2026-10-21 wsernam: Merge pull request #31 from wsernam/fix/codeql-escape-resumen
-  - ef32a0d 2026-10-21 wsernam: fix(security): generar el código de acceso al curso con node:crypto (OWASP H-11)
-  - 6da1577 2026-10-21 wsernam: fix(ci): escapar la barra invertida en el resumen de pruebas funcionales
-  - 23c7ccd 2026-10-18 thaliabernalepe: test(security): corregir validacion de acceso anonimo Supabase
-  - 5420627 2026-10-18 thaliabernalepe: test(security): validar acceso anonimo y separar evidencia RLS
-  - 428de41 2026-10-18 thaliabernalepe: test(security): mejorar diagnostico HTTP 401 de Supabase
-  - 5c1d12e 2026-10-18 thaliabernalepe: cambios h-05
-  - ad52a8c 2026-10-18 thaliabernalepe: test(security): integrar suite OWASP  y workflow de GitHub Actions
-  - 91800fe 2026-10-18 wsernam: Merge pull request #30 from wsernam/ci/resumen-pruebas
-  - 4bb640b 2026-10-18 wsernam: ci: resumen automático en Markdown de las pruebas funcionales
-  - 9124636 2026-10-18 wsernam: Merge pull request #29 from wsernam/feature/pruebas-funcionales
-  - 0665de8 2026-10-18 wsernam: docs: marcar como corregida la zona horaria de los quices
-  - 344090d 2026-10-18 wsernam: Merge pull request #28 from wsernam/fix/quiz-zona-horaria
-  - fd77a2a 2026-10-18 wsernam: Merge pull request #27 from wsernam/fix/quiz-zona-horaria
-  - 554545c 2026-10-18 wsernam: Update db.js
-  - f95d046 2026-10-17 wsernam: test: agregar suite de pruebas funcionales de la API con su workflow
-  - ee8d36e 2026-10-16 thaliabernalepe: H-10 nueva correccion de vulnerabilidades respecto a vitest
-**frontend** — últimos 60 de 242 commits (incluye merges de PR):
+**frontend** — últimos 60 de 247 commits (incluye merges de PR):
+  - 47d766e 2026-11-06 thaliabernalepe: Merge pull request #69 from knnsand/docs/documentacion-codigo-front
+  - f9949be 2026-11-06 wsernam: docs: documentar con Doxygen los 5 archivos del front que faltaban
+  - c23db2d 2026-11-06 thaliabernalepe: inicio desactivacion coautorias
+  - f8cc6dc 2026-11-06 Karen Sandoval: Merge pull request #66 from knnsand/docs/readme-e-indices
+  - 60750c3 2026-11-06 Karen Sandoval: docs: README con instalación y estructura real, e índice de documentación
   - ea7738f 2026-11-02 thaliabernalepe: Merge pull request #65 from knnsand/feature/HU-021-reporte-resultados-quiz-pdf
   - dd6f6b3 2026-10-31 wsernam: feat: implementacion HU-021 reporte de resultados por quiz en PDF (frontend)
   - 566687d 2026-10-30 thaliabernalepe: Merge pull request #64 from knnsand/chore/avisar-superprompt
@@ -771,14 +783,9 @@ detallados faltaban datos del PDF, así que se ajustó:
   - a22f981 2026-10-20 wsernam: Merge pull request #47 from knnsand/feature/e2e-metricas
   - 22cb9f7 2026-10-20 wsernam: Métricas del tablero
   - 178ac60 2026-10-19 Karen Sandoval: Merge pull request #46 from knnsand/feature/HU-011-enriquecimiento-lexico
-  - ba29d5b 2026-10-19 Karen Sandoval: feat(i18n): migrar formulario de registro de palabra a ingles
-  - 4adb519 2026-10-19 Karen Sandoval: feat(i18n): migrar sesion de estudio con flashcards a ingles
-  - 4e47960 2026-10-19 Karen Sandoval: feat(i18n): migrar panel, perfil y union a curso del estudiante a ingles
-  - 0e2690c 2026-10-19 Karen Sandoval: feat(i18n): migrar encabezado, login y registro a ingles
-  - af9fb6b 2026-10-19 Karen Sandoval: feat(i18n): migrar formulario de creacion de mazo a ingles
 
 ## 10. Historial de prompts y validaciones (bitácora)
-41 sesiones registradas (una sesión copiada en varias hojas cuenta una vez), en orden cronológico (2026-08-18 a 2026-11-05). Estados: ADAPTADO 11, CORREGIDO 1, VALIDACIÓN 1, VALIDADO 28.
+46 sesiones registradas (una sesión copiada en varias hojas cuenta una vez), en orden cronológico (2026-08-18 a 2026-11-07). Estados: ADAPTADO 11, CORREGIDO 1, VALIDACIÓN 1, VALIDADO 33.
 Úsalo para no repetir trabajo, respetar lo ya adaptado o corregido y copiar el estilo de registro.
 
 - 2026-08-18 · Presentaciones - Documentos · ChatGPT · Karen Sandoval: «Compara tecnologías de frontend, para un proyecto de diccionario colaborativo de vocabulario (mazos semanales, aportes de estudiantes, validación docente, repetición espaciada). Evalúa React, Vue y Angular.» → Tres tablas comparativas (Tabla 1A, 1B, 1C) con cifras de adopción citadas a una encuesta de Stack Overflow proporcionada por integrante del proyecto | VALIDADO: Se contrastaron las características y cifras presentadas con fuentes externas y se verificó que la comparación fuera coherente con las necesidades del proyecto. Los resultados sirvieron como recurso para seleccionar la tecnología frontend.
@@ -822,6 +829,11 @@ detallados faltaban datos del PDF, así que se ajustó:
 - 2026-11-03 · Backend · Claude (Claude Code, Anthropic), configurado como claude-sonnet-5-5. · Karen Sandoval: «feat(hitl): SUPERPROMPT maestro, trazabilidad y bitácora» → - `tools/hitl/`: script `hitl.py` (solo `openpyxl`, no llama a ningún modelo), configuración, `requirements.txt` y hook opcional `post-merge`. - `docs/ai/`: `SUPERPROMPT.md` generado, plantillas, con… | VALIDADO: `hitl.py build --verificar` devuelve «SUPERPROMPT al día», y el script se probó contra copias de los tres repos y los Excel reales. Las 416 pruebas del backend pasan (`npm test`). El workflow no se ha ejecutado todavía en GitHub. (Revisión: Manuela …
 - 2026-11-04 · Backend · Claude Code (Claude Sonnet 5.5) · Karen Sandoval: «feat: HU-018 reporte de progreso individual en PDF» → - Nuevo repositorio, servicio de datos, maquetado PDF, controlador y ruta de reportes de progreso, siguiendo la estructura de HU-019. - `utils/formatoPdf.js`: helpers de texto del PDF compartidos con… | VALIDADO: 468 pruebas unitarias y lint en cada commit; SQL ejecutado contra PostgreSQL con `init.sql` y datos de prueba; PDF revisado visualmente; probado en local por <tu nombre> (Revisión: <tu nombre, 2026-11-03>)
 - 2026-11-05 · Backend · Claude (Sonnet 5.5), usado en conversación; no escribió directamente en el repositorio. · Manuela Meneses: «feat(HU-021): reporte de resultados por quiz en PDF» → - `ReporteResultadosQuizRepository.js`: consultas de solo lectura sobre quiz, resultado_quiz, pregunta_quiz y respuesta_quiz. - `ReporteResultadosQuizService.js`: acceso (403 si no es docente o si el… | VALIDADO: <ej. "npm run lint sin errores; npm run test:coverage con 514 pruebas aprobadas; colección Postman con 7 requests en verde contra el backend local y la BD de Docker; PDF descargado y revisado a mano"> (Revisión: Karen Nathalia Sandoval, 04-11-2026)
+- 2026-11-06 · Backend · Claude Code (Claude Sonnet 5.5) · Karen Sandoval: «docs: README con instalación y estructura real» → - `README.md`: reemplazo de «Estructura del repositorio» y «Stack técnico»; nuevas secciones de repositorios, requisitos, instalación, variables de entorno, scripts, login y datos de prueba. - `docs/… | VALIDADO: Vista previa en GitHub y revisión de enlaces (Revisión: Karen Nathalia Sandoval - 06-11-2026)
+- 2026-11-06 · Backend · Claude Code (Claude Sonnet 5.5) · Manuela Meneses: «docs: documentar con Doxygen los archivos del backend sin comentarios» → - `CONTRIBUTING.md`, `SECURITY.md` y `CHANGELOG.md` (nuevos). - `README.md`: la sección «Flujo de trabajo (Git)» se reemplaza por «Contribuir» con enlaces. - `docs/README.md`: nueva sección «Gobernan… | VALIDADO: Vista previa en GitHub y revisión de enlaces (Revisión: Karen Nathalia Sandoval - 06-11-2026)
+- 2026-11-06 · Backend · Claude (Anthropic) como asistente de apoyo. Modelo: Haiku 5.5 · Karen Sandoval: «Fix/hu 19 alcance docente reporte» → - `ReporteEstudioService.js`: la docente ya no se filtra por `curso.docente_id` (se quita el import de `authDeshabilitado`, que ya no se usa) y se actualiza el comentario de cabecera. - `ReporteEstud… | VALIDADO: la IA propuso los cambios en pasos; la autora los aplicó y ejecutó `node --check`, `eslint`, `vitest` y `npm test` (515 pruebas pasan). (Revisión: Karen Nathalia Sandoval 06-11-2026)
+- 2026-11-07 · Frontend · Claude Code (Claude Opus 5.5) · Thalia Bernal: «docs: documentación Doxygen de 5 archivos del front» → - `src/setupTests.js`: cabecera del archivo. - `src/cliente-api/mocks/mazosMock.js`: cabecera, variables y las 3 funciones. - `src/cliente-api/mocks/estudioMock.js`: los comentarios `//` pasan a form… | VALIDADO: lint sin errores, `npm test` comparado con `develop` (mismos 5 fallos) y comprobación de 0 líneas de código cambiadas (Revisión: William Serna (wsernam), 2026-11-06)
+- 2026-11-07 · Backend · Claude (Sonnet 5.5), usado en conversación y en lectura de los repositorios; no escribió directamente en el repositorio. · Karen Sandoval: «Feature/hu 020 reporte estudiantes curso pdf» → - `ReporteCursoRepository.js`: consultas de solo lectura sobre `curso`, `inscripcion`, `usuario`, `aporte`, `tarjeta`, `quiz` y `resultado_quiz`. - `ReporteCursoService.js`: acceso (403 `AUTH_FORBIDD… | VALIDADO: `npx vitest run` con 568 pruebas aprobadas (37 archivos) y `npx eslint src tests` sin errores, ejecutados tras el último merge con develop; probado en local con el backend y la base de datos. (Revisión: Manuela Meneses Erazo, 06/11/2026)
 
 ## 11. Trazabilidad registrada
 | Fecha | Prompt-ID | Sprint | Autor (rol) | Repo | HU | Rama | Commits | PR | Estado | Hoja · fila bitácora | Plantilla |
@@ -834,6 +846,11 @@ detallados faltaban datos del PDF, así que se ajustó:
 | 2026-11-03 | P-20261103-0238 | 4 | Manuela Meneses (Backend) | backend | — | feature/HITL | 9c0f22c, el único commit del PR: script, SUPERPROMPT, plantillas, documentación y workflow. | backend#38 | VALIDADO | Backend · fila 10 | automático (PR) |
 | 2026-11-04 | P-20261104-2101-HU-018 | 4 | Manuela Meneses (Backend) | backend | HU-018 | feature/hu-18-reporte-progreso-individual | los 6 commits de la rama | backend#41 | VALIDADO | Backend · fila 11 | automático (PR) |
 | 2026-11-05 | P-20261105-0029-HU-021 | 4 | Karen Sandoval (PO / SM) | backend | HU-021 | feature/hu-21-reporte-resultados-quiz | plan, servicios de datos y de PDF, pruebas, colección Postman y script de datos propuestos por la IA en una conversación, y escritos, adaptados y ejecutados por Karen Nathalia Sandoval. Commits: 7e27fd3, fe165a0, dddcf5c, 03b96f5, 74bd306 y el de la fusión con develop. | backend#44 | VALIDADO | Backend · fila 12 | automático (PR) |
+| 2026-11-06 | P-20261106-2026 | 4 | Karen Sandoval (PO / SM) | backend | — | docs/readme-e-indices | redacción del contenido de `README.md` y `docs/README.md` a partir de la revisión del código y la documentación existente; el contenido fue aplicado y subido manualmente por Karen Nathalia Sandoval. | backend#45 | VALIDADO | Backend · fila 13 | automático (PR) |
+| 2026-11-06 | P-20261106-2332 | 4 | Karen Sandoval (PO / SM) | backend | — | docs/doxygen-backend | redacción del contenido de README.md y docs/README.md a partir de la revisión del código y la documentación existente; el contenido fue aplicado y subido manualmente por Karen Nathalia Sandoval. | backend#48 | VALIDADO | Backend · fila 14 | automático (PR) |
+| 2026-11-06 | P-20261106-2343-HU-019 | 4 | Karen Sandoval (PO / SM) | backend | HU-019 | fix/hu-19-alcance-docente-reporte | diagnóstico del reporte vacío, propuesta del cambio de regla. | backend#51 | VALIDADO | Backend · fila 15 | automático (PR) |
+| 2026-11-07 | P-20261107-0053 | 4 | William Serna (Frontend) | frontend | — | docs/documentacion-codigo-front | f9949be, todos los comentarios agregados | frontend#69 | VALIDADO | Frontend · fila 22 | automático (PR) |
+| 2026-11-07 | P-20261107-0217-HU-020 | 4 | Manuela Meneses (Backend) | backend | HU-020 | feature/HU-020-reporte-estudiantes-curso-pdf | consultas, servicio de datos, maquetado del PDF, controlador y pruebas, y documentación, propuestos por la IA y aplicados, adaptados y ejecutados por <tu nombre>. Commits: 39ddd14, 7ee746c, 9aecdc1, d94a3c4, 6e7ddc7, 779c5ad y los dos merges con develop (b6a631c y 955e10f). | backend#49 | VALIDADO | Backend · fila 16 | automático (PR) |
 
 ## 12. Protocolo HITL (puertas obligatorias)
 Te detienes en cada puerta y esperas la frase indicada de la persona responsable de la sesión (o del líder del sprint, **Karen Sandoval**, en P2). Sin esa frase no avanzas.

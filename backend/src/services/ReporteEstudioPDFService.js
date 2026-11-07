@@ -171,6 +171,7 @@ export const ReporteEstudioPDFService = {
       m.pagina.drawText('No hay estudiantes inscritos para este reporte.', {
         x: MARGEN + 14, y: m.y - 24, size: 10, font: fuentes.cursiva, color: COLORES.gris,
       });
+      m.bajar(52);
     }
 
     for (const estudiante of estudiantes) {

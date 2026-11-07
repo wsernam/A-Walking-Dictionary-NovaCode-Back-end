@@ -1,7 +1,7 @@
 # Changelog - Estructura Backend
 
 ## Fecha
-2026-10-17 (última actualización — ver historial de sesiones más abajo)
+2026-11-04 (última actualización — ver historial de sesiones más abajo)
 
 ## Cambios aplicados en esta sesión (2026-11-06) — Docente inicial en el registro [IA-ASSISTED]
 
