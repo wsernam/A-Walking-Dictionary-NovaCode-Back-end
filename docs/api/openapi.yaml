@@ -971,6 +971,659 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalError' }
+  # ======================= aportes =======================
+  /aportes/pending:
+    get:
+      tags: [aportes]
+      operationId: listarCoautoriasPendientes
+      summary: Lista las coautorías y acepciones pendientes
+      description: |
+        Solo docente. Endpoint adicional (fuera de los CA de HU-1.3). Aportes `coautoria` y `acepcion_nueva`
+        en `pendiente_revision`, aunque su tarjeta ya esté aprobada, con los datos de la tarjeta.
+        Responde con `Cache-Control: no-store`.
+      x-hu: HU-1.3
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Aportes pendientes, del más antiguo al más reciente.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/AportePendiente' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /aportes:
+    post:
+      tags: [aportes]
+      operationId: crearAporte
+      summary: Crea un aporte (CRUD genérico)
+      description: |
+        Requiere sesión (cualquier rol). CRUD genérico: guarda las columnas del body tal como llegan, sin las
+        reglas de HU-1.2/HU-1.3 (para registrar palabras se usa POST /decks/{id}/cards). Solo valida que vengan
+        `traduccion_aportada` y `tipo_aporte` y las longitudes máximas; si falta otra columna NOT NULL o una
+        foreign key no existe, responde 500.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [traduccion_aportada, tipo_aporte]
+              properties:
+                tarjeta_id: { type: integer }
+                inscripcion_id: { type: integer }
+                traduccion_aportada: { type: string, maxLength: 255 }
+                definicion_aportada: { type: string }
+                ejemplo_aportado: { type: string, maxLength: 150 }
+                tipo_aporte: { type: string, maxLength: 40, enum: [creada, coautoria, acepcion_nueva] }
+      responses:
+        '201':
+          description: Aporte creado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Aporte' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    get:
+      tags: [aportes]
+      operationId: listarAportes
+      summary: Lista todos los aportes
+      description: Requiere sesión (cualquier rol). Todos los aportes, sin filtros ni paginación.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Lista de aportes.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Aporte' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /aportes/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [aportes]
+      operationId: obtenerAporte
+      summary: Obtiene un aporte
+      description: Requiere sesión (cualquier rol).
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: El aporte.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Aporte' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    put:
+      tags: [aportes]
+      operationId: actualizarAporte
+      summary: Edita un aporte (CRUD genérico)
+      description: Solo docente. Actualiza las columnas del aporte con las del body, sin validaciones de negocio.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Aporte' }
+      responses:
+        '200':
+          description: Aporte actualizado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Aporte' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    delete:
+      tags: [aportes]
+      operationId: eliminarAporte
+      summary: Elimina un aporte
+      description: Solo docente.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Aporte eliminado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Eliminado' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /aportes/{id}/approve:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    patch:
+      tags: [aportes]
+      operationId: aprobarAporte
+      summary: Aprueba una coautoría o acepción nueva
+      description: |
+        Solo docente. Endpoint adicional (fuera de los CA de HU-1.3). Aprueba el aporte con correcciones
+        opcionales. No aplica a aportes `creada` (403 CONTRIBUTION_NOT_APPROVABLE): esos se aprueban con
+        PATCH /cards/{id}/approve. No existe rechazo de aportes.
+      x-hu: HU-1.3
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                traduccion_aportada: { type: string, maxLength: 255 }
+                definicion_aportada: { type: string }
+                ejemplo_aportado: { type: string, maxLength: 150 }
+      responses:
+        '200':
+          description: Aporte aprobado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensaje: { type: string, example: Aporte aprobado correctamente }
+                  aporte: { $ref: '#/components/schemas/Aporte' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ======================= quizzes =======================
+  /quizzes/generate:
+    post:
+      tags: [quizzes]
+      operationId: generarQuiz
+      summary: Genera un quiz acumulativo
+      description: |
+        Solo docente. Arma el quiz con tarjetas `revisado_docente` de los mazos elegidos.
+        Exige al menos 4 traducciones distintas; la ventana apertura-cierre debe ser mayor o igual
+        al `tiempo_limite_min`; el curso debe existir y los mazos deben ser de ese curso.
+        Cada pregunta es de selección múltiple (`seleccion_multiple`): la traducción correcta y hasta 3
+        distractores sin repetir, tomados de las demás tarjetas aprobadas. El quiz queda `programado`.
+      x-hu: HU-3.1
+      x-ca: [CA-3.1.1, CA-3.1.2, CA-3.1.3]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [curso_id, titulo, mazo_ids, fecha_apertura, fecha_cierre, tiempo_limite_min]
+              properties:
+                curso_id: { type: integer, minimum: 1 }
+                titulo: { type: string, maxLength: 200 }
+                mazo_ids: { type: array, minItems: 1, items: { type: integer, minimum: 1 } }
+                fecha_apertura: { type: string, format: date-time }
+                fecha_cierre: { type: string, format: date-time }
+                tiempo_limite_min: { type: integer, minimum: 1 }
+                cantidad_preguntas: { type: integer, minimum: 1, description: 'Opcional; si falta se usan todas las tarjetas aprobadas' }
+      responses:
+        '201':
+          description: Quiz creado en estado programado, con sus preguntas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  quiz: { $ref: '#/components/schemas/Quiz' }
+                  preguntas: { type: array, items: { $ref: '#/components/schemas/PreguntaQuiz' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: El curso o un mazo no existe, o un mazo no es del curso (COURSE_NOT_FOUND, DECK_NOT_FOUND, QUIZ_DECK_NOT_IN_COURSE).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /quizzes:
+    post:
+      tags: [quizzes]
+      operationId: crearQuiz
+      summary: Crea un quiz (CRUD genérico)
+      description: |
+        Solo docente. CRUD genérico, sin la lógica de HU-3.1 (para eso está POST /quizzes/generate). Solo valida
+        `titulo` y `estado`; si falta otra columna NOT NULL (`curso_id`, `semana_corte`) responde 500.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [titulo, estado]
+              properties:
+                curso_id: { type: integer }
+                titulo: { type: string, maxLength: 200 }
+                semana_corte: { type: integer }
+                fecha_apertura: { type: string, format: date-time }
+                fecha_cierre: { type: string, format: date-time }
+                tiempo_limite_min: { type: integer }
+                estado: { type: string, maxLength: 30 }
+      responses:
+        '201':
+          description: Quiz creado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Quiz' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    get:
+      tags: [quizzes]
+      operationId: listarQuices
+      summary: Lista todos los quices
+      description: Requiere sesión (cualquier rol). Todos los quices, sin filtros, cada uno con `estado_efectivo` (CA-3.1.3).
+      x-hu: HU-3.1
+      x-ca: [CA-3.1.3]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Lista de quices.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Quiz' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /quizzes/mine:
+    get:
+      tags: [quizzes]
+      operationId: listarMisQuices
+      summary: Lista los quices del estudiante
+      description: |
+        Solo estudiante. Endpoint adicional aprobado por el equipo (2026-10-11). Quices de los cursos donde tiene
+        inscripción activa, del más reciente al más antiguo, con su resultado si ya los envió.
+      x-hu: HU-3.2
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Quices del estudiante.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: '#/components/schemas/Quiz'
+                    - type: object
+                      properties:
+                        resultado:
+                          type: object
+                          nullable: true
+                          allOf:
+                            - $ref: '#/components/schemas/ResumenResultado'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /quizzes/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [quizzes]
+      operationId: obtenerQuiz
+      summary: Obtiene un quiz
+      description: Requiere sesión (cualquier rol). Incluye `estado_efectivo` (CA-3.1.3).
+      x-hu: HU-3.1
+      x-ca: [CA-3.1.3]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: El quiz.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Quiz' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    put:
+      tags: [quizzes]
+      operationId: actualizarQuiz
+      summary: Edita un quiz (CRUD genérico)
+      description: Solo docente. Reemplaza las columnas del quiz con las del body, sin validaciones de negocio.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                curso_id: { type: integer }
+                titulo: { type: string, maxLength: 200 }
+                semana_corte: { type: integer }
+                fecha_apertura: { type: string, format: date-time }
+                fecha_cierre: { type: string, format: date-time }
+                tiempo_limite_min: { type: integer }
+                estado: { type: string, maxLength: 30 }
+      responses:
+        '200':
+          description: Quiz actualizado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Quiz' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    delete:
+      tags: [quizzes]
+      operationId: eliminarQuiz
+      summary: Elimina un quiz
+      description: |
+        Solo docente. Si el quiz tiene filas asociadas (`quiz_mazo`, `pregunta_quiz`, `resultado_quiz`), la
+        foreign key impide borrarlo y responde 500. En la práctica, un quiz generado no se puede borrar.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Quiz eliminado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Eliminado' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /quizzes/{id}/export-pdf:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [quizzes]
+      operationId: exportarQuizPdf
+      summary: Exporta el quiz a PDF con clave de respuestas
+      description: |
+        Solo docente (decisiones D-06 y D-07). PDF con la hoja de preguntas y una hoja separada con las
+        respuestas para la docente. 404 si el quiz no existe o no tiene preguntas.
+      x-hu: HU-3.3
+      x-ca: [CA-3.3.2, CA-3.3.3]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Pdf' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /quizzes/{id}/preguntas:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [quizzes]
+      operationId: obtenerPreguntasQuiz
+      summary: Preguntas del quiz para responderlo
+      description: |
+        Solo estudiante inscrito en el curso del quiz (403 QUIZ_NOT_ENROLLED) y con el quiz abierto
+        (400 QUIZ_NOT_OPEN o QUIZ_CLOSED). Endpoint adicional aprobado por el equipo (2026-10-07).
+        Las preguntas no incluyen `respuesta_correcta` ni `tarjeta_id`.
+      x-hu: HU-3.2
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: El quiz y sus preguntas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  quiz: { $ref: '#/components/schemas/Quiz' }
+                  preguntas: { type: array, items: { $ref: '#/components/schemas/PreguntaQuizEstudiante' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /quizzes/{id}/submit:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    post:
+      tags: [quizzes]
+      operationId: enviarQuiz
+      summary: Envía las respuestas y recibe la nota
+      description: |
+        Solo estudiante inscrito en el curso del quiz. El `estudiante_id` sale del token; si viene en el body
+        se ignora. Las preguntas que falten en `respuestas` (o con null, por ejemplo si se acabó el tiempo,
+        CA-3.2.1) cuentan como incorrectas. La calificación va de 0 a 5.
+
+        El tiempo lo informa el cliente (`fecha_inicio` o `tiempo_empleado_seg`); si supera el tiempo límite
+        más un margen de 30 s, el envío se rechaza (400 QUIZ_TIME_EXPIRED). Limitación conocida, decisión del
+        equipo 2026-10-07.
+
+        Si el estudiante ya había enviado el quiz responde 409 con el resultado previo (CA-3.2.3).
+      x-hu: HU-3.2
+      x-ca: [CA-3.2.1, CA-3.2.2, CA-3.2.3]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [respuestas]
+              properties:
+                respuestas:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      pregunta_id: { type: integer }
+                      respuesta_estudiante: { type: string, nullable: true, maxLength: 255 }
+                fecha_inicio: { type: string, format: date-time }
+                tiempo_empleado_seg: { type: integer }
+      responses:
+        '201':
+          description: Resultado calculado y desglose de respuestas (CA-3.2.2).
+          content: { application/json: { schema: { $ref: '#/components/schemas/EnvioQuiz' } } }
+        '400':
+          description: |
+            `respuestas` no es un arreglo (QUIZ_INVALID_ANSWERS), el quiz no ha abierto (QUIZ_NOT_OPEN), ya cerró
+            (QUIZ_CLOSED) o se agotó el tiempo (QUIZ_TIME_EXPIRED).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Ya había enviado el quiz (QUIZ_ALREADY_SUBMITTED). Trae el resultado previo.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Error'
+                  - $ref: '#/components/schemas/EnvioQuiz'
+        '500': { $ref: '#/components/responses/InternalError' }
+  /quizzes/{id}/result:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [quizzes]
+      operationId: obtenerResultadoQuiz
+      summary: Resultado previo del estudiante
+      description: |
+        Solo estudiante inscrito en el curso del quiz. Endpoint adicional aprobado por el equipo (2026-10-11).
+        No depende del estado del quiz. 404 QUIZ_NOT_SUBMITTED si todavía no lo ha enviado.
+      x-hu: HU-3.2
+      x-ca: [CA-3.2.3]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Resultado, respuestas y preguntas (sin la respuesta correcta).
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvioQuiz'
+                  - type: object
+                    properties:
+                      preguntas: { type: array, items: { $ref: '#/components/schemas/PreguntaQuizEstudiante' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ======================= enrichment =======================
+  /enrichment/family/{word}:
+    parameters:
+      - name: word
+        in: path
+        required: true
+        schema: { type: string, maxLength: 150 }
+    get:
+      tags: [enrichment]
+      operationId: obtenerFamiliaPalabra
+      summary: Sugiere palabras relacionadas (WordNet)
+      description: |
+        **Supuesto pendiente de validar:** este endpoint es público en el código actual (no pide token).
+
+        Consulta WordNet 3.1 y agrupa sinónimos, hiperónimos, hipónimos y familia por categoría gramatical
+        (CA-4.2.1). Si la palabra ya se consultó antes, responde desde `wordnet_cache` (`desde_cache: true`,
+        CA-4.2.2). Si WordNet no la conoce, responde 200 con `encontrado: false` y una `accion` para
+        registrarla (CA-4.2.3).
+      x-hu: HU-4.2
+      x-ca: [CA-4.2.1, CA-4.2.2, CA-4.2.3]
+      x-pendiente: 'Endpoint público: el código no pide token'
+      security: []
+      responses:
+        '200':
+          description: Sugerencias léxicas.
+          content: { application/json: { schema: { $ref: '#/components/schemas/FamiliaPalabra' } } }
+        '400':
+          description: Palabra vacía (REQUIRED_FIELDS_MISSING) o de más de 150 caracteres (FIELD_TOO_LONG).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ======================= dictionary =======================
+  /dictionary:
+    get:
+      tags: [dictionary]
+      operationId: buscarDiccionario
+      summary: Lista o busca el vocabulario aprobado
+      description: |
+        **Supuesto pendiente de validar:** este endpoint es público en el código actual (no pide token), y
+        el controlador cita CA-1.4.x, de una HU-1.4 que no está en el backlog.
+
+        Tarjetas `revisado_docente` de todos los mazos, con los datos de la lectura y sus etiquetas de contexto.
+        Con `q` hace una búsqueda parcial por palabra. Sin resultados responde 200 con `data` vacío.
+      x-pendiente: 'Endpoint público: el código no pide token; HU-1.4 no está en el backlog'
+      security: []
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema: { type: string }
+          description: Texto a buscar (coincidencia parcial).
+      responses:
+        '200':
+          description: Vocabulario encontrado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/TarjetaDiccionario' } }
+        '400':
+          description: '`q` no es texto (INVALID_QUERY).'
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /dictionary/{card_id}:
+    parameters:
+      - name: card_id
+        in: path
+        required: true
+        schema: { type: integer, minimum: 1 }
+    get:
+      tags: [dictionary]
+      operationId: obtenerTarjetaDiccionario
+      summary: Detalle de una palabra del diccionario
+      description: |
+        **Supuesto pendiente de validar:** este endpoint es público en el código actual (no pide token).
+
+        Detalle de una tarjeta aprobada (`revisado_docente`).
+      x-pendiente: 'Endpoint público: el código no pide token'
+      security: []
+      responses:
+        '200':
+          description: La tarjeta.
+          content: { application/json: { schema: { $ref: '#/components/schemas/TarjetaDiccionario' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ======================= reports =======================
+  /reports/study-mode/export-pdf:
+    get:
+      tags: [reports]
+      operationId: exportarReporteModoEstudio
+      summary: Reporte del modo de estudio en PDF
+      description: |
+        Requiere sesión; la regla de acceso está en `ReporteEstudioService` (CA-19.3):
+        - **docente:** todos los estudiantes con inscripción activa, de cualquier curso (decisión del equipo
+          2026-11-06). Con `student_id`, solo ese estudiante; si no tiene inscripción activa, 404 REPORT_STUDENT_NOT_FOUND.
+        - **estudiante:** solo su propio repaso; con el `student_id` de otro, 403 REPORT_FORBIDDEN.
+        - **otro rol:** 403 REPORT_FORBIDDEN.
+
+        Límite de 30 peticiones por IP cada 15 minutos (`RATE_LIMIT_REPORTES_MAX`).
+      x-hu: HU-019
+      x-ca: [CA-19.1, CA-19.2, CA-19.3]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: student_id
+          in: query
+          required: false
+          schema: { type: integer }
+      responses:
+        '200': { $ref: '#/components/responses/Pdf' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /reports/students/{id}/progress/export-pdf:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [reports]
+      operationId: exportarReporteProgreso
+      summary: Reporte de progreso individual en PDF
+      description: |
+        Requiere sesión; la regla de acceso está en `ReporteProgresoService` (CA-18.3):
+        - **estudiante:** solo su propio reporte; con el id de otro, 403 REPORT_FORBIDDEN.
+        - **docente:** estudiantes inscritos en sus cursos; si no, 404 REPORT_STUDENT_NOT_FOUND
+          (supuesto pendiente de validar).
+        - **otro rol:** 403 REPORT_FORBIDDEN.
+
+        Sin quices o sin repasos, el PDF muestra «Sin actividad registrada» (CA-18.2).
+        Límite de 30 peticiones por IP cada 15 minutos.
+      x-hu: HU-018
+      x-ca: [CA-18.1, CA-18.2, CA-18.3]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Pdf' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /reports/quizzes/{id}/results/export-pdf:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [reports]
+      operationId: exportarReporteResultadosQuiz
+      summary: Reporte de resultados de un quiz en PDF
+      description: |
+        Solo docente, y el quiz debe ser de un curso suyo (403 AUTH_FORBIDDEN si no). Calificación de cada
+        estudiante y las 5 preguntas con mayor porcentaje de error. Se genera aunque no haya resultados (CA-21.2).
+        Límite de 30 peticiones por IP cada 15 minutos.
+      x-hu: HU-021
+      x-ca: [CA-21.1, CA-21.2, CA-21.3]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Pdf' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
 components:
   securitySchemes:
     bearerAuth:
