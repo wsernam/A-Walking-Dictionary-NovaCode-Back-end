@@ -390,6 +390,213 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalError' }
+  # ======================= cards =======================
+  /cards/check-duplicate:
+    post:
+      tags: [cards]
+      operationId: verificarDuplicado
+      summary: Revisa si una palabra ya existe en el mazo
+      description: |
+        **Supuesto pendiente de validar (D-08):** igual que POST /decks/{id}/cards, un duplicado se resuelve
+        como aporte `coautoria` (misma definición y ejemplo) o `acepcion_nueva`, nunca como tarjeta nueva.
+
+        Requiere sesión (cualquier rol). No crea ni modifica nada: el frontend lo llama antes de enviar el
+        formulario para mostrar el aviso de coautoría o acepción nueva (CA-1.3.4). La comparación de la
+        palabra ignora mayúsculas (CA-1.3.3).
+      x-hu: HU-1.3
+      x-ca: [CA-1.3.1, CA-1.3.2, CA-1.3.3, CA-1.3.4]
+      x-pendiente: 'D-08: las acepciones se guardan como aporte (coautoria / acepcion_nueva), no como tarjeta'
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mazo_id, palabra]
+              properties:
+                mazo_id: { type: integer }
+                palabra: { type: string }
+                definicion: { type: string, description: Para distinguir coautoría de acepción nueva }
+                ejemplo: { type: string }
+      responses:
+        '200':
+          description: Resultado de la verificación. `tarjeta` solo viene si hay duplicado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  duplicado: { type: boolean }
+                  resultado: { type: string, enum: [creada, coautoria, acepcion_nueva] }
+                  tarjeta: { $ref: '#/components/schemas/Tarjeta' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /cards/pending:
+    get:
+      tags: [cards]
+      operationId: listarTarjetasPendientes
+      summary: Lista las tarjetas pendientes de revisión
+      description: |
+        **Supuesto pendiente de validar (D-10):** CLAUDE.md menciona dos rutas para este filtro; la única
+        implementada y montada es esta. `GET /decks/{id}/cards?estado=...` no existe en el código.
+
+        Solo docente. Tarjetas en `pendiente_revision` de todos los mazos, con el nombre del estudiante
+        que la creó, para el panel de curaduría.
+      x-hu: HU-2.1
+      x-ca: [CA-2.1.1]
+      x-pendiente: 'D-10: solo existe GET /cards/pending; GET /decks/{id}/cards?estado=... no está implementada'
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Tarjetas pendientes.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/TarjetaPendiente' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /cards/approved:
+    get:
+      tags: [cards]
+      operationId: listarTarjetasAprobadas
+      summary: Lista las tarjetas aprobadas
+      description: |
+        Solo docente. Endpoint adicional pedido por el equipo (fuera de los CA de HE-02) para la pestaña
+        "Historial Aprobadas" del panel de curaduría. Cada tarjeta trae su registro, su variante regional y
+        el autor original.
+      x-hu: HU-2.1
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Tarjetas en `revisado_docente`.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/TarjetaAprobada' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /cards/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [cards]
+      operationId: obtenerTarjeta
+      summary: Obtiene una tarjeta con sus etiquetas de contexto
+      description: |
+        **Supuesto pendiente de validar:** este endpoint es público en el código actual (no pide token).
+
+        Devuelve la tarjeta con `etiquetas_contexto` (registro y variante regional) para mostrarlas en su
+        detalle (CA-2.2.3).
+      x-hu: HU-2.2
+      x-ca: [CA-2.2.3]
+      x-pendiente: 'Endpoint público: el código no pide token'
+      security: []
+      responses:
+        '200':
+          description: La tarjeta.
+          content: { application/json: { schema: { $ref: '#/components/schemas/TarjetaDetalle' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    put:
+      tags: [cards]
+      operationId: editarTarjetaEnRevision
+      summary: Corrige una tarjeta pendiente
+      description: |
+        Solo docente. Edita una tarjeta en `pendiente_revision` antes de aprobarla (CA-2.1.2). Los campos
+        que no vengan conservan su valor. Si la tarjeta ya no está pendiente responde 409 CARD_NOT_PENDING.
+      x-hu: HU-2.1
+      x-ca: [CA-2.1.2]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                palabra: { type: string, maxLength: 150 }
+                traduccion: { type: string, maxLength: 255 }
+                definicion: { type: string }
+                ejemplo: { type: string, maxLength: 150 }
+      responses:
+        '200':
+          description: Tarjeta corregida.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Tarjeta' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /cards/{id}/context:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    put:
+      tags: [cards]
+      operationId: actualizarContextoTarjeta
+      summary: Asigna registro y variante regional a una tarjeta
+      description: |
+        Solo docente. Reemplaza la etiqueta de cada tipo que venga en el body (al menos una;
+        400 CONTEXT_EMPTY si no viene ninguna). Los valores se comparan sin distinguir mayúsculas.
+      x-hu: HU-2.2
+      x-ca: [CA-2.2.1]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                registro: { type: string, enum: [formal, informal, slang, coloquial, anticuado] }
+                variante_regional: { type: string, enum: [británico, nigeriano, jamaicano, inglés ghanés, estadounidense] }
+      responses:
+        '200':
+          description: Etiquetas guardadas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensaje: { type: string, example: Contexto actualizado correctamente }
+                  etiquetas: { type: array, items: { $ref: '#/components/schemas/EtiquetaContexto' } }
+        '400':
+          description: Id inválido, sin etiquetas (CONTEXT_EMPTY) o con un valor no permitido (CONTEXT_INVALID_REGISTER, CONTEXT_INVALID_VARIANT).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /cards/{id}/approve:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    patch:
+      tags: [cards]
+      operationId: aprobarTarjeta
+      summary: Aprueba una tarjeta
+      description: |
+        **Supuesto pendiente de validar:** CA-2.1.3 (rechazar con observación) no existe en el código. No hay
+        endpoint de rechazo; en la revisión individual la docente solo corrige (PUT /cards/{id}) o aprueba.
+
+        Solo docente. Pasa la tarjeta de `pendiente_revision` a `revisado_docente` y registra `fecha_revision`;
+        así queda disponible para los quices. 409 CARD_NOT_PENDING si ya no estaba pendiente.
+      x-hu: HU-2.1
+      x-ca: [CA-2.1.2]
+      x-pendiente: 'CA-2.1.3 (rechazo) no está implementado: no hay endpoint de rechazo'
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Tarjeta aprobada.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Tarjeta' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalError' }
 components:
   securitySchemes:
     bearerAuth:
