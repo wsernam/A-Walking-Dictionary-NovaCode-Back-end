@@ -6,7 +6,7 @@
 ## 0. Cabecera
 - Plantilla: 3.0 (facdbd59)
 - Sprint en curso: 4 · Reportes en PDF (HE-07) · líder del sprint (aprueba contratos): **Karen Sandoval**
-- Fuentes al construirlo: backend@72d7236, frontend@47d766e · backlog: 21 HU · bitácora: 46 sesiones
+- Fuentes al construirlo: backend@476b924, frontend@5e461f2 · backlog: 21 HU · bitácora: 47 sesiones
 - Se reconstruye con: `python tools/hitl/hitl.py build` (o lo hace el flujo de GitHub Actions y abre un PR para revisión humana)
 
 ## 1. Cómo usar este documento
@@ -349,8 +349,8 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 **Antes de proponer nada, lee los markdowns que apliquen a la tarea** (README y carpeta `docs/` o `doc/` de cada repo). Los marcados como CONTRATO son vinculantes: si tu cambio los contradice, aplica la puerta P2.
 
 - `backend:.github/pull_request_template.md` — (sin título) (497 caracteres; último cambio: 3c9f121 2026-10-22)
-- `backend:CHANGELOG.md` — Changelog (4.022 caracteres; último cambio: bfe993e 2026-11-06)
-- `backend:CLAUDE.md` — CLAUDE.md — Contexto del proyecto (40.754 caracteres; último cambio: 39c76fe 2026-11-06)
+- `backend:CHANGELOG.md` — Changelog (4.134 caracteres; último cambio: b972508 2026-11-06)
+- `backend:CLAUDE.md` — CLAUDE.md — Contexto del proyecto (40.753 caracteres; último cambio: 1ec8ec6 2026-11-06)
 - `backend:CONTRIBUTING.md` — Guía de contribución — A Walking Dictionary (Back-end) (5.073 caracteres; último cambio: bfe993e 2026-11-06)
 - `backend:README.md` — A Walking Dictionary (7.472 caracteres; último cambio: 6a6db77 2026-11-06)
 - `backend:SECURITY.md` — Política de seguridad (1.571 caracteres; último cambio: bfe993e 2026-11-06)
@@ -369,11 +369,15 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 - `backend:docs/FLUJO_PERFIL_ACADEMICO.md` — Flujo de Perfil Académico (HU-5.2) (7.115 caracteres; último cambio: 3adfb5a 2026-09-19)
 - `backend:docs/FLUJO_REVISION_TARJETAS.md` — Flujo de Revisión de Tarjetas — Individual vs. Coautoría (5.697 caracteres; último cambio: 5d3877e 2026-09-29)
 - `backend:docs/INFORME_PRUEBAS_FUNCIONALES.md` — Informe de pruebas funcionales (10.748 caracteres; último cambio: 4bb640b 2026-10-18)
-- `backend:docs/README.md` — Documentación — A Walking Dictionary (Back-end) (4.382 caracteres; último cambio: db32a70 2026-11-06)
+- `backend:docs/README.md` — Documentación — A Walking Dictionary (Back-end) (4.514 caracteres; último cambio: b972508 2026-11-06)
+- **[CONTRATO]** `backend:docs/api/README.md` — Especificación de la API (OpenAPI) (2.743 caracteres; último cambio: b972508 2026-11-06)
 - **[CONTRATO]** `backend:docs/codigos-error.md` — Códigos de error de la API (9.278 caracteres; último cambio: 779c5ad 2026-11-06)
 - `frontend:.github/pull_request_template.md` — (sin título) (495 caracteres; último cambio: ca73e2e 2026-10-23)
-- `frontend:README.md` — A Walking Dictionary (6.214 caracteres; último cambio: 60750c3 2026-11-06)
-- `frontend:docs/README.md` — Documentación — A Walking Dictionary (Front-end) (2.305 caracteres; último cambio: 60750c3 2026-11-06)
+- `frontend:CHANGELOG.md` — Changelog (2.584 caracteres; último cambio: 7624586 2026-11-06)
+- `frontend:CONTRIBUTING.md` — Guía de contribución — A Walking Dictionary (Front-end) (4.746 caracteres; último cambio: 7624586 2026-11-06)
+- `frontend:README.md` — A Walking Dictionary (5.533 caracteres; último cambio: 6911ff6 2026-11-06)
+- `frontend:SECURITY.md` — Política de seguridad (1.586 caracteres; último cambio: 7624586 2026-11-06)
+- `frontend:docs/README.md` — Documentación — A Walking Dictionary (Front-end) (2.667 caracteres; último cambio: 26961d4 2026-11-06)
 - `frontend:docs/bitacora.md` — Bitácora de trabajo con IA — Frontend (9.952 caracteres; último cambio: dd6f6b3 2026-10-31)
 - **[CONTRATO]** `frontend:docs/contrato-exportacion.md` — Contrato de datos — Exportar mazos y quices a PDF (HU-3.3) (6.027 caracteres; último cambio: 8611b65 2026-10-16)
 - **[CONTRATO]** `frontend:docs/contrato-inscripcion.md` — Contrato de inscripción a cursos — HU-014 (4.496 caracteres; último cambio: c951225 2026-09-23)
@@ -489,7 +493,6 @@ Registro de decisiones humanas que Claude debe respetar en todas las sesiones. F
 - 2026-11-04 — HU-021 (reporte de resultados por quiz en PDF, `GET /api/v1/reports/quizzes/:id/results/export-pdf`): S1 el quiz debe ser de un curso de la docente (403 `AUTH_FORBIDDEN` si no); S2 cuentan los inscritos `activa` más los no activos que tengan resultado; S3 la calificación se muestra tal cual (0-5) convertida con `Number()`; S4 se muestran las 5 preguntas con mayor % de error, desempate por `pregunta_quiz.orden`; S5 una pregunta sin fila en `respuesta_quiz` no cuenta como error; S6 el % que presentó se calcula sobre todas las filas listadas. Falta reflejar el endpoint en Backlog_HU.xlsx — <quién confirmó>  — Karen Sandoval— HU-021 (CA-21.1, CA-21.2, CA-21.3)
 
 - 2026-11-03 — HU-018 (reporte de progreso individual en PDF): endpoint `GET /api/v1/reports/students/:id/progress/export-pdf`, el que ya trae el backlog (y el que llama `reportesApi.js` del front). Misma regla de acceso que HU-019 (`authenticate` sin `requireRole`; la regla vive en `ReporteProgresoService`, CA-18.3): el estudiante solo ve su propio reporte (403 `REPORT_FORBIDDEN` si el `:id` es de otro, sin consultar la BD), la docente ve a los estudiantes inscritos en sus cursos y un `:id` fuera de sus cursos responde 404 `REPORT_STUDENT_NOT_FOUND` (supuesto pendiente de validar); `:id` inválido responde 400 `INVALID_ID`. No hay códigos de error nuevos. Supuestos pendientes de validar: «palabras aportadas» = aportes `tipo_aporte = 'creada'` contados por el estado de su tarjeta (`rechazada` saldrá en 0 mientras el rechazo no exista, ver HE-02); «coautorías» = `tipo_aporte IN ('coautoria','acepcion_nueva')` (mismo criterio que `AnaliticaRepository`); nota promedio = promedio simple de `resultado_quiz.calificacion` (escala 0-5); «tarjetas repasadas» = filas de `progreso_estudio` del estudiante (igual que HU-019). Sin quices o sin repasos el PDF muestra «Sin actividad registrada» (CA-18.2). Los helpers de texto del PDF (`limpiar`, `recortar`, `formatearFecha`) pasaron de `ReporteEstudioPDFService.js` a `src/utils/formatoPdf.js` para compartirlos. Archivos nuevos: `ReporteProgresoRepository.js`, `ReporteProgresoService.js`, `ReporteProgresoPDFService.js`, `ReporteProgresoController.js`, `utils/formatoPdf.js` y sus pruebas. Rama `feature/hu-18-reporte-progreso-individual` — HU-018 (CA-18.1, CA-18.2, CA-18.3)
-
 
 - 2026-11-06 — HU-019, alcance de la docente (reemplaza el supuesto S5 de la decisión del 2026-10-30): el reporte del modo de estudio incluye a todos los estudiantes con inscripción activa, sin filtrar por `curso.docente_id`. Motivo: en el despliegue hay un solo curso, asignado al docente con id 1, y las demás cuentas docentes recibían un reporte vacío; la HU dice "la docente sobre todos los estudiantes" y el MVP es un solo curso cerrado. Se mantiene: el estudiante solo ve su propio repaso (403 `REPORT_FORBIDDEN` si pide otro `student_id`) y un `student_id` sin inscripción activa responde 404 `REPORT_STUDENT_NOT_FOUND`. Se corrige además la nota de distribución que se encimaba con el aviso de lista vacía. Rama `fix/hu-19-alcance-docente-reporte` — decisión de Karen Sandoval, pendiente de que el equipo la confirme (falta verificar si el docente 1 es del seed) — HU-019 (CA-19.1, CA-19.3)
 
@@ -657,13 +660,24 @@ detallados faltaban datos del PDF, así que se ajustó:
 
 
 ## 9. Estado e historial de los repositorios
-- `backend`: rama `develop`, HEAD `72d7236`
-- `frontend`: rama `develop`, HEAD `47d766e`
+- `backend`: rama `develop`, HEAD `476b924`
+- `frontend`: rama `develop`, HEAD `5e461f2`
 
 ### Historial de commits
-**backend** — últimos 60 de 212 commits (incluye merges de PR):
+**backend** — últimos 60 de 223 commits (incluye merges de PR):
+  - 476b924 2026-11-06 Karen Sandoval: Merge pull request #52 from wsernam/docs/openapi
+  - 19916e8 2026-11-06 Karen Sandoval: Merge pull request #50 from wsernam/bot/superprompt
+  - 1ec8ec6 2026-11-06 wsernam: Merge branch 'develop' into docs/openapi
+  - 8b638e5 2026-11-07 knnsand: docs(ai): reconstruir SUPERPROMPT y registrar PR con IA
   - 72d7236 2026-11-06 Karen Sandoval: Merge pull request #49 from wsernam/feature/HU-020-reporte-estudiantes-curso-pdf
   - 39c76fe 2026-11-06 Manuela Erazo: Merge branch 'develop' into feature/HU-020-reporte-estudiantes-curso-pdf
+  - b972508 2026-11-06 wsernam: docs: guía de la especificación OpenAPI e índice, changelog y decisiones
+  - 7f69f15 2026-11-06 wsernam: docs(openapi): endpoints de aportes, quizzes, enrichment, dictionary y reports
+  - d9606f4 2026-11-06 wsernam: docs(openapi): endpoints de courses, analytics, study, users y students
+  - 7e7d59d 2026-11-06 wsernam: docs(openapi): endpoints de cards
+  - 87c3f04 2026-11-06 wsernam: docs(openapi): endpoints de decks
+  - 3623f59 2026-11-06 wsernam: docs(openapi): endpoints de auth
+  - 4a3804d 2026-11-06 wsernam: docs(openapi): esqueleto y componentes reutilizables
   - 5d72147 2026-11-06 Karen Sandoval: Merge pull request #51 from wsernam/fix/hu-19-alcance-docente-reporte
   - 8ecd4bf 2026-11-06 Karen Sandoval: docs(reportes): registrar el alcance de la docente en el reporte del modo de estudio
   - 3682ed3 2026-11-06 Karen Sandoval: fix(reportes): bajar el cursor tras el aviso de lista vacía para que no se encime la nota
@@ -711,20 +725,13 @@ detallados faltaban datos del PDF, así que se ajustó:
   - 686bf3f 2026-11-02 Manuela Erazo: docs(hitl): decisiones del Sprint 1 (7 épicas, Sprint 4, rotación 5C) y marca [IA-ASSISTED]
   - 35e4953 2026-11-01 wsernam: fix: incluir el nombre del estudiante en las tarjetas pendientes
   - ad6a82d 2026-10-30 Manuela Erazo: feat(hitl): registro automático de PR con IA en bitácora y trazabilidad
-  - ee8631f 2026-10-30 Manuela Erazo: chore(hitl): reconstruir el SUPERPROMPT en cada fusión a develop (backend y frontend)
-  - adfd369 2026-10-30 Manuela Erazo: chore(hitl): quitar infra del SUPERPROMPT y del workflow
-  - 154484f 2026-10-30 Manuela Erazo: chore(hitl): versionar backlog y bitácora para la reconstrucción automática
-  - 9c0f22c 2026-10-30 Manuela Erazo: feat(hitl): SUPERPROMPT maestro, trazabilidad y bitácora
-  - 0b3c6bb 2026-10-30 Manuela Erazo: Merge pull request #37 from wsernam/feature/hu-19-reporte-modo-estudio
-  - d1b226e 2026-10-30 Karen Sandoval: fix(deps): actualizar body-parser y qs para resolver las vulnerabilidades de npm audit
-  - e739461 2026-10-30 Karen Sandoval: fix(seguridad): limitar la tasa de peticiones del reporte del modo de estudio (CodeQL js/missing-rate-limiting)
-  - 1df171d 2026-10-30 Karen Sandoval: feat(reportes): HU-019 reporte del modo de estudio en PDF
-  - 539b1e7 2026-10-23 thaliabernalepe: fix(seguridad): actualizacion reporte owasp
-  - 35753e5 2026-10-22 wsernam: Merge pull request #34 from wsernam/chore/plantilla-pr
-  - 3c9f121 2026-10-22 wsernam: se creo la plantilla para las pull reques
-**frontend** — últimos 60 de 247 commits (incluye merges de PR):
+**frontend** — últimos 60 de 251 commits (incluye merges de PR):
+  - 5e461f2 2026-11-06 Karen Sandoval: Merge pull request #67 from knnsand/docs/gobernanza-y-changelog
   - 47d766e 2026-11-06 thaliabernalepe: Merge pull request #69 from knnsand/docs/documentacion-codigo-front
   - f9949be 2026-11-06 wsernam: docs: documentar con Doxygen los 5 archivos del front que faltaban
+  - 26961d4 2026-11-06 Karen Sandoval: docs v2: CONTRIBUTING, SECURITY y CHANGELOG
+  - 6911ff6 2026-11-06 Karen Sandoval: Merge branch 'develop' into docs/gobernanza-y-changelog
+  - 7624586 2026-11-06 Karen Sandoval: docs: CONTRIBUTING, SECURITY y CHANGELOG
   - c23db2d 2026-11-06 thaliabernalepe: inicio desactivacion coautorias
   - f8cc6dc 2026-11-06 Karen Sandoval: Merge pull request #66 from knnsand/docs/readme-e-indices
   - 60750c3 2026-11-06 Karen Sandoval: docs: README con instalación y estructura real, e índice de documentación
@@ -779,13 +786,9 @@ detallados faltaban datos del PDF, así que se ajustó:
   - 05c7308 2026-10-21 Karen Sandoval: feat(i18n): migrar respuesta de quices del estudiante a ingles
   - 89ef7e9 2026-10-21 Karen Sandoval: feat(i18n): migrar generacion de quices del docente a ingles
   - 7c4fea7 2026-10-21 Karen Sandoval: feat(i18n): migrar cursos, inscripcion y participacion del docente a ingles
-  - 0e55fae 2026-10-21 Karen Sandoval: feat(i18n): migrar revision de palabras y coautorias a ingles
-  - a22f981 2026-10-20 wsernam: Merge pull request #47 from knnsand/feature/e2e-metricas
-  - 22cb9f7 2026-10-20 wsernam: Métricas del tablero
-  - 178ac60 2026-10-19 Karen Sandoval: Merge pull request #46 from knnsand/feature/HU-011-enriquecimiento-lexico
 
 ## 10. Historial de prompts y validaciones (bitácora)
-46 sesiones registradas (una sesión copiada en varias hojas cuenta una vez), en orden cronológico (2026-08-18 a 2026-11-07). Estados: ADAPTADO 11, CORREGIDO 1, VALIDACIÓN 1, VALIDADO 33.
+47 sesiones registradas (una sesión copiada en varias hojas cuenta una vez), en orden cronológico (2026-08-18 a 2026-11-07). Estados: ADAPTADO 11, CORREGIDO 1, VALIDACIÓN 1, VALIDADO 34.
 Úsalo para no repetir trabajo, respetar lo ya adaptado o corregido y copiar el estilo de registro.
 
 - 2026-08-18 · Presentaciones - Documentos · ChatGPT · Karen Sandoval: «Compara tecnologías de frontend, para un proyecto de diccionario colaborativo de vocabulario (mazos semanales, aportes de estudiantes, validación docente, repetición espaciada). Evalúa React, Vue y Angular.» → Tres tablas comparativas (Tabla 1A, 1B, 1C) con cifras de adopción citadas a una encuesta de Stack Overflow proporcionada por integrante del proyecto | VALIDADO: Se contrastaron las características y cifras presentadas con fuentes externas y se verificó que la comparación fuera coherente con las necesidades del proyecto. Los resultados sirvieron como recurso para seleccionar la tecnología frontend.
@@ -833,6 +836,7 @@ detallados faltaban datos del PDF, así que se ajustó:
 - 2026-11-06 · Backend · Claude Code (Claude Sonnet 5.5) · Manuela Meneses: «docs: documentar con Doxygen los archivos del backend sin comentarios» → - `CONTRIBUTING.md`, `SECURITY.md` y `CHANGELOG.md` (nuevos). - `README.md`: la sección «Flujo de trabajo (Git)» se reemplaza por «Contribuir» con enlaces. - `docs/README.md`: nueva sección «Gobernan… | VALIDADO: Vista previa en GitHub y revisión de enlaces (Revisión: Karen Nathalia Sandoval - 06-11-2026)
 - 2026-11-06 · Backend · Claude (Anthropic) como asistente de apoyo. Modelo: Haiku 5.5 · Karen Sandoval: «Fix/hu 19 alcance docente reporte» → - `ReporteEstudioService.js`: la docente ya no se filtra por `curso.docente_id` (se quita el import de `authDeshabilitado`, que ya no se usa) y se actualiza el comentario de cabecera. - `ReporteEstud… | VALIDADO: la IA propuso los cambios en pasos; la autora los aplicó y ejecutó `node --check`, `eslint`, `vitest` y `npm test` (515 pruebas pasan). (Revisión: Karen Nathalia Sandoval 06-11-2026)
 - 2026-11-07 · Frontend · Claude Code (Claude Opus 5.5) · Thalia Bernal: «docs: documentación Doxygen de 5 archivos del front» → - `src/setupTests.js`: cabecera del archivo. - `src/cliente-api/mocks/mazosMock.js`: cabecera, variables y las 3 funciones. - `src/cliente-api/mocks/estudioMock.js`: los comentarios `//` pasan a form… | VALIDADO: lint sin errores, `npm test` comparado con `develop` (mismos 5 fallos) y comprobación de 0 líneas de código cambiadas (Revisión: William Serna (wsernam), 2026-11-06)
+- 2026-11-07 · Frontend · Claude Code (Claude Sonnet 5.5) · Karen Sandoval: «Docs/gobernanza y changelog» → - `CONTRIBUTING.md`, `SECURITY.md` y `CHANGELOG.md` (nuevos). - `README.md`: la sección «Flujo de trabajo (Git)» se reemplaza por «Contribuir» con enlaces. - `docs/README.md`: nueva sección «Gobernan… | VALIDADO: Vista previa en GitHub y revisión de enlaces (Revisión: Karen Nathalia Sandoval - 06-11-2026)
 - 2026-11-07 · Backend · Claude (Sonnet 5.5), usado en conversación y en lectura de los repositorios; no escribió directamente en el repositorio. · Karen Sandoval: «Feature/hu 020 reporte estudiantes curso pdf» → - `ReporteCursoRepository.js`: consultas de solo lectura sobre `curso`, `inscripcion`, `usuario`, `aporte`, `tarjeta`, `quiz` y `resultado_quiz`. - `ReporteCursoService.js`: acceso (403 `AUTH_FORBIDD… | VALIDADO: `npx vitest run` con 568 pruebas aprobadas (37 archivos) y `npx eslint src tests` sin errores, ejecutados tras el último merge con develop; probado en local con el backend y la base de datos. (Revisión: Manuela Meneses Erazo, 06/11/2026)
 
 ## 11. Trazabilidad registrada
@@ -851,6 +855,7 @@ detallados faltaban datos del PDF, así que se ajustó:
 | 2026-11-06 | P-20261106-2343-HU-019 | 4 | Karen Sandoval (PO / SM) | backend | HU-019 | fix/hu-19-alcance-docente-reporte | diagnóstico del reporte vacío, propuesta del cambio de regla. | backend#51 | VALIDADO | Backend · fila 15 | automático (PR) |
 | 2026-11-07 | P-20261107-0053 | 4 | William Serna (Frontend) | frontend | — | docs/documentacion-codigo-front | f9949be, todos los comentarios agregados | frontend#69 | VALIDADO | Frontend · fila 22 | automático (PR) |
 | 2026-11-07 | P-20261107-0217-HU-020 | 4 | Manuela Meneses (Backend) | backend | HU-020 | feature/HU-020-reporte-estudiantes-curso-pdf | consultas, servicio de datos, maquetado del PDF, controlador y pruebas, y documentación, propuestos por la IA y aplicados, adaptados y ejecutados por <tu nombre>. Commits: 39ddd14, 7ee746c, 9aecdc1, d94a3c4, 6e7ddc7, 779c5ad y los dos merges con develop (b6a631c y 955e10f). | backend#49 | VALIDADO | Backend · fila 16 | automático (PR) |
+| 2026-11-07 | P-20261107-0228 | 4 | Karen Sandoval (PO / SM) | frontend | — | docs/gobernanza-y-changelog | redacción del contenido de README.md y docs/README.md a partir de la revisión del código y la documentación existente; el contenido fue aplicado y subido manualmente por Karen Nathalia Sandoval. | frontend#67 | VALIDADO | Frontend · fila 23 | automático (PR) |
 
 ## 12. Protocolo HITL (puertas obligatorias)
 Te detienes en cada puerta y esperas la frase indicada de la persona responsable de la sesión (o del líder del sprint, **Karen Sandoval**, en P2). Sin esa frase no avanzas.
