@@ -8,10 +8,10 @@ Documentación de la arquitectura del sistema según la plantilla [arc42](https:
 | 2 | [Restricciones](02-restricciones.md) | Disponible |
 | 3 | [Contexto y alcance](03-contexto-y-alcance.md) | Disponible |
 | 4 | [Estrategia de solución](04-estrategia-de-solucion.md) | Disponible |
-| 5 | Vista de bloques de construcción | Pendiente |
-| 6 | Vista de ejecución | Pendiente |
-| 7 | Vista de despliegue | Pendiente |
-| 8 | Conceptos transversales | Pendiente |
+| 5 | [Vista de bloques de construcción](05-vista-de-bloques.md) | Disponible |
+| 6 | [Vista de ejecución](06-vista-de-ejecucion.md) | Disponible |
+| 7 | [Vista de despliegue](07-vista-de-despliegue.md) | Disponible |
+| 8 | [Conceptos transversales](08-conceptos-transversales.md) | Disponible |
 | 9 | Decisiones de arquitectura | Pendiente |
 | 10 | Requisitos de calidad | Pendiente |
 | 11 | Riesgos y deuda técnica | Pendiente |

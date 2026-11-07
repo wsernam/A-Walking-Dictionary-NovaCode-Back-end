@@ -5,7 +5,7 @@
 | Tema | Decisión | Razón | Referencia |
 | --- | --- | --- | --- |
 | Estilo de arquitectura | SPA + API REST monolítica en 5 capas | Un equipo pequeño y un solo curso: sin necesidad de microservicios | `CONTEXTO_PROYECTO` 2.6 |
-| Capas del backend | `routes` → `controllers` → `services` → `repositories` → PostgreSQL, con dependencia en una sola dirección | Cambiar una capa sin romper las demás | Sección 5 (pendiente) |
+| Capas del backend | `routes` → `controllers` → `services` → `repositories` → PostgreSQL, con dependencia en una sola dirección | Cambiar una capa sin romper las demás |[Sección 5](05-vista-de-bloques.md) |
 | Lenguaje | JavaScript en ambos lados | Rotar de rol no obliga a cambiar de lenguaje | DP-07 |
 | Base de datos | PostgreSQL relacional | Las reglas de integridad viven en el motor (únicos, claves foráneas) | DP-02 |
 | Autenticación | Google OAuth + JWT propio (HS256, 8 horas) con el rol como claim | Sin contraseñas que custodiar; el rol viaja en el token | DP-26 |
