@@ -1,7 +1,7 @@
 /**
  * @file reporteRoutes.js
- * @brief Rutas REST de los reportes en PDF (HU-018, HU-019, HU-021), montadas en app.js bajo el
- * prefijo /api/v1/reports. Las tres comparten el límite de peticiones por IP.
+ * @brief Rutas REST de los reportes en PDF (HU-018, HU-019, HU-020, HU-021), montadas en app.js bajo el
+ * prefijo /api/v1/reports. Las cuatro comparten el límite de peticiones por IP.
  */
 
 import { Router } from 'express';
@@ -9,6 +9,7 @@ import rateLimit from 'express-rate-limit';
 import { authenticate, requireRole } from '../middleware/autenticacionMiddleware.js';
 import { ReporteEstudioController } from '../controllers/ReporteEstudioController.js';
 import { ReporteProgresoController } from '../controllers/ReporteProgresoController.js';
+import { ReporteCursoController } from '../controllers/ReporteCursoController.js';
 import { ReporteResultadosQuizController } from '../controllers/ReporteResultadosQuizController.js';
 
 const router = Router();
@@ -40,6 +41,16 @@ router.get('/study-mode/export-pdf', limiteReportes, authenticate, ReporteEstudi
  * ReporteProgresoService y responde 403 antes de consultar la BD.
  */
 router.get('/students/:id/progress/export-pdf', limiteReportes, authenticate, ReporteProgresoController.exportarPdf);
+
+/**
+ * @brief HU-020: reporte de estudiantes del curso en PDF.
+ * GET /api/v1/reports/students/export-pdf?curso_id=
+ * La docente descarga el reporte consolidado de los estudiantes de UN curso suyo. A diferencia de
+ * HU-018 y HU-019, aquí sí va requireRole('docente'): ningún otro rol puede pedirlo (CA-20.3) y el
+ * contrato del front espera el mismo 403 de las demás rutas de docente. Que el curso sea de la
+ * docente del JWT lo comprueba ReporteCursoService (403 si no).
+ */
+router.get('/students/export-pdf', limiteReportes, authenticate, requireRole('docente'), ReporteCursoController.exportarPdf);
 
 /**
  * @brief HU-021 (CA-21.3): reporte de resultados por quiz en PDF.
