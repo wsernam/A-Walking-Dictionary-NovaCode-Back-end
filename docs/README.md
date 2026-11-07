@@ -14,7 +14,7 @@ Dónde vive cada cosa:
 
 | Marco / estándar | Ubicación | Estado |
 | --- | --- | --- |
-| OpenAPI | `docs/api/openapi.yaml` | Pendiente |
+| OpenAPI | [`docs/api/openapi.yaml`](api/openapi.yaml) (cómo verlo y validarlo: [`api/README.md`](api/README.md)) | Completo (con supuestos pendientes marcados con `x-pendiente`) |
 | Arc42 | `docs/arquitectura/arc42/` | Parcial: ver «Contexto y decisiones» (`docs/ai/CONTEXTO_PROYECTO.md`, `docs/ai/DECISIONES.md`) |
 | Documentación de usuario (IEEE 1063 / ISO/IEC/IEEE 26514) | Front-end: `docs/usuario/` | Pendiente |
 | Documentación del código (JSDoc) | Comentarios en `backend/src/` | Parcial: ver pendientes en el plan de documentación |

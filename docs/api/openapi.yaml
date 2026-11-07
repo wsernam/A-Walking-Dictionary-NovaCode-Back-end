@@ -1,0 +1,2014 @@
+openapi: 3.0.3
+info:
+  title: A Walking Dictionary API
+  version: 0.1.0
+  description: |
+    API REST del proyecto A Walking Dictionary (curso de Literatura Anglófona, Universidad del Cauca).
+    Todas las rutas cuelgan de `/api/v1`. Las respuestas de error tienen la forma `{ error, code }`:
+    `error` es el mensaje en español y `code` es un código fijo en inglés (ver `docs/codigos-error.md`).
+    Los endpoints marcados con `x-pendiente` documentan lo que hace el código hoy y tienen una
+    discrepancia abierta con el backlog.
+
+    Convenciones de esta especificación:
+    - Solo se documentan las rutas montadas en `backend/src/app.js`.
+    - `x-hu` y `x-ca` enlazan cada operación con su historia de usuario y criterios de aceptación.
+    - Los nombres de los schemas y campos son los del DER (`init.sql`, en singular).
+    - Las columnas `DATE` (por ejemplo `mazo.fecha_apertura`) se serializan como fecha-hora ISO 8601.
+    - Las columnas `DECIMAL` llegan como texto desde PostgreSQL (observación abierta, sin corregir).
+servers:
+  - url: http://localhost:5000/api/v1
+    description: Desarrollo local
+tags:
+  - { name: auth, description: 'Autenticación y registro (HU-5.1, HU-5.4)' }
+  - { name: decks, description: 'Mazos (HU-1.1, HU-1.2, HU-3.3)' }
+  - { name: cards, description: 'Tarjetas y curaduría docente (HU-1.3, HU-2.1, HU-2.2)' }
+  - { name: courses, description: 'Cursos e inscripción (HU-5.3)' }
+  - { name: analytics, description: 'Analítica de participación (HU-2.3)' }
+  - { name: study, description: 'Estudio con repetición espaciada SM-2 (HU-4.1)' }
+  - { name: users, description: 'Perfil académico (HU-5.2)' }
+  - { name: students, description: 'Contexto académico del estudiante' }
+  - { name: aportes, description: 'Aportes y coautorías' }
+  - { name: quizzes, description: 'Quices (HU-3.1, HU-3.2, HU-3.3)' }
+  - { name: enrichment, description: 'Familias de palabras con WordNet (HU-4.2)' }
+  - { name: dictionary, description: 'Diccionario global' }
+  - { name: reports, description: 'Reportes en PDF (HU-018, HU-019, HU-021)' }
+paths:
+  # ======================= auth =======================
+  /auth/google:
+    post:
+      tags: [auth]
+      operationId: iniciarSesionGoogle
+      summary: Inicia sesión con Google
+      description: |
+        Público. Verifica el `idToken` de Google Identity Services y, si el correo está registrado
+        y activo, devuelve el JWT de la plataforma (8 h, HS256) con los claims `id_usuario`, `email` y `rol`.
+        Límite de 20 intentos fallidos por IP cada 15 minutos (`RATE_LIMIT_AUTH_MAX`).
+      x-hu: HU-5.4
+      x-ca: [CA-5.4.1]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idToken]
+              properties:
+                idToken: { type: string, description: Credential que entrega Google Identity Services }
+      responses:
+        '200':
+          description: Sesión iniciada.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string, description: JWT de la plataforma }
+                  usuario: { $ref: '#/components/schemas/UsuarioSesion' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: El correo no está registrado (AUTH_USER_NOT_REGISTERED).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /auth/register:
+    post:
+      tags: [auth]
+      operationId: registrarConGoogle
+      summary: Registra un estudiante con Google
+      description: |
+        **Supuesto pendiente de validar (D-11):** el código exige que el correo termine en
+        `@unicauca.edu.co` (`RegistroService.js`); no está confirmado como regla oficial.
+
+        Público. Crea la cuenta con rol `estudiante` a partir del `idToken` de Google y devuelve
+        el mismo token y usuario que el login. No usa contraseña (el registro es solo con Google).
+      x-hu: HU-5.1
+      x-ca: [CA-5.1.1, CA-5.1.2]
+      x-pendiente: 'D-11: dominio @unicauca.edu.co validado en el código, sin confirmar como regla oficial'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idToken]
+              properties:
+                idToken: { type: string }
+      responses:
+        '201':
+          description: Cuenta creada.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensaje: { type: string, example: Usuario registrado correctamente }
+                  token: { type: string }
+                  usuario: { $ref: '#/components/schemas/UsuarioSesion' }
+        '400':
+          description: Falta `idToken` (AUTH_GOOGLE_TOKEN_MISSING) o el correo no es institucional (REGISTER_INVALID_DOMAIN).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: El correo ya tiene cuenta (REGISTER_EMAIL_TAKEN).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  # ======================= decks =======================
+  /decks:
+    post:
+      tags: [decks]
+      operationId: crearMazo
+      summary: Crea un mazo
+      description: |
+        **Supuesto pendiente de validar (D-09):** el DER exige `curso_id`, `fecha_apertura` y `fecha_cierre`.
+        El controlador valida `nombre_lectura`, `semana`, `autor`, `fecha_apertura` y `fecha_cierre`, pero NO
+        valida `curso_id`: si falta, el INSERT falla y responde 500.
+
+        Solo docente. El `docente_id` sale del token (no del body). El mazo siempre se crea en estado
+        `abierto` (CA-1.1.1); el `estado` y la `fecha_creacion` que vengan en el body se ignoran.
+      x-hu: HU-1.1
+      x-ca: [CA-1.1.1, CA-1.1.2]
+      x-pendiente: 'D-09: curso_id es NOT NULL en el DER pero el controlador no lo valida (500 si falta)'
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre_lectura, semana, autor, fecha_apertura, fecha_cierre]
+              properties:
+                curso_id: { type: integer, description: 'Obligatorio en el DER; el controlador no lo valida (D-09)' }
+                nombre_lectura: { type: string, maxLength: 200 }
+                autor: { type: string, maxLength: 150 }
+                semana: { type: integer }
+                variante_regional_predeterminada: { type: string, maxLength: 100 }
+                fecha_apertura: { type: string, format: date }
+                fecha_cierre: { type: string, format: date }
+      responses:
+        '201':
+          description: Mazo creado en estado abierto.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Mazo' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    get:
+      tags: [decks]
+      operationId: listarMazos
+      summary: Lista los mazos
+      description: |
+        Token opcional. Sin token (Invitado, CA-5.4.3) o con rol docente devuelve todos los mazos;
+        un estudiante con sesión recibe solo los de los cursos donde tiene inscripción activa (CA-1.2.1).
+      x-hu: HU-1.2
+      x-ca: [CA-1.2.1, CA-5.4.3]
+      security: [{}, { bearerAuth: [] }]
+      responses:
+        '200':
+          description: Lista de mazos.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Mazo' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /decks/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [decks]
+      operationId: obtenerMazo
+      summary: Obtiene un mazo
+      description: |
+        **Supuesto pendiente de validar:** este endpoint es público en el código actual (no pide token).
+
+        Endpoint de apoyo para el frontend.
+      x-hu: HU-1.1
+      x-pendiente: 'Endpoint público: el código no pide token'
+      security: []
+      responses:
+        '200':
+          description: El mazo.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Mazo' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    put:
+      tags: [decks]
+      operationId: actualizarMazo
+      summary: Edita un mazo
+      description: |
+        Solo la docente dueña del mazo (403 DECK_NOT_OWNER si no). Los campos que no vengan conservan su valor.
+        Solo se pueden cambiar `nombre_lectura`, `autor`, `semana`, `variante_regional_predeterminada`,
+        `fecha_apertura` y `fecha_cierre`; el estado se cambia con PATCH /decks/{id}/estado.
+        Cambiar aquí la variante NO la propaga a las tarjetas (para eso está /default-variant).
+      x-hu: HU-1.1
+      x-ca: [CA-1.1.2]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre_lectura: { type: string, maxLength: 200 }
+                autor: { type: string, maxLength: 150 }
+                semana: { type: integer }
+                variante_regional_predeterminada: { type: string, maxLength: 100 }
+                fecha_apertura: { type: string, format: date }
+                fecha_cierre: { type: string, format: date }
+      responses:
+        '200':
+          description: Mazo actualizado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Mazo' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    delete:
+      tags: [decks]
+      operationId: eliminarMazo
+      summary: Elimina un mazo
+      description: |
+        Solo la docente dueña del mazo. Si el mazo todavía tiene tarjetas asociadas, la foreign key
+        impide borrarlo y responde 500.
+      x-hu: HU-1.1
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Mazo eliminado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Eliminado' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /decks/{id}/estado:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    patch:
+      tags: [decks]
+      operationId: cambiarEstadoMazo
+      summary: Abre o cierra un mazo
+      description: |
+        Solo la docente dueña del mazo. Un mazo `cerrado` no acepta nuevos aportes (CA-1.1.3;
+        la verificación está en POST /decks/{id}/cards).
+      x-hu: HU-1.1
+      x-ca: [CA-1.1.3]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [estado]
+              properties:
+                estado: { type: string, enum: [abierto, cerrado] }
+      responses:
+        '200':
+          description: Mazo con el estado nuevo.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Mazo' } } }
+        '400':
+          description: Id inválido, falta `estado` o no es válido (INVALID_STATUS_VALUE).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /decks/{id}/default-variant:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    patch:
+      tags: [decks]
+      operationId: asignarVarianteMazo
+      summary: Asigna la variante regional a todo el mazo
+      description: |
+        **Supuesto pendiente de validar:** CLAUDE.md dice que el body usa `variante_dialectal`,
+        pero el código lee `variante_regional`. Aquí se documenta el del código.
+
+        Solo la docente dueña del mazo. Guarda la variante como predeterminada del mazo y la propaga a
+        todas sus tarjetas, sobrescribiendo la etiqueta `variante_regional` de cada una (CA-2.2.2).
+      x-hu: HU-2.2
+      x-ca: [CA-2.2.2]
+      x-pendiente: 'CLAUDE.md dice variante_dialectal; el código lee variante_regional'
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [variante_regional]
+              properties:
+                variante_regional:
+                  type: string
+                  description: Sin distinguir mayúsculas.
+                  enum: [británico, nigeriano, jamaicano, inglés ghanés, estadounidense]
+      responses:
+        '200':
+          description: Mazo actualizado y cantidad de tarjetas modificadas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mazo: { $ref: '#/components/schemas/Mazo' }
+                  tarjetas_actualizadas: { type: integer }
+        '400':
+          description: Id inválido, falta `variante_regional` o no es válida (CONTEXT_INVALID_VARIANT).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /decks/{id}/cards:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    post:
+      tags: [decks]
+      operationId: registrarTarjeta
+      summary: Registra una palabra en el mazo
+      description: |
+        **Supuesto pendiente de validar (D-08):** el índice único `tarjeta (mazo_id, palabra)` impide guardar
+        una acepción como tarjeta nueva. El código, si la palabra ya existe en el mazo, NO crea tarjeta:
+        registra un `aporte` sobre la existente con `tipo_aporte` `coautoria` (misma definición y ejemplo,
+        CA-1.3.1) o `acepcion_nueva` (CA-1.3.2). La comparación de la palabra ignora mayúsculas (CA-1.3.3).
+
+        Requiere sesión (cualquier rol). El usuario del token debe tener inscripción activa en el curso del
+        mazo (403 DECK_NOT_ENROLLED) y el mazo debe estar `abierto` (409 DECK_CLOSED, CA-1.2.3). La tarjeta
+        nueva queda en `pendiente_revision` con un aporte tipo `creada` (CA-1.2.1).
+      x-hu: HU-1.2
+      x-ca: [CA-1.2.1, CA-1.2.2, CA-1.2.3, CA-1.3.1, CA-1.3.2, CA-1.3.3, CA-1.3.4]
+      x-pendiente: 'D-08: las acepciones se guardan como aporte (coautoria / acepcion_nueva), no como tarjeta'
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [palabra, traduccion, definicion]
+              properties:
+                palabra: { type: string, maxLength: 150 }
+                traduccion: { type: string, maxLength: 255 }
+                definicion: { type: string }
+                ejemplo: { type: string, maxLength: 150 }
+      responses:
+        '201':
+          description: Tarjeta creada, o aporte agregado a una tarjeta existente.
+          content: { application/json: { schema: { $ref: '#/components/schemas/ResultadoRegistroTarjeta' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: El mazo está cerrado (DECK_CLOSED).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /decks/{id}/export-pdf:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [decks]
+      operationId: exportarMazoPdf
+      summary: Exporta el mazo a PDF
+      description: |
+        Solo docente (decisión D-07). PDF listo para imprimir con las tarjetas `revisado_docente` del mazo:
+        términos, traducciones, definiciones y contexto.
+      x-hu: HU-3.3
+      x-ca: [CA-3.3.1, CA-3.3.3]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Pdf' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  # ======================= cards =======================
+  /cards/check-duplicate:
+    post:
+      tags: [cards]
+      operationId: verificarDuplicado
+      summary: Revisa si una palabra ya existe en el mazo
+      description: |
+        **Supuesto pendiente de validar (D-08):** igual que POST /decks/{id}/cards, un duplicado se resuelve
+        como aporte `coautoria` (misma definición y ejemplo) o `acepcion_nueva`, nunca como tarjeta nueva.
+
+        Requiere sesión (cualquier rol). No crea ni modifica nada: el frontend lo llama antes de enviar el
+        formulario para mostrar el aviso de coautoría o acepción nueva (CA-1.3.4). La comparación de la
+        palabra ignora mayúsculas (CA-1.3.3).
+      x-hu: HU-1.3
+      x-ca: [CA-1.3.1, CA-1.3.2, CA-1.3.3, CA-1.3.4]
+      x-pendiente: 'D-08: las acepciones se guardan como aporte (coautoria / acepcion_nueva), no como tarjeta'
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mazo_id, palabra]
+              properties:
+                mazo_id: { type: integer }
+                palabra: { type: string }
+                definicion: { type: string, description: Para distinguir coautoría de acepción nueva }
+                ejemplo: { type: string }
+      responses:
+        '200':
+          description: Resultado de la verificación. `tarjeta` solo viene si hay duplicado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  duplicado: { type: boolean }
+                  resultado: { type: string, enum: [creada, coautoria, acepcion_nueva] }
+                  tarjeta: { $ref: '#/components/schemas/Tarjeta' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /cards/pending:
+    get:
+      tags: [cards]
+      operationId: listarTarjetasPendientes
+      summary: Lista las tarjetas pendientes de revisión
+      description: |
+        **Supuesto pendiente de validar (D-10):** CLAUDE.md menciona dos rutas para este filtro; la única
+        implementada y montada es esta. `GET /decks/{id}/cards?estado=...` no existe en el código.
+
+        Solo docente. Tarjetas en `pendiente_revision` de todos los mazos, con el nombre del estudiante
+        que la creó, para el panel de curaduría.
+      x-hu: HU-2.1
+      x-ca: [CA-2.1.1]
+      x-pendiente: 'D-10: solo existe GET /cards/pending; GET /decks/{id}/cards?estado=... no está implementada'
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Tarjetas pendientes.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/TarjetaPendiente' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /cards/approved:
+    get:
+      tags: [cards]
+      operationId: listarTarjetasAprobadas
+      summary: Lista las tarjetas aprobadas
+      description: |
+        Solo docente. Endpoint adicional pedido por el equipo (fuera de los CA de HE-02) para la pestaña
+        "Historial Aprobadas" del panel de curaduría. Cada tarjeta trae su registro, su variante regional y
+        el autor original.
+      x-hu: HU-2.1
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Tarjetas en `revisado_docente`.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/TarjetaAprobada' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /cards/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [cards]
+      operationId: obtenerTarjeta
+      summary: Obtiene una tarjeta con sus etiquetas de contexto
+      description: |
+        **Supuesto pendiente de validar:** este endpoint es público en el código actual (no pide token).
+
+        Devuelve la tarjeta con `etiquetas_contexto` (registro y variante regional) para mostrarlas en su
+        detalle (CA-2.2.3).
+      x-hu: HU-2.2
+      x-ca: [CA-2.2.3]
+      x-pendiente: 'Endpoint público: el código no pide token'
+      security: []
+      responses:
+        '200':
+          description: La tarjeta.
+          content: { application/json: { schema: { $ref: '#/components/schemas/TarjetaDetalle' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    put:
+      tags: [cards]
+      operationId: editarTarjetaEnRevision
+      summary: Corrige una tarjeta pendiente
+      description: |
+        Solo docente. Edita una tarjeta en `pendiente_revision` antes de aprobarla (CA-2.1.2). Los campos
+        que no vengan conservan su valor. Si la tarjeta ya no está pendiente responde 409 CARD_NOT_PENDING.
+      x-hu: HU-2.1
+      x-ca: [CA-2.1.2]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                palabra: { type: string, maxLength: 150 }
+                traduccion: { type: string, maxLength: 255 }
+                definicion: { type: string }
+                ejemplo: { type: string, maxLength: 150 }
+      responses:
+        '200':
+          description: Tarjeta corregida.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Tarjeta' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /cards/{id}/context:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    put:
+      tags: [cards]
+      operationId: actualizarContextoTarjeta
+      summary: Asigna registro y variante regional a una tarjeta
+      description: |
+        Solo docente. Reemplaza la etiqueta de cada tipo que venga en el body (al menos una;
+        400 CONTEXT_EMPTY si no viene ninguna). Los valores se comparan sin distinguir mayúsculas.
+      x-hu: HU-2.2
+      x-ca: [CA-2.2.1]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                registro: { type: string, enum: [formal, informal, slang, coloquial, anticuado] }
+                variante_regional: { type: string, enum: [británico, nigeriano, jamaicano, inglés ghanés, estadounidense] }
+      responses:
+        '200':
+          description: Etiquetas guardadas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensaje: { type: string, example: Contexto actualizado correctamente }
+                  etiquetas: { type: array, items: { $ref: '#/components/schemas/EtiquetaContexto' } }
+        '400':
+          description: Id inválido, sin etiquetas (CONTEXT_EMPTY) o con un valor no permitido (CONTEXT_INVALID_REGISTER, CONTEXT_INVALID_VARIANT).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /cards/{id}/approve:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    patch:
+      tags: [cards]
+      operationId: aprobarTarjeta
+      summary: Aprueba una tarjeta
+      description: |
+        **Supuesto pendiente de validar:** CA-2.1.3 (rechazar con observación) no existe en el código. No hay
+        endpoint de rechazo; en la revisión individual la docente solo corrige (PUT /cards/{id}) o aprueba.
+
+        Solo docente. Pasa la tarjeta de `pendiente_revision` a `revisado_docente` y registra `fecha_revision`;
+        así queda disponible para los quices. 409 CARD_NOT_PENDING si ya no estaba pendiente.
+      x-hu: HU-2.1
+      x-ca: [CA-2.1.2]
+      x-pendiente: 'CA-2.1.3 (rechazo) no está implementado: no hay endpoint de rechazo'
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Tarjeta aprobada.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Tarjeta' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  # ======================= courses =======================
+  /courses:
+    post:
+      tags: [courses]
+      operationId: crearCurso
+      summary: Crea un curso
+      description: |
+        Solo docente. El `docente_id` sale del token (no del body). Valida que vengan todos los campos
+        (NOT NULL en el DER) y sus longitudes máximas.
+      x-hu: HU-5.3
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, periodo, estado, fecha_inicio, fecha_fin]
+              properties:
+                nombre: { type: string, maxLength: 150 }
+                periodo: { type: string, maxLength: 20, example: 2026-2 }
+                estado: { type: string, maxLength: 30 }
+                fecha_inicio: { type: string, format: date }
+                fecha_fin: { type: string, format: date }
+      responses:
+        '201':
+          description: Curso creado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Curso' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    get:
+      tags: [courses]
+      operationId: listarCursos
+      summary: Lista los cursos
+      description: Token opcional. Todos los cursos, sin filtros. `codigo_acceso` solo se incluye si quien consulta es docente.
+      x-hu: HU-5.3
+      security: [{}, { bearerAuth: [] }]
+      responses:
+        '200':
+          description: Lista de cursos.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Curso' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /courses/enroll:
+    post:
+      tags: [courses]
+      operationId: inscribirsePorCodigo
+      summary: Se inscribe en un curso con el código de acceso
+      description: |
+        **Supuesto pendiente de validar (D-04):** CLAUDE.md dice que `curso` no tiene columna para el código,
+        pero `init.sql` ya tiene `curso.codigo_acceso VARCHAR(20) UNIQUE` y el código la usa. Falta cerrar D-04.
+
+        Solo estudiante. El `estudiante_id` sale del token. El código se normaliza (sin espacios y en mayúsculas).
+        La inscripción queda `activa`.
+      x-hu: HU-5.3
+      x-ca: [CA-5.3.1]
+      x-pendiente: 'D-04: curso.codigo_acceso ya existe en init.sql; falta cerrar la discrepancia en CLAUDE.md'
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [codigo_acceso]
+              properties:
+                codigo_acceso: { type: string, maxLength: 20 }
+      responses:
+        '201':
+          description: Inscripción creada.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Inscripcion' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: El código no corresponde a ningún curso (ENROLL_INVALID_CODE).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '409':
+          description: Ya está inscrito en el curso (ENROLL_ALREADY_ENROLLED).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /courses/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [courses]
+      operationId: obtenerCurso
+      summary: Obtiene un curso
+      description: Token opcional. `codigo_acceso` solo se incluye si quien consulta es docente.
+      x-hu: HU-5.3
+      security: [{}, { bearerAuth: [] }]
+      responses:
+        '200':
+          description: El curso.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Curso' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /courses/{id}/access-code:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    post:
+      tags: [courses]
+      operationId: generarCodigoAcceso
+      summary: Genera el código de acceso del curso
+      description: |
+        **Supuesto pendiente de validar (D-04):** CLAUDE.md dice que `curso` no tiene columna para el código,
+        pero `init.sql` ya tiene `curso.codigo_acceso VARCHAR(20) UNIQUE` y el código la usa. Falta cerrar D-04.
+
+        Solo docente. Genera un código aleatorio de 8 caracteres (con `node:crypto`), único entre los cursos,
+        y lo guarda en el curso (reemplaza el anterior).
+      x-hu: HU-5.3
+      x-ca: [CA-5.3.1]
+      x-pendiente: 'D-04: curso.codigo_acceso ya existe en init.sql; falta cerrar la discrepancia en CLAUDE.md'
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Código generado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id_curso: { type: integer }
+                  codigo_acceso: { type: string, maxLength: 20 }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /courses/{id}/assign:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    post:
+      tags: [courses]
+      operationId: asignarEstudiantePorCorreo
+      summary: Inscribe a un estudiante por su correo
+      description: Solo docente. Busca al estudiante por correo y lo inscribe en el curso con estado `activa`.
+      x-hu: HU-5.3
+      x-ca: [CA-5.3.2]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '201':
+          description: Inscripción creada.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Inscripcion' } } }
+        '400':
+          description: Id inválido, falta `email` o el usuario no es estudiante (USER_NOT_STUDENT).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: El curso no existe (COURSE_NOT_FOUND) o no hay estudiante con ese correo (STUDENT_NOT_FOUND).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '409':
+          description: El estudiante ya está inscrito (ENROLL_ALREADY_ENROLLED).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /courses/{id}/students:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [courses]
+      operationId: listarEstudiantesCurso
+      summary: Lista los estudiantes inscritos en el curso
+      description: Solo docente. Cada estudiante con su nivel, su código estudiantil y la cantidad de palabras aportadas.
+      x-hu: HU-5.3
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Estudiantes del curso.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/EstudianteCurso' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ======================= analytics =======================
+  /teacher/analytics/deck/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [analytics]
+      operationId: resumenParticipacionMazo
+      summary: Resumen de participación por mazo
+      description: |
+        Solo docente. Una fila por estudiante inscrito en el curso del mazo, con palabras aportadas,
+        coautorías y tarjetas pendientes o aprobadas (CA-2.3.1). Con `sinAportes=true` solo devuelve a quienes
+        no tienen ningún aporte en el mazo (CA-2.3.2). No usa caché: cada consulta refleja el estado actual de
+        la base de datos (así se cubre CA-2.3.3, sin WebSockets).
+      x-hu: HU-2.3
+      x-ca: [CA-2.3.1, CA-2.3.2, CA-2.3.3]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: sinAportes
+          in: query
+          required: false
+          schema: { type: string, enum: ['true'] }
+          description: Con `true`, solo estudiantes sin aportes en el mazo.
+      responses:
+        '200':
+          description: Participación por estudiante.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/ParticipacionMazo' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ======================= study =======================
+  /study/review-session:
+    post:
+      tags: [study]
+      operationId: iniciarSesionRepaso
+      summary: Inicia una sesión de repaso
+      description: |
+        Solo estudiante, y la inscripción debe ser suya (403 ENROLLMENT_FORBIDDEN si no, también si no existe).
+        Devuelve todas las tarjetas `revisado_docente` de los mazos ya abiertos del curso, ordenadas por SM-2:
+        primero las vencidas, luego las nuevas y luego las demás. Cada una trae su `progreso` (null si es nueva).
+      x-hu: HU-4.1
+      x-ca: [CA-4.1.1]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [inscripcion_id]
+              properties:
+                inscripcion_id: { type: integer }
+      responses:
+        '200':
+          description: Tarjetas de la sesión.
+          content: { application/json: { schema: { $ref: '#/components/schemas/SesionRepaso' } } }
+        '400':
+          description: Falta o es inválido `inscripcion_id`, o la inscripción no está activa (ENROLLMENT_INACTIVE).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /study/review-session/review:
+    post:
+      tags: [study]
+      operationId: registrarValoracion
+      summary: Registra la valoración de una tarjeta
+      description: |
+        Solo estudiante, y la inscripción debe ser suya. Aplica SM-2 para recalcular el factor de facilidad,
+        el intervalo y la próxima fecha de repaso (CA-4.1.2).
+      x-hu: HU-4.1
+      x-ca: [CA-4.1.2]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [inscripcion_id, tarjeta_id, valoracion]
+              properties:
+                inscripcion_id: { type: integer }
+                tarjeta_id: { type: integer }
+                valoracion: { type: string, enum: [Repetir, Difícil, Buena, Fácil] }
+      responses:
+        '200':
+          description: Progreso actualizado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/ProgresoEstudio' } } }
+        '400':
+          description: Faltan campos, ids inválidos o valoración no válida (STUDY_INVALID_RATING).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: La tarjeta no está disponible para esa inscripción (STUDY_CARD_NOT_AVAILABLE).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ======================= users =======================
+  /users/profile:
+    patch:
+      tags: [users]
+      operationId: actualizarPerfil
+      summary: Actualiza el perfil académico
+      description: |
+        Solo estudiante. Actualiza el perfil del usuario del token (el id no viaja en el body ni en la URL).
+        Todos los campos son opcionales.
+      x-hu: HU-5.2
+      x-ca: [CA-5.2.1, CA-5.2.2]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nivel_ingles: { type: string, enum: [A1, A2, B1, B2, C1, C2] }
+                codigo_estudiantil: { type: string, maxLength: 20 }
+                avatar: { type: string, maxLength: 500, description: URL o ruta de la imagen; se rechaza un data URI }
+                intereses: { type: array, items: { type: string, minLength: 1 } }
+      responses:
+        '200':
+          description: Perfil actualizado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Perfil' } } }
+        '400':
+          description: Nivel no válido (PROFILE_INVALID_LEVEL) u otro dato no válido (PROFILE_INVALID_DATA).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /users/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [users]
+      operationId: obtenerPerfil
+      summary: Obtiene el perfil académico
+      description: |
+        Requiere sesión. El estudiante solo puede ver su propio perfil (403 PROFILE_FORBIDDEN); la docente
+        puede ver el de cualquiera (auditoría OWASP H-01).
+      x-hu: HU-5.2
+      x-ca: [CA-5.2.1, CA-5.4.2]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: El perfil.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Perfil' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ======================= students =======================
+  /students/{id}/context:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [students]
+      operationId: obtenerContextoAcademico
+      summary: Obtiene el contexto académico del estudiante
+      description: |
+        Requiere sesión, con el mismo criterio de propiedad que GET /users/{id}: el estudiante solo ve el suyo
+        (403 STUDENT_CONTEXT_FORBIDDEN). Devuelve la inscripción más reciente; sin inscripción, los campos vienen en null.
+      x-hu: HU-5.2
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Contexto académico.
+          content: { application/json: { schema: { $ref: '#/components/schemas/ContextoAcademico' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  # ======================= aportes =======================
+  /aportes/pending:
+    get:
+      tags: [aportes]
+      operationId: listarCoautoriasPendientes
+      summary: Lista las coautorías y acepciones pendientes
+      description: |
+        Solo docente. Endpoint adicional (fuera de los CA de HU-1.3). Aportes `coautoria` y `acepcion_nueva`
+        en `pendiente_revision`, aunque su tarjeta ya esté aprobada, con los datos de la tarjeta.
+        Responde con `Cache-Control: no-store`.
+      x-hu: HU-1.3
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Aportes pendientes, del más antiguo al más reciente.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/AportePendiente' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /aportes:
+    post:
+      tags: [aportes]
+      operationId: crearAporte
+      summary: Crea un aporte (CRUD genérico)
+      description: |
+        Requiere sesión (cualquier rol). CRUD genérico: guarda las columnas del body tal como llegan, sin las
+        reglas de HU-1.2/HU-1.3 (para registrar palabras se usa POST /decks/{id}/cards). Solo valida que vengan
+        `traduccion_aportada` y `tipo_aporte` y las longitudes máximas; si falta otra columna NOT NULL o una
+        foreign key no existe, responde 500.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [traduccion_aportada, tipo_aporte]
+              properties:
+                tarjeta_id: { type: integer }
+                inscripcion_id: { type: integer }
+                traduccion_aportada: { type: string, maxLength: 255 }
+                definicion_aportada: { type: string }
+                ejemplo_aportado: { type: string, maxLength: 150 }
+                tipo_aporte: { type: string, maxLength: 40, enum: [creada, coautoria, acepcion_nueva] }
+      responses:
+        '201':
+          description: Aporte creado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Aporte' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    get:
+      tags: [aportes]
+      operationId: listarAportes
+      summary: Lista todos los aportes
+      description: Requiere sesión (cualquier rol). Todos los aportes, sin filtros ni paginación.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Lista de aportes.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Aporte' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /aportes/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [aportes]
+      operationId: obtenerAporte
+      summary: Obtiene un aporte
+      description: Requiere sesión (cualquier rol).
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: El aporte.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Aporte' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    put:
+      tags: [aportes]
+      operationId: actualizarAporte
+      summary: Edita un aporte (CRUD genérico)
+      description: Solo docente. Actualiza las columnas del aporte con las del body, sin validaciones de negocio.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Aporte' }
+      responses:
+        '200':
+          description: Aporte actualizado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Aporte' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    delete:
+      tags: [aportes]
+      operationId: eliminarAporte
+      summary: Elimina un aporte
+      description: Solo docente.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Aporte eliminado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Eliminado' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /aportes/{id}/approve:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    patch:
+      tags: [aportes]
+      operationId: aprobarAporte
+      summary: Aprueba una coautoría o acepción nueva
+      description: |
+        Solo docente. Endpoint adicional (fuera de los CA de HU-1.3). Aprueba el aporte con correcciones
+        opcionales. No aplica a aportes `creada` (403 CONTRIBUTION_NOT_APPROVABLE): esos se aprueban con
+        PATCH /cards/{id}/approve. No existe rechazo de aportes.
+      x-hu: HU-1.3
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                traduccion_aportada: { type: string, maxLength: 255 }
+                definicion_aportada: { type: string }
+                ejemplo_aportado: { type: string, maxLength: 150 }
+      responses:
+        '200':
+          description: Aporte aprobado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensaje: { type: string, example: Aporte aprobado correctamente }
+                  aporte: { $ref: '#/components/schemas/Aporte' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ======================= quizzes =======================
+  /quizzes/generate:
+    post:
+      tags: [quizzes]
+      operationId: generarQuiz
+      summary: Genera un quiz acumulativo
+      description: |
+        Solo docente. Arma el quiz con tarjetas `revisado_docente` de los mazos elegidos.
+        Exige al menos 4 traducciones distintas; la ventana apertura-cierre debe ser mayor o igual
+        al `tiempo_limite_min`; el curso debe existir y los mazos deben ser de ese curso.
+        Cada pregunta es de selección múltiple (`seleccion_multiple`): la traducción correcta y hasta 3
+        distractores sin repetir, tomados de las demás tarjetas aprobadas. El quiz queda `programado`.
+      x-hu: HU-3.1
+      x-ca: [CA-3.1.1, CA-3.1.2, CA-3.1.3]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [curso_id, titulo, mazo_ids, fecha_apertura, fecha_cierre, tiempo_limite_min]
+              properties:
+                curso_id: { type: integer, minimum: 1 }
+                titulo: { type: string, maxLength: 200 }
+                mazo_ids: { type: array, minItems: 1, items: { type: integer, minimum: 1 } }
+                fecha_apertura: { type: string, format: date-time }
+                fecha_cierre: { type: string, format: date-time }
+                tiempo_limite_min: { type: integer, minimum: 1 }
+                cantidad_preguntas: { type: integer, minimum: 1, description: 'Opcional; si falta se usan todas las tarjetas aprobadas' }
+      responses:
+        '201':
+          description: Quiz creado en estado programado, con sus preguntas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  quiz: { $ref: '#/components/schemas/Quiz' }
+                  preguntas: { type: array, items: { $ref: '#/components/schemas/PreguntaQuiz' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: El curso o un mazo no existe, o un mazo no es del curso (COURSE_NOT_FOUND, DECK_NOT_FOUND, QUIZ_DECK_NOT_IN_COURSE).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /quizzes:
+    post:
+      tags: [quizzes]
+      operationId: crearQuiz
+      summary: Crea un quiz (CRUD genérico)
+      description: |
+        Solo docente. CRUD genérico, sin la lógica de HU-3.1 (para eso está POST /quizzes/generate). Solo valida
+        `titulo` y `estado`; si falta otra columna NOT NULL (`curso_id`, `semana_corte`) responde 500.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [titulo, estado]
+              properties:
+                curso_id: { type: integer }
+                titulo: { type: string, maxLength: 200 }
+                semana_corte: { type: integer }
+                fecha_apertura: { type: string, format: date-time }
+                fecha_cierre: { type: string, format: date-time }
+                tiempo_limite_min: { type: integer }
+                estado: { type: string, maxLength: 30 }
+      responses:
+        '201':
+          description: Quiz creado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Quiz' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    get:
+      tags: [quizzes]
+      operationId: listarQuices
+      summary: Lista todos los quices
+      description: Requiere sesión (cualquier rol). Todos los quices, sin filtros, cada uno con `estado_efectivo` (CA-3.1.3).
+      x-hu: HU-3.1
+      x-ca: [CA-3.1.3]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Lista de quices.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Quiz' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /quizzes/mine:
+    get:
+      tags: [quizzes]
+      operationId: listarMisQuices
+      summary: Lista los quices del estudiante
+      description: |
+        Solo estudiante. Endpoint adicional aprobado por el equipo (2026-10-11). Quices de los cursos donde tiene
+        inscripción activa, del más reciente al más antiguo, con su resultado si ya los envió.
+      x-hu: HU-3.2
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Quices del estudiante.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: '#/components/schemas/Quiz'
+                    - type: object
+                      properties:
+                        resultado:
+                          type: object
+                          nullable: true
+                          allOf:
+                            - $ref: '#/components/schemas/ResumenResultado'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /quizzes/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [quizzes]
+      operationId: obtenerQuiz
+      summary: Obtiene un quiz
+      description: Requiere sesión (cualquier rol). Incluye `estado_efectivo` (CA-3.1.3).
+      x-hu: HU-3.1
+      x-ca: [CA-3.1.3]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: El quiz.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Quiz' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    put:
+      tags: [quizzes]
+      operationId: actualizarQuiz
+      summary: Edita un quiz (CRUD genérico)
+      description: Solo docente. Reemplaza las columnas del quiz con las del body, sin validaciones de negocio.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                curso_id: { type: integer }
+                titulo: { type: string, maxLength: 200 }
+                semana_corte: { type: integer }
+                fecha_apertura: { type: string, format: date-time }
+                fecha_cierre: { type: string, format: date-time }
+                tiempo_limite_min: { type: integer }
+                estado: { type: string, maxLength: 30 }
+      responses:
+        '200':
+          description: Quiz actualizado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Quiz' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    delete:
+      tags: [quizzes]
+      operationId: eliminarQuiz
+      summary: Elimina un quiz
+      description: |
+        Solo docente. Si el quiz tiene filas asociadas (`quiz_mazo`, `pregunta_quiz`, `resultado_quiz`), la
+        foreign key impide borrarlo y responde 500. En la práctica, un quiz generado no se puede borrar.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Quiz eliminado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Eliminado' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /quizzes/{id}/export-pdf:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [quizzes]
+      operationId: exportarQuizPdf
+      summary: Exporta el quiz a PDF con clave de respuestas
+      description: |
+        Solo docente (decisiones D-06 y D-07). PDF con la hoja de preguntas y una hoja separada con las
+        respuestas para la docente. 404 si el quiz no existe o no tiene preguntas.
+      x-hu: HU-3.3
+      x-ca: [CA-3.3.2, CA-3.3.3]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Pdf' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /quizzes/{id}/preguntas:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [quizzes]
+      operationId: obtenerPreguntasQuiz
+      summary: Preguntas del quiz para responderlo
+      description: |
+        Solo estudiante inscrito en el curso del quiz (403 QUIZ_NOT_ENROLLED) y con el quiz abierto
+        (400 QUIZ_NOT_OPEN o QUIZ_CLOSED). Endpoint adicional aprobado por el equipo (2026-10-07).
+        Las preguntas no incluyen `respuesta_correcta` ni `tarjeta_id`.
+      x-hu: HU-3.2
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: El quiz y sus preguntas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  quiz: { $ref: '#/components/schemas/Quiz' }
+                  preguntas: { type: array, items: { $ref: '#/components/schemas/PreguntaQuizEstudiante' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /quizzes/{id}/submit:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    post:
+      tags: [quizzes]
+      operationId: enviarQuiz
+      summary: Envía las respuestas y recibe la nota
+      description: |
+        Solo estudiante inscrito en el curso del quiz. El `estudiante_id` sale del token; si viene en el body
+        se ignora. Las preguntas que falten en `respuestas` (o con null, por ejemplo si se acabó el tiempo,
+        CA-3.2.1) cuentan como incorrectas. La calificación va de 0 a 5.
+
+        El tiempo lo informa el cliente (`fecha_inicio` o `tiempo_empleado_seg`); si supera el tiempo límite
+        más un margen de 30 s, el envío se rechaza (400 QUIZ_TIME_EXPIRED). Limitación conocida, decisión del
+        equipo 2026-10-07.
+
+        Si el estudiante ya había enviado el quiz responde 409 con el resultado previo (CA-3.2.3).
+      x-hu: HU-3.2
+      x-ca: [CA-3.2.1, CA-3.2.2, CA-3.2.3]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [respuestas]
+              properties:
+                respuestas:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      pregunta_id: { type: integer }
+                      respuesta_estudiante: { type: string, nullable: true, maxLength: 255 }
+                fecha_inicio: { type: string, format: date-time }
+                tiempo_empleado_seg: { type: integer }
+      responses:
+        '201':
+          description: Resultado calculado y desglose de respuestas (CA-3.2.2).
+          content: { application/json: { schema: { $ref: '#/components/schemas/EnvioQuiz' } } }
+        '400':
+          description: |
+            `respuestas` no es un arreglo (QUIZ_INVALID_ANSWERS), el quiz no ha abierto (QUIZ_NOT_OPEN), ya cerró
+            (QUIZ_CLOSED) o se agotó el tiempo (QUIZ_TIME_EXPIRED).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Ya había enviado el quiz (QUIZ_ALREADY_SUBMITTED). Trae el resultado previo.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Error'
+                  - $ref: '#/components/schemas/EnvioQuiz'
+        '500': { $ref: '#/components/responses/InternalError' }
+  /quizzes/{id}/result:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [quizzes]
+      operationId: obtenerResultadoQuiz
+      summary: Resultado previo del estudiante
+      description: |
+        Solo estudiante inscrito en el curso del quiz. Endpoint adicional aprobado por el equipo (2026-10-11).
+        No depende del estado del quiz. 404 QUIZ_NOT_SUBMITTED si todavía no lo ha enviado.
+      x-hu: HU-3.2
+      x-ca: [CA-3.2.3]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Resultado, respuestas y preguntas (sin la respuesta correcta).
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EnvioQuiz'
+                  - type: object
+                    properties:
+                      preguntas: { type: array, items: { $ref: '#/components/schemas/PreguntaQuizEstudiante' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ======================= enrichment =======================
+  /enrichment/family/{word}:
+    parameters:
+      - name: word
+        in: path
+        required: true
+        schema: { type: string, maxLength: 150 }
+    get:
+      tags: [enrichment]
+      operationId: obtenerFamiliaPalabra
+      summary: Sugiere palabras relacionadas (WordNet)
+      description: |
+        **Supuesto pendiente de validar:** este endpoint es público en el código actual (no pide token).
+
+        Consulta WordNet 3.1 y agrupa sinónimos, hiperónimos, hipónimos y familia por categoría gramatical
+        (CA-4.2.1). Si la palabra ya se consultó antes, responde desde `wordnet_cache` (`desde_cache: true`,
+        CA-4.2.2). Si WordNet no la conoce, responde 200 con `encontrado: false` y una `accion` para
+        registrarla (CA-4.2.3).
+      x-hu: HU-4.2
+      x-ca: [CA-4.2.1, CA-4.2.2, CA-4.2.3]
+      x-pendiente: 'Endpoint público: el código no pide token'
+      security: []
+      responses:
+        '200':
+          description: Sugerencias léxicas.
+          content: { application/json: { schema: { $ref: '#/components/schemas/FamiliaPalabra' } } }
+        '400':
+          description: Palabra vacía (REQUIRED_FIELDS_MISSING) o de más de 150 caracteres (FIELD_TOO_LONG).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ======================= dictionary =======================
+  /dictionary:
+    get:
+      tags: [dictionary]
+      operationId: buscarDiccionario
+      summary: Lista o busca el vocabulario aprobado
+      description: |
+        **Supuesto pendiente de validar:** este endpoint es público en el código actual (no pide token), y
+        el controlador cita CA-1.4.x, de una HU-1.4 que no está en el backlog.
+
+        Tarjetas `revisado_docente` de todos los mazos, con los datos de la lectura y sus etiquetas de contexto.
+        Con `q` hace una búsqueda parcial por palabra. Sin resultados responde 200 con `data` vacío.
+      x-pendiente: 'Endpoint público: el código no pide token; HU-1.4 no está en el backlog'
+      security: []
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema: { type: string }
+          description: Texto a buscar (coincidencia parcial).
+      responses:
+        '200':
+          description: Vocabulario encontrado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/TarjetaDiccionario' } }
+        '400':
+          description: '`q` no es texto (INVALID_QUERY).'
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /dictionary/{card_id}:
+    parameters:
+      - name: card_id
+        in: path
+        required: true
+        schema: { type: integer, minimum: 1 }
+    get:
+      tags: [dictionary]
+      operationId: obtenerTarjetaDiccionario
+      summary: Detalle de una palabra del diccionario
+      description: |
+        **Supuesto pendiente de validar:** este endpoint es público en el código actual (no pide token).
+
+        Detalle de una tarjeta aprobada (`revisado_docente`).
+      x-pendiente: 'Endpoint público: el código no pide token'
+      security: []
+      responses:
+        '200':
+          description: La tarjeta.
+          content: { application/json: { schema: { $ref: '#/components/schemas/TarjetaDiccionario' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ======================= reports =======================
+  /reports/study-mode/export-pdf:
+    get:
+      tags: [reports]
+      operationId: exportarReporteModoEstudio
+      summary: Reporte del modo de estudio en PDF
+      description: |
+        Requiere sesión; la regla de acceso está en `ReporteEstudioService` (CA-19.3):
+        - **docente:** todos los estudiantes con inscripción activa, de cualquier curso (decisión del equipo
+          2026-11-06). Con `student_id`, solo ese estudiante; si no tiene inscripción activa, 404 REPORT_STUDENT_NOT_FOUND.
+        - **estudiante:** solo su propio repaso; con el `student_id` de otro, 403 REPORT_FORBIDDEN.
+        - **otro rol:** 403 REPORT_FORBIDDEN.
+
+        Límite de 30 peticiones por IP cada 15 minutos (`RATE_LIMIT_REPORTES_MAX`).
+      x-hu: HU-019
+      x-ca: [CA-19.1, CA-19.2, CA-19.3]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: student_id
+          in: query
+          required: false
+          schema: { type: integer }
+      responses:
+        '200': { $ref: '#/components/responses/Pdf' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /reports/students/{id}/progress/export-pdf:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [reports]
+      operationId: exportarReporteProgreso
+      summary: Reporte de progreso individual en PDF
+      description: |
+        Requiere sesión; la regla de acceso está en `ReporteProgresoService` (CA-18.3):
+        - **estudiante:** solo su propio reporte; con el id de otro, 403 REPORT_FORBIDDEN.
+        - **docente:** estudiantes inscritos en sus cursos; si no, 404 REPORT_STUDENT_NOT_FOUND
+          (supuesto pendiente de validar).
+        - **otro rol:** 403 REPORT_FORBIDDEN.
+
+        Sin quices o sin repasos, el PDF muestra «Sin actividad registrada» (CA-18.2).
+        Límite de 30 peticiones por IP cada 15 minutos.
+      x-hu: HU-018
+      x-ca: [CA-18.1, CA-18.2, CA-18.3]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Pdf' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /reports/quizzes/{id}/results/export-pdf:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [reports]
+      operationId: exportarReporteResultadosQuiz
+      summary: Reporte de resultados de un quiz en PDF
+      description: |
+        Solo docente, y el quiz debe ser de un curso suyo (403 AUTH_FORBIDDEN si no). Calificación de cada
+        estudiante y las 5 preguntas con mayor porcentaje de error. Se genera aunque no haya resultados (CA-21.2).
+        Límite de 30 peticiones por IP cada 15 minutos.
+      x-hu: HU-021
+      x-ca: [CA-21.1, CA-21.2, CA-21.3]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Pdf' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT que emite el backend tras el login con Google (claims id_usuario, email, rol).
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+  schemas:
+    Error:
+      type: object
+      required: [error, code]
+      properties:
+        error: { type: string, description: 'Mensaje legible, en español' }
+        code: { type: string, description: Código fijo en inglés (docs/codigos-error.md), example: INVALID_ID }
+    Eliminado:
+      type: object
+      properties:
+        eliminado: { type: boolean, example: true }
+
+    # ---------- Usuarios y sesión ----------
+    UsuarioSesion:
+      type: object
+      description: Datos del usuario que acompañan al JWT (tabla `usuario`).
+      properties:
+        id_usuario: { type: integer }
+        nombre_completo: { type: string, maxLength: 150 }
+        email: { type: string, format: email, maxLength: 150 }
+        rol: { type: string, maxLength: 30, example: estudiante, description: 'docente | estudiante' }
+    Perfil:
+      type: object
+      description: |
+        Perfil académico (PerfilService.mapearPerfil). No es la fila cruda de `usuario`:
+        usa `estudiante_id` y `correo`, no expone `password_hash`, y los nulos salen como `''` (`intereses` como `[]`).
+      properties:
+        estudiante_id: { type: integer, description: id_usuario }
+        nombre_completo: { type: string }
+        correo: { type: string, format: email }
+        rol: { type: string, example: Estudiante, description: Rol con la primera letra en mayúscula }
+        nivel_ingles: { type: string, enum: [A1, A2, B1, B2, C1, C2, ''] }
+        codigo_estudiantil: { type: string, maxLength: 20 }
+        avatar: { type: string, maxLength: 500, description: URL o ruta de la imagen (no se acepta un data URI) }
+        intereses: { type: array, items: { type: string } }
+    ContextoAcademico:
+      type: object
+      description: Sale de la inscripción más reciente del estudiante. Sin inscripción, los campos vienen en null.
+      properties:
+        id_inscripcion: { type: integer, nullable: true }
+        curso_asignado: { type: string, nullable: true }
+        semestre_activo: { type: string, nullable: true }
+        departamento_universidad:
+          type: string
+          nullable: true
+          description: Siempre null; no tiene fuente en la BD (supuesto pendiente de validar).
+
+    # ---------- Cursos e inscripción ----------
+    Curso:
+      type: object
+      description: Tabla `curso`. `codigo_acceso` solo se incluye cuando quien consulta es docente.
+      properties:
+        id_curso: { type: integer }
+        nombre: { type: string, maxLength: 150 }
+        periodo: { type: string, maxLength: 20 }
+        fecha_inicio: { type: string, format: date-time }
+        fecha_fin: { type: string, format: date-time }
+        docente_id: { type: integer }
+        estado: { type: string, maxLength: 30 }
+        codigo_acceso: { type: string, maxLength: 20, nullable: true }
+    Inscripcion:
+      type: object
+      description: Tabla `inscripcion`.
+      properties:
+        id_inscripcion: { type: integer }
+        curso_id: { type: integer }
+        estudiante_id: { type: integer }
+        fecha_inscripcion: { type: string, format: date-time }
+        estado: { type: string, maxLength: 30, example: activa }
+    EstudianteCurso:
+      type: object
+      properties:
+        id_usuario: { type: integer }
+        nombre_completo: { type: string }
+        nivel_ingles: { type: string, nullable: true }
+        codigo_estudiantil: { type: string, nullable: true }
+        palabras_aportadas: { type: integer }
+
+    # ---------- Mazos, tarjetas y aportes ----------
+    Mazo:
+      type: object
+      description: Tabla `mazo`.
+      properties:
+        id_mazo: { type: integer }
+        curso_id: { type: integer }
+        docente_id: { type: integer }
+        nombre_lectura: { type: string, maxLength: 200 }
+        autor: { type: string, maxLength: 150 }
+        semana: { type: integer }
+        variante_regional_predeterminada: { type: string, maxLength: 100, nullable: true }
+        estado: { type: string, enum: [abierto, cerrado] }
+        fecha_apertura: { type: string, format: date-time }
+        fecha_cierre: { type: string, format: date-time }
+        fecha_creacion: { type: string, format: date-time }
+    Tarjeta:
+      type: object
+      description: Tabla `tarjeta`.
+      properties:
+        id_tarjeta: { type: integer }
+        mazo_id: { type: integer }
+        palabra: { type: string, maxLength: 150 }
+        traduccion: { type: string, maxLength: 255 }
+        definicion: { type: string }
+        ejemplo: { type: string, maxLength: 150, nullable: true }
+        estado: { type: string, example: pendiente_revision, description: 'pendiente_revision | revisado_docente' }
+        fecha_creacion: { type: string, format: date-time }
+        fecha_revision: { type: string, format: date-time, nullable: true }
+    EtiquetaContexto:
+      type: object
+      description: Tabla `etiqueta_contexto`.
+      properties:
+        id_etiqueta: { type: integer }
+        tarjeta_id: { type: integer }
+        tipo: { type: string, enum: [registro, variante_regional] }
+        valor: { type: string, maxLength: 150 }
+        fecha_asignacion: { type: string, format: date-time }
+    TarjetaDetalle:
+      description: Tarjeta con sus etiquetas de contexto (GET /cards/{id}).
+      allOf:
+        - $ref: '#/components/schemas/Tarjeta'
+        - type: object
+          properties:
+            etiquetas_contexto: { type: array, items: { $ref: '#/components/schemas/EtiquetaContexto' } }
+    TarjetaPendiente:
+      description: Tarjeta en revisión con el nombre del estudiante que la creó.
+      allOf:
+        - $ref: '#/components/schemas/Tarjeta'
+        - type: object
+          properties:
+            estudiante: { type: string, description: 'Nombre del autor original, o "Desconocido"' }
+    TarjetaAprobada:
+      description: Tarjeta aprobada con su registro, su variante regional y el autor original.
+      allOf:
+        - $ref: '#/components/schemas/TarjetaPendiente'
+        - type: object
+          properties:
+            registro: { type: string, nullable: true }
+            variante_regional: { type: string, nullable: true }
+    Aporte:
+      type: object
+      description: Tabla `aporte`.
+      properties:
+        id_aporte: { type: integer }
+        tarjeta_id: { type: integer }
+        inscripcion_id: { type: integer }
+        traduccion_aportada: { type: string, maxLength: 255 }
+        definicion_aportada: { type: string }
+        ejemplo_aportado: { type: string, maxLength: 150, nullable: true }
+        tipo_aporte: { type: string, maxLength: 40, enum: [creada, coautoria, acepcion_nueva] }
+        fecha_aporte: { type: string, format: date-time }
+        estado: { type: string, maxLength: 30, example: pendiente_revision }
+    AportePendiente:
+      type: object
+      description: Coautoría o acepción nueva pendiente, con datos de su tarjeta.
+      properties:
+        id_aporte: { type: integer }
+        tarjeta_id: { type: integer }
+        inscripcion_id: { type: integer }
+        traduccion_aportada: { type: string }
+        definicion_aportada: { type: string }
+        ejemplo_aportado: { type: string, nullable: true }
+        tipo_aporte: { type: string, enum: [coautoria, acepcion_nueva] }
+        fecha_aporte: { type: string, format: date-time }
+        estado_aporte: { type: string }
+        palabra_tarjeta: { type: string }
+        traduccion_tarjeta: { type: string }
+        definicion_tarjeta: { type: string }
+        estado_tarjeta: { type: string }
+    ResultadoRegistroTarjeta:
+      type: object
+      properties:
+        resultado: { type: string, enum: [creada, coautoria, acepcion_nueva] }
+        tarjeta: { $ref: '#/components/schemas/Tarjeta' }
+        aporte: { $ref: '#/components/schemas/Aporte' }
+
+    # ---------- Analítica ----------
+    ParticipacionMazo:
+      type: object
+      properties:
+        estudiante_id: { type: integer }
+        nombre_completo: { type: string }
+        palabras_aportadas: { type: integer, description: Aportes tipo creada }
+        coautorias: { type: integer, description: Aportes tipo coautoria o acepcion_nueva }
+        tarjetas_pendientes: { type: integer }
+        tarjetas_aprobadas: { type: integer }
+
+    # ---------- Estudio (SM-2) ----------
+    ProgresoEstudio:
+      type: object
+      description: Tabla `progreso_estudio`. `factor_facilidad` es DECIMAL y llega como texto.
+      properties:
+        id_progreso: { type: integer }
+        inscripcion_id: { type: integer }
+        tarjeta_id: { type: integer }
+        factor_facilidad: { type: string, nullable: true, example: '2.5' }
+        intervalo_dias: { type: integer, nullable: true }
+        repeticiones: { type: integer }
+        ultima_valoracion: { type: string, nullable: true, enum: [Repetir, Difícil, Buena, Fácil, null] }
+        fecha_ultimo_repaso: { type: string, format: date-time, nullable: true }
+        fecha_proximo_repaso: { type: string, format: date-time, nullable: true }
+    TarjetaEstudio:
+      allOf:
+        - $ref: '#/components/schemas/Tarjeta'
+        - type: object
+          properties:
+            progreso:
+              type: object
+              nullable: true
+              description: null si el estudiante nunca ha repasado la tarjeta.
+              allOf:
+                - $ref: '#/components/schemas/ProgresoEstudio'
+    SesionRepaso:
+      type: object
+      properties:
+        inscripcion_id: { type: integer }
+        total_tarjetas: { type: integer }
+        tarjetas:
+          type: array
+          description: Primero las vencidas, luego las nuevas y luego las demás (menor factor de facilidad primero).
+          items: { $ref: '#/components/schemas/TarjetaEstudio' }
+
+    # ---------- Quices ----------
+    Quiz:
+      type: object
+      description: Tabla `quiz` más `estado_efectivo`, calculado según la fecha actual (CA-3.1.3).
+      properties:
+        id_quiz: { type: integer }
+        curso_id: { type: integer }
+        titulo: { type: string, maxLength: 200 }
+        semana_corte: { type: integer }
+        fecha_creacion: { type: string, format: date-time }
+        fecha_apertura: { type: string, format: date-time, nullable: true }
+        fecha_cierre: { type: string, format: date-time, nullable: true }
+        tiempo_limite_min: { type: integer, nullable: true }
+        estado: { type: string, maxLength: 30, example: programado }
+        estado_efectivo: { type: string, enum: [programado, abierto, cerrado] }
+    PreguntaQuiz:
+      type: object
+      description: Tabla `pregunta_quiz` (incluye la respuesta correcta).
+      properties:
+        id_pregunta: { type: integer }
+        quiz_id: { type: integer }
+        tarjeta_id: { type: integer }
+        tipo_pregunta: { type: string, maxLength: 50, example: seleccion_multiple }
+        enunciado: { type: string }
+        opcion_a: { type: string, maxLength: 255, nullable: true }
+        opcion_b: { type: string, maxLength: 255, nullable: true }
+        opcion_c: { type: string, maxLength: 255, nullable: true }
+        opcion_d: { type: string, maxLength: 255, nullable: true }
+        respuesta_correcta: { type: string, maxLength: 255 }
+        orden: { type: integer, nullable: true }
+    PreguntaQuizEstudiante:
+      type: object
+      description: Pregunta sin `respuesta_correcta`, `tarjeta_id` ni `quiz_id`.
+      properties:
+        id_pregunta: { type: integer }
+        tipo_pregunta: { type: string }
+        enunciado: { type: string }
+        opcion_a: { type: string, nullable: true }
+        opcion_b: { type: string, nullable: true }
+        opcion_c: { type: string, nullable: true }
+        opcion_d: { type: string, nullable: true }
+        orden: { type: integer, nullable: true }
+    ResultadoQuiz:
+      type: object
+      description: |
+        Tabla `resultado_quiz`. Los campos DECIMAL (`puntaje_obtenido`, `puntaje_maximo`, `calificacion`)
+        llegan como string desde PostgreSQL (observación abierta, sin corregir). La calificación va de 0 a 5.
+      properties:
+        id_resultado: { type: integer }
+        quiz_id: { type: integer }
+        estudiante_id: { type: integer }
+        fecha_inicio: { type: string, format: date-time, nullable: true }
+        fecha_envio: { type: string, format: date-time, nullable: true }
+        puntaje_obtenido: { type: string, nullable: true, example: '3' }
+        puntaje_maximo: { type: string, nullable: true, example: '5' }
+        calificacion: { type: string, nullable: true, example: '3.0' }
+        tiempo_empleado_seg: { type: integer, nullable: true }
+    ResumenResultado:
+      type: object
+      description: Resumen del resultado en GET /quizzes/mine (DECIMAL como string).
+      properties:
+        id_resultado: { type: integer }
+        puntaje_obtenido: { type: string }
+        puntaje_maximo: { type: string }
+        calificacion: { type: string }
+        fecha_envio: { type: string, format: date-time }
+    RespuestaQuiz:
+      type: object
+      description: Tabla `respuesta_quiz`. `puntaje_obtenido` es DECIMAL y llega como string.
+      properties:
+        id_respuesta: { type: integer }
+        resultado_id: { type: integer }
+        pregunta_id: { type: integer }
+        respuesta_estudiante: { type: string, maxLength: 255, nullable: true }
+        es_correcta: { type: boolean, nullable: true }
+        puntaje_obtenido: { type: string, nullable: true }
+    EnvioQuiz:
+      type: object
+      properties:
+        resultado: { $ref: '#/components/schemas/ResultadoQuiz' }
+        respuestas: { type: array, items: { $ref: '#/components/schemas/RespuestaQuiz' } }
+
+    # ---------- Diccionario y WordNet ----------
+    TarjetaDiccionario:
+      allOf:
+        - $ref: '#/components/schemas/Tarjeta'
+        - type: object
+          properties:
+            nombre_lectura: { type: string }
+            autor_lectura: { type: string }
+            semana: { type: integer }
+            curso_id: { type: integer }
+            contexto:
+              type: array
+              items:
+                type: object
+                properties:
+                  id_etiqueta: { type: integer }
+                  tipo: { type: string }
+                  valor: { type: string }
+    RelacionesLexicas:
+      type: object
+      properties:
+        sinonimos: { type: array, items: { type: string } }
+        hiperonimos: { type: array, items: { type: string } }
+        hiponimos: { type: array, items: { type: string } }
+        familia: { type: array, items: { type: string } }
+    FamiliaPalabra:
+      type: object
+      properties:
+        palabra: { type: string }
+        encontrado: { type: boolean }
+        desde_cache: { type: boolean, description: true si la respuesta salió de `wordnet_cache` (CA-4.2.2) }
+        fuente: { type: string }
+        sugerencias:
+          type: object
+          properties:
+            sustantivos: { $ref: '#/components/schemas/RelacionesLexicas' }
+            verbos: { $ref: '#/components/schemas/RelacionesLexicas' }
+            adjetivos: { $ref: '#/components/schemas/RelacionesLexicas' }
+            adverbios: { $ref: '#/components/schemas/RelacionesLexicas' }
+        accion:
+          type: object
+          description: Solo cuando `encontrado` es false (CA-4.2.3).
+          properties:
+            tipo: { type: string, example: registrar_palabra }
+            mensaje: { type: string }
+  responses:
+    BadRequest:
+      description: Petición inválida (campos faltantes, formato o longitud).
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Unauthorized:
+      description: Falta el token, es inválido o expiró.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Forbidden:
+      description: El rol del usuario no permite esta acción.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    NotFound:
+      description: El recurso no existe.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Conflict:
+      description: La petición choca con el estado actual del recurso.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    TooManyRequests:
+      description: Límite de peticiones superado (code RATE_LIMITED). Aplica a /auth y /reports.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    InternalError:
+      description: Error inesperado del servidor (code INTERNAL_ERROR).
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Pdf:
+      description: Archivo PDF (`Content-Disposition attachment`).
+      content:
+        application/pdf:
+          schema: { type: string, format: binary }
