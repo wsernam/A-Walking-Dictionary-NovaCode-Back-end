@@ -32,7 +32,90 @@ tags:
   - { name: enrichment, description: 'Familias de palabras con WordNet (HU-4.2)' }
   - { name: dictionary, description: 'Diccionario global' }
   - { name: reports, description: 'Reportes en PDF (HU-018, HU-019, HU-021)' }
-paths: {}
+paths:
+  # ======================= auth =======================
+  /auth/google:
+    post:
+      tags: [auth]
+      operationId: iniciarSesionGoogle
+      summary: Inicia sesión con Google
+      description: |
+        Público. Verifica el `idToken` de Google Identity Services y, si el correo está registrado
+        y activo, devuelve el JWT de la plataforma (8 h, HS256) con los claims `id_usuario`, `email` y `rol`.
+        Límite de 20 intentos fallidos por IP cada 15 minutos (`RATE_LIMIT_AUTH_MAX`).
+      x-hu: HU-5.4
+      x-ca: [CA-5.4.1]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idToken]
+              properties:
+                idToken: { type: string, description: Credential que entrega Google Identity Services }
+      responses:
+        '200':
+          description: Sesión iniciada.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string, description: JWT de la plataforma }
+                  usuario: { $ref: '#/components/schemas/UsuarioSesion' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: El correo no está registrado (AUTH_USER_NOT_REGISTERED).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /auth/register:
+    post:
+      tags: [auth]
+      operationId: registrarConGoogle
+      summary: Registra un estudiante con Google
+      description: |
+        **Supuesto pendiente de validar (D-11):** el código exige que el correo termine en
+        `@unicauca.edu.co` (`RegistroService.js`); no está confirmado como regla oficial.
+
+        Público. Crea la cuenta con rol `estudiante` a partir del `idToken` de Google y devuelve
+        el mismo token y usuario que el login. No usa contraseña (el registro es solo con Google).
+      x-hu: HU-5.1
+      x-ca: [CA-5.1.1, CA-5.1.2]
+      x-pendiente: 'D-11: dominio @unicauca.edu.co validado en el código, sin confirmar como regla oficial'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idToken]
+              properties:
+                idToken: { type: string }
+      responses:
+        '201':
+          description: Cuenta creada.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensaje: { type: string, example: Usuario registrado correctamente }
+                  token: { type: string }
+                  usuario: { $ref: '#/components/schemas/UsuarioSesion' }
+        '400':
+          description: Falta `idToken` (AUTH_GOOGLE_TOKEN_MISSING) o el correo no es institucional (REGISTER_INVALID_DOMAIN).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: El correo ya tiene cuenta (REGISTER_EMAIL_TAKEN).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
 components:
   securitySchemes:
     bearerAuth:
