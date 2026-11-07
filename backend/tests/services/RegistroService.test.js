@@ -15,7 +15,7 @@ vi.mock('google-auth-library', () => ({
   }),
 }));
 vi.mock('../../src/repositories/UsuarioRepository.js', () => ({
-  UsuarioRepository: { obtenerPorEmail: vi.fn(), crearDesdeGoogle: vi.fn() },
+  UsuarioRepository: { obtenerPorEmail: vi.fn(), crearDesdeGoogleConRolInicial: vi.fn() },
 }));
 
 const SECRETO = 'secreto-de-prueba-con-mas-de-32-caracteres';
@@ -29,9 +29,11 @@ beforeEach(() => {
   vi.stubEnv('GOOGLE_CLIENT_ID', 'cliente-de-prueba.apps.googleusercontent.com');
   googleResponde({ email: 'ana@unicauca.edu.co', name: 'Ana Pérez' });
   UsuarioRepository.obtenerPorEmail.mockResolvedValue(null);
-  UsuarioRepository.crearDesdeGoogle.mockImplementation(async (datos) => ({
+  // Por defecto ya existe un docente, así que el repositorio crea la cuenta como estudiante.
+  UsuarioRepository.crearDesdeGoogleConRolInicial.mockImplementation(async (datos) => ({
     id_usuario: 9,
     activo: true,
+    rol: 'estudiante',
     ...datos,
   }));
 });
@@ -40,10 +42,10 @@ describe('RegistroService.registrarConGoogle — CA-5.1.1 (registro con correo i
   it('CA-5.1.1: crea la cuenta con rol "estudiante" y entrega la sesión', async () => {
     const sesion = await RegistroService.registrarConGoogle('token-google');
 
-    expect(UsuarioRepository.crearDesdeGoogle).toHaveBeenCalledWith({
+    // El servicio no fija el rol: lo decide el repositorio según si ya existe un docente.
+    expect(UsuarioRepository.crearDesdeGoogleConRolInicial).toHaveBeenCalledWith({
       nombre_completo: 'Ana Pérez',
       email: 'ana@unicauca.edu.co',
-      rol: 'estudiante',
     });
     expect(sesion.usuario).toMatchObject({ id_usuario: 9, rol: 'estudiante' });
     expect(jwt.verify(sesion.token, SECRETO).rol).toBe('estudiante');
@@ -57,7 +59,7 @@ describe('RegistroService.registrarConGoogle — CA-5.1.1 (registro con correo i
     googleResponde({ email });
 
     await expect(RegistroService.registrarConGoogle('token-google')).rejects.toMatchObject({ status: 400 });
-    expect(UsuarioRepository.crearDesdeGoogle).not.toHaveBeenCalled();
+    expect(UsuarioRepository.crearDesdeGoogleConRolInicial).not.toHaveBeenCalled();
   });
 
   it('CA-5.1.1: el correo se guarda en minúsculas', async () => {
@@ -65,7 +67,7 @@ describe('RegistroService.registrarConGoogle — CA-5.1.1 (registro con correo i
 
     await RegistroService.registrarConGoogle('token-google');
 
-    expect(UsuarioRepository.crearDesdeGoogle.mock.calls[0][0].email).toBe('ana@unicauca.edu.co');
+    expect(UsuarioRepository.crearDesdeGoogleConRolInicial.mock.calls[0][0].email).toBe('ana@unicauca.edu.co');
   });
 
   it('CA-5.1.1: si Google no envía el nombre se usa la parte del correo antes de la @', async () => {
@@ -73,14 +75,37 @@ describe('RegistroService.registrarConGoogle — CA-5.1.1 (registro con correo i
 
     await RegistroService.registrarConGoogle('token-google');
 
-    expect(UsuarioRepository.crearDesdeGoogle.mock.calls[0][0].nombre_completo).toBe('ana.perez');
+    expect(UsuarioRepository.crearDesdeGoogleConRolInicial.mock.calls[0][0].nombre_completo).toBe('ana.perez');
   });
 
   it('CA-5.1.1: un token de Google inválido no crea ninguna cuenta', async () => {
     verifyIdToken.mockRejectedValue(new Error('Invalid token'));
 
     await expect(RegistroService.registrarConGoogle('token-falso')).rejects.toMatchObject({ status: 401 });
-    expect(UsuarioRepository.crearDesdeGoogle).not.toHaveBeenCalled();
+    expect(UsuarioRepository.crearDesdeGoogleConRolInicial).not.toHaveBeenCalled();
+  });
+});
+
+describe('RegistroService.registrarConGoogle — docente inicial (decisión 2026-11-06, pendiente P2)', () => {
+  it('[PENDIENTE P2] sin ningún docente en la BD, la primera cuenta entra con sesión de docente', async () => {
+    UsuarioRepository.crearDesdeGoogleConRolInicial.mockImplementation(async (datos) => ({
+      id_usuario: 1,
+      activo: true,
+      rol: 'docente',
+      ...datos,
+    }));
+
+    const sesion = await RegistroService.registrarConGoogle('token-google');
+
+    expect(sesion.usuario).toMatchObject({ id_usuario: 1, rol: 'docente' });
+    expect(jwt.verify(sesion.token, SECRETO).rol).toBe('docente');
+  });
+
+  it('[PENDIENTE P2] el docente inicial también debe tener correo institucional', async () => {
+    googleResponde({ email: 'primera.persona@gmail.com' });
+
+    await expect(RegistroService.registrarConGoogle('token-google')).rejects.toMatchObject({ status: 400 });
+    expect(UsuarioRepository.crearDesdeGoogleConRolInicial).not.toHaveBeenCalled();
   });
 });
 
@@ -89,17 +114,17 @@ describe('RegistroService.registrarConGoogle — CA-5.1.2 (correos duplicados)',
     UsuarioRepository.obtenerPorEmail.mockResolvedValue({ id_usuario: 3, email: 'ana@unicauca.edu.co' });
 
     await expect(RegistroService.registrarConGoogle('token-google')).rejects.toMatchObject({ status: 409 });
-    expect(UsuarioRepository.crearDesdeGoogle).not.toHaveBeenCalled();
+    expect(UsuarioRepository.crearDesdeGoogleConRolInicial).not.toHaveBeenCalled();
   });
 
   it('CA-5.1.2: dos registros simultáneos del mismo correo (error 23505) responden 409', async () => {
-    UsuarioRepository.crearDesdeGoogle.mockRejectedValue(Object.assign(new Error('duplicado'), { code: '23505' }));
+    UsuarioRepository.crearDesdeGoogleConRolInicial.mockRejectedValue(Object.assign(new Error('duplicado'), { code: '23505' }));
 
     await expect(RegistroService.registrarConGoogle('token-google')).rejects.toMatchObject({ status: 409 });
   });
 
   it('CA-5.1.2: cualquier otro error de base de datos se propaga sin convertirse en 409', async () => {
-    UsuarioRepository.crearDesdeGoogle.mockRejectedValue(new Error('conexión perdida'));
+    UsuarioRepository.crearDesdeGoogleConRolInicial.mockRejectedValue(new Error('conexión perdida'));
 
     await expect(RegistroService.registrarConGoogle('token-google')).rejects.toThrow('conexión perdida');
   });

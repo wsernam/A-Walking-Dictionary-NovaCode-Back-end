@@ -3,6 +3,29 @@
 ## Fecha
 2026-11-04 (última actualización — ver historial de sesiones más abajo)
 
+## Cambios aplicados en esta sesión (2026-11-06) — Docente inicial en el registro [IA-ASSISTED]
+
+[Asistido por IA: Claude Code (Claude Opus 5.5); validación pendiente de revisión humana.]
+Pedido de William Serna para el lanzamiento con la BD vacía (sin `seed.sql`). **Pendiente de
+aprobación P2 de la líder del sprint (Karen Sandoval)**: cambia la regla de CA-12.1 («siempre
+estudiante»).
+
+- `POST /api/v1/auth/register`: si en `usuario` no existe ningún docente, la cuenta que se registra
+  se crea con rol `docente`; si ya hay uno, con `estudiante` como antes. Mismo endpoint y misma
+  respuesta `{ token, usuario }`; sigue exigiendo correo `@unicauca.edu.co`.
+- Nuevo `UsuarioRepository.crearDesdeGoogleConRolInicial`: la consulta y el INSERT van en una
+  transacción con `pg_advisory_xact_lock`, para que dos registros simultáneos no queden ambos como
+  docente. `RegistroService.registrarConGoogle` lo usa en vez de `crearDesdeGoogle` (que queda sin
+  uso en `src/`). Sin cambios en `init.sql`, migraciones ni variables de entorno.
+- En local nada cambia: `seed.sql` ya crea docentes, así que los registros siguen siendo estudiante.
+- Riesgo aceptado: en un despliegue nuevo, quien se registre primero queda como docente. La docente
+  debe registrarse antes de compartir la URL de la app.
+- Verificación: `tests/services/RegistroService.test.js` (12 pruebas) y prueba manual contra una BD
+  temporal con solo `init.sql`: 5 registros simultáneos → 1 docente y 4 estudiantes.
+- El front (`Registro.jsx`) muestra el error «Self-registration is only available for students» si el
+  registro devuelve un rol distinto de estudiante: hay que ajustarlo para que la docente inicial
+  entre a su panel.
+
 ## Cambios aplicados en esta sesión (2026-11-04) — HU-021: reporte de resultados por quiz en PDF
 
 Pedido del frontend en `docs/contrato-reporte-resultados-quiz.md` (PR #65 del front, ya en develop).
