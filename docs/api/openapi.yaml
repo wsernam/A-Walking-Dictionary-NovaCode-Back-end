@@ -1,0 +1,423 @@
+openapi: 3.0.3
+info:
+  title: A Walking Dictionary API
+  version: 0.1.0
+  description: |
+    API REST del proyecto A Walking Dictionary (curso de Literatura Anglófona, Universidad del Cauca).
+    Todas las rutas cuelgan de `/api/v1`. Las respuestas de error tienen la forma `{ error, code }`:
+    `error` es el mensaje en español y `code` es un código fijo en inglés (ver `docs/codigos-error.md`).
+    Los endpoints marcados con `x-pendiente` documentan lo que hace el código hoy y tienen una
+    discrepancia abierta con el backlog.
+
+    Convenciones de esta especificación:
+    - Solo se documentan las rutas montadas en `backend/src/app.js`.
+    - `x-hu` y `x-ca` enlazan cada operación con su historia de usuario y criterios de aceptación.
+    - Los nombres de los schemas y campos son los del DER (`init.sql`, en singular).
+    - Las columnas `DATE` (por ejemplo `mazo.fecha_apertura`) se serializan como fecha-hora ISO 8601.
+    - Las columnas `DECIMAL` llegan como texto desde PostgreSQL (observación abierta, sin corregir).
+servers:
+  - url: http://localhost:5000/api/v1
+    description: Desarrollo local
+tags:
+  - { name: auth, description: 'Autenticación y registro (HU-5.1, HU-5.4)' }
+  - { name: decks, description: 'Mazos (HU-1.1, HU-1.2, HU-3.3)' }
+  - { name: cards, description: 'Tarjetas y curaduría docente (HU-1.3, HU-2.1, HU-2.2)' }
+  - { name: courses, description: 'Cursos e inscripción (HU-5.3)' }
+  - { name: analytics, description: 'Analítica de participación (HU-2.3)' }
+  - { name: study, description: 'Estudio con repetición espaciada SM-2 (HU-4.1)' }
+  - { name: users, description: 'Perfil académico (HU-5.2)' }
+  - { name: students, description: 'Contexto académico del estudiante' }
+  - { name: aportes, description: 'Aportes y coautorías' }
+  - { name: quizzes, description: 'Quices (HU-3.1, HU-3.2, HU-3.3)' }
+  - { name: enrichment, description: 'Familias de palabras con WordNet (HU-4.2)' }
+  - { name: dictionary, description: 'Diccionario global' }
+  - { name: reports, description: 'Reportes en PDF (HU-018, HU-019, HU-021)' }
+paths: {}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT que emite el backend tras el login con Google (claims id_usuario, email, rol).
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+  schemas:
+    Error:
+      type: object
+      required: [error, code]
+      properties:
+        error: { type: string, description: 'Mensaje legible, en español' }
+        code: { type: string, description: Código fijo en inglés (docs/codigos-error.md), example: INVALID_ID }
+    Eliminado:
+      type: object
+      properties:
+        eliminado: { type: boolean, example: true }
+
+    # ---------- Usuarios y sesión ----------
+    UsuarioSesion:
+      type: object
+      description: Datos del usuario que acompañan al JWT (tabla `usuario`).
+      properties:
+        id_usuario: { type: integer }
+        nombre_completo: { type: string, maxLength: 150 }
+        email: { type: string, format: email, maxLength: 150 }
+        rol: { type: string, maxLength: 30, example: estudiante, description: 'docente | estudiante' }
+    Perfil:
+      type: object
+      description: |
+        Perfil académico (PerfilService.mapearPerfil). No es la fila cruda de `usuario`:
+        usa `estudiante_id` y `correo`, no expone `password_hash`, y los nulos salen como `''` (`intereses` como `[]`).
+      properties:
+        estudiante_id: { type: integer, description: id_usuario }
+        nombre_completo: { type: string }
+        correo: { type: string, format: email }
+        rol: { type: string, example: Estudiante, description: Rol con la primera letra en mayúscula }
+        nivel_ingles: { type: string, enum: [A1, A2, B1, B2, C1, C2, ''] }
+        codigo_estudiantil: { type: string, maxLength: 20 }
+        avatar: { type: string, maxLength: 500, description: URL o ruta de la imagen (no se acepta un data URI) }
+        intereses: { type: array, items: { type: string } }
+    ContextoAcademico:
+      type: object
+      description: Sale de la inscripción más reciente del estudiante. Sin inscripción, los campos vienen en null.
+      properties:
+        id_inscripcion: { type: integer, nullable: true }
+        curso_asignado: { type: string, nullable: true }
+        semestre_activo: { type: string, nullable: true }
+        departamento_universidad:
+          type: string
+          nullable: true
+          description: Siempre null; no tiene fuente en la BD (supuesto pendiente de validar).
+
+    # ---------- Cursos e inscripción ----------
+    Curso:
+      type: object
+      description: Tabla `curso`. `codigo_acceso` solo se incluye cuando quien consulta es docente.
+      properties:
+        id_curso: { type: integer }
+        nombre: { type: string, maxLength: 150 }
+        periodo: { type: string, maxLength: 20 }
+        fecha_inicio: { type: string, format: date-time }
+        fecha_fin: { type: string, format: date-time }
+        docente_id: { type: integer }
+        estado: { type: string, maxLength: 30 }
+        codigo_acceso: { type: string, maxLength: 20, nullable: true }
+    Inscripcion:
+      type: object
+      description: Tabla `inscripcion`.
+      properties:
+        id_inscripcion: { type: integer }
+        curso_id: { type: integer }
+        estudiante_id: { type: integer }
+        fecha_inscripcion: { type: string, format: date-time }
+        estado: { type: string, maxLength: 30, example: activa }
+    EstudianteCurso:
+      type: object
+      properties:
+        id_usuario: { type: integer }
+        nombre_completo: { type: string }
+        nivel_ingles: { type: string, nullable: true }
+        codigo_estudiantil: { type: string, nullable: true }
+        palabras_aportadas: { type: integer }
+
+    # ---------- Mazos, tarjetas y aportes ----------
+    Mazo:
+      type: object
+      description: Tabla `mazo`.
+      properties:
+        id_mazo: { type: integer }
+        curso_id: { type: integer }
+        docente_id: { type: integer }
+        nombre_lectura: { type: string, maxLength: 200 }
+        autor: { type: string, maxLength: 150 }
+        semana: { type: integer }
+        variante_regional_predeterminada: { type: string, maxLength: 100, nullable: true }
+        estado: { type: string, enum: [abierto, cerrado] }
+        fecha_apertura: { type: string, format: date-time }
+        fecha_cierre: { type: string, format: date-time }
+        fecha_creacion: { type: string, format: date-time }
+    Tarjeta:
+      type: object
+      description: Tabla `tarjeta`.
+      properties:
+        id_tarjeta: { type: integer }
+        mazo_id: { type: integer }
+        palabra: { type: string, maxLength: 150 }
+        traduccion: { type: string, maxLength: 255 }
+        definicion: { type: string }
+        ejemplo: { type: string, maxLength: 150, nullable: true }
+        estado: { type: string, example: pendiente_revision, description: 'pendiente_revision | revisado_docente' }
+        fecha_creacion: { type: string, format: date-time }
+        fecha_revision: { type: string, format: date-time, nullable: true }
+    EtiquetaContexto:
+      type: object
+      description: Tabla `etiqueta_contexto`.
+      properties:
+        id_etiqueta: { type: integer }
+        tarjeta_id: { type: integer }
+        tipo: { type: string, enum: [registro, variante_regional] }
+        valor: { type: string, maxLength: 150 }
+        fecha_asignacion: { type: string, format: date-time }
+    TarjetaDetalle:
+      description: Tarjeta con sus etiquetas de contexto (GET /cards/{id}).
+      allOf:
+        - $ref: '#/components/schemas/Tarjeta'
+        - type: object
+          properties:
+            etiquetas_contexto: { type: array, items: { $ref: '#/components/schemas/EtiquetaContexto' } }
+    TarjetaPendiente:
+      description: Tarjeta en revisión con el nombre del estudiante que la creó.
+      allOf:
+        - $ref: '#/components/schemas/Tarjeta'
+        - type: object
+          properties:
+            estudiante: { type: string, description: 'Nombre del autor original, o "Desconocido"' }
+    TarjetaAprobada:
+      description: Tarjeta aprobada con su registro, su variante regional y el autor original.
+      allOf:
+        - $ref: '#/components/schemas/TarjetaPendiente'
+        - type: object
+          properties:
+            registro: { type: string, nullable: true }
+            variante_regional: { type: string, nullable: true }
+    Aporte:
+      type: object
+      description: Tabla `aporte`.
+      properties:
+        id_aporte: { type: integer }
+        tarjeta_id: { type: integer }
+        inscripcion_id: { type: integer }
+        traduccion_aportada: { type: string, maxLength: 255 }
+        definicion_aportada: { type: string }
+        ejemplo_aportado: { type: string, maxLength: 150, nullable: true }
+        tipo_aporte: { type: string, maxLength: 40, enum: [creada, coautoria, acepcion_nueva] }
+        fecha_aporte: { type: string, format: date-time }
+        estado: { type: string, maxLength: 30, example: pendiente_revision }
+    AportePendiente:
+      type: object
+      description: Coautoría o acepción nueva pendiente, con datos de su tarjeta.
+      properties:
+        id_aporte: { type: integer }
+        tarjeta_id: { type: integer }
+        inscripcion_id: { type: integer }
+        traduccion_aportada: { type: string }
+        definicion_aportada: { type: string }
+        ejemplo_aportado: { type: string, nullable: true }
+        tipo_aporte: { type: string, enum: [coautoria, acepcion_nueva] }
+        fecha_aporte: { type: string, format: date-time }
+        estado_aporte: { type: string }
+        palabra_tarjeta: { type: string }
+        traduccion_tarjeta: { type: string }
+        definicion_tarjeta: { type: string }
+        estado_tarjeta: { type: string }
+    ResultadoRegistroTarjeta:
+      type: object
+      properties:
+        resultado: { type: string, enum: [creada, coautoria, acepcion_nueva] }
+        tarjeta: { $ref: '#/components/schemas/Tarjeta' }
+        aporte: { $ref: '#/components/schemas/Aporte' }
+
+    # ---------- Analítica ----------
+    ParticipacionMazo:
+      type: object
+      properties:
+        estudiante_id: { type: integer }
+        nombre_completo: { type: string }
+        palabras_aportadas: { type: integer, description: Aportes tipo creada }
+        coautorias: { type: integer, description: Aportes tipo coautoria o acepcion_nueva }
+        tarjetas_pendientes: { type: integer }
+        tarjetas_aprobadas: { type: integer }
+
+    # ---------- Estudio (SM-2) ----------
+    ProgresoEstudio:
+      type: object
+      description: Tabla `progreso_estudio`. `factor_facilidad` es DECIMAL y llega como texto.
+      properties:
+        id_progreso: { type: integer }
+        inscripcion_id: { type: integer }
+        tarjeta_id: { type: integer }
+        factor_facilidad: { type: string, nullable: true, example: '2.5' }
+        intervalo_dias: { type: integer, nullable: true }
+        repeticiones: { type: integer }
+        ultima_valoracion: { type: string, nullable: true, enum: [Repetir, Difícil, Buena, Fácil, null] }
+        fecha_ultimo_repaso: { type: string, format: date-time, nullable: true }
+        fecha_proximo_repaso: { type: string, format: date-time, nullable: true }
+    TarjetaEstudio:
+      allOf:
+        - $ref: '#/components/schemas/Tarjeta'
+        - type: object
+          properties:
+            progreso:
+              type: object
+              nullable: true
+              description: null si el estudiante nunca ha repasado la tarjeta.
+              allOf:
+                - $ref: '#/components/schemas/ProgresoEstudio'
+    SesionRepaso:
+      type: object
+      properties:
+        inscripcion_id: { type: integer }
+        total_tarjetas: { type: integer }
+        tarjetas:
+          type: array
+          description: Primero las vencidas, luego las nuevas y luego las demás (menor factor de facilidad primero).
+          items: { $ref: '#/components/schemas/TarjetaEstudio' }
+
+    # ---------- Quices ----------
+    Quiz:
+      type: object
+      description: Tabla `quiz` más `estado_efectivo`, calculado según la fecha actual (CA-3.1.3).
+      properties:
+        id_quiz: { type: integer }
+        curso_id: { type: integer }
+        titulo: { type: string, maxLength: 200 }
+        semana_corte: { type: integer }
+        fecha_creacion: { type: string, format: date-time }
+        fecha_apertura: { type: string, format: date-time, nullable: true }
+        fecha_cierre: { type: string, format: date-time, nullable: true }
+        tiempo_limite_min: { type: integer, nullable: true }
+        estado: { type: string, maxLength: 30, example: programado }
+        estado_efectivo: { type: string, enum: [programado, abierto, cerrado] }
+    PreguntaQuiz:
+      type: object
+      description: Tabla `pregunta_quiz` (incluye la respuesta correcta).
+      properties:
+        id_pregunta: { type: integer }
+        quiz_id: { type: integer }
+        tarjeta_id: { type: integer }
+        tipo_pregunta: { type: string, maxLength: 50, example: seleccion_multiple }
+        enunciado: { type: string }
+        opcion_a: { type: string, maxLength: 255, nullable: true }
+        opcion_b: { type: string, maxLength: 255, nullable: true }
+        opcion_c: { type: string, maxLength: 255, nullable: true }
+        opcion_d: { type: string, maxLength: 255, nullable: true }
+        respuesta_correcta: { type: string, maxLength: 255 }
+        orden: { type: integer, nullable: true }
+    PreguntaQuizEstudiante:
+      type: object
+      description: Pregunta sin `respuesta_correcta`, `tarjeta_id` ni `quiz_id`.
+      properties:
+        id_pregunta: { type: integer }
+        tipo_pregunta: { type: string }
+        enunciado: { type: string }
+        opcion_a: { type: string, nullable: true }
+        opcion_b: { type: string, nullable: true }
+        opcion_c: { type: string, nullable: true }
+        opcion_d: { type: string, nullable: true }
+        orden: { type: integer, nullable: true }
+    ResultadoQuiz:
+      type: object
+      description: |
+        Tabla `resultado_quiz`. Los campos DECIMAL (`puntaje_obtenido`, `puntaje_maximo`, `calificacion`)
+        llegan como string desde PostgreSQL (observación abierta, sin corregir). La calificación va de 0 a 5.
+      properties:
+        id_resultado: { type: integer }
+        quiz_id: { type: integer }
+        estudiante_id: { type: integer }
+        fecha_inicio: { type: string, format: date-time, nullable: true }
+        fecha_envio: { type: string, format: date-time, nullable: true }
+        puntaje_obtenido: { type: string, nullable: true, example: '3' }
+        puntaje_maximo: { type: string, nullable: true, example: '5' }
+        calificacion: { type: string, nullable: true, example: '3.0' }
+        tiempo_empleado_seg: { type: integer, nullable: true }
+    ResumenResultado:
+      type: object
+      description: Resumen del resultado en GET /quizzes/mine (DECIMAL como string).
+      properties:
+        id_resultado: { type: integer }
+        puntaje_obtenido: { type: string }
+        puntaje_maximo: { type: string }
+        calificacion: { type: string }
+        fecha_envio: { type: string, format: date-time }
+    RespuestaQuiz:
+      type: object
+      description: Tabla `respuesta_quiz`. `puntaje_obtenido` es DECIMAL y llega como string.
+      properties:
+        id_respuesta: { type: integer }
+        resultado_id: { type: integer }
+        pregunta_id: { type: integer }
+        respuesta_estudiante: { type: string, maxLength: 255, nullable: true }
+        es_correcta: { type: boolean, nullable: true }
+        puntaje_obtenido: { type: string, nullable: true }
+    EnvioQuiz:
+      type: object
+      properties:
+        resultado: { $ref: '#/components/schemas/ResultadoQuiz' }
+        respuestas: { type: array, items: { $ref: '#/components/schemas/RespuestaQuiz' } }
+
+    # ---------- Diccionario y WordNet ----------
+    TarjetaDiccionario:
+      allOf:
+        - $ref: '#/components/schemas/Tarjeta'
+        - type: object
+          properties:
+            nombre_lectura: { type: string }
+            autor_lectura: { type: string }
+            semana: { type: integer }
+            curso_id: { type: integer }
+            contexto:
+              type: array
+              items:
+                type: object
+                properties:
+                  id_etiqueta: { type: integer }
+                  tipo: { type: string }
+                  valor: { type: string }
+    RelacionesLexicas:
+      type: object
+      properties:
+        sinonimos: { type: array, items: { type: string } }
+        hiperonimos: { type: array, items: { type: string } }
+        hiponimos: { type: array, items: { type: string } }
+        familia: { type: array, items: { type: string } }
+    FamiliaPalabra:
+      type: object
+      properties:
+        palabra: { type: string }
+        encontrado: { type: boolean }
+        desde_cache: { type: boolean, description: true si la respuesta salió de `wordnet_cache` (CA-4.2.2) }
+        fuente: { type: string }
+        sugerencias:
+          type: object
+          properties:
+            sustantivos: { $ref: '#/components/schemas/RelacionesLexicas' }
+            verbos: { $ref: '#/components/schemas/RelacionesLexicas' }
+            adjetivos: { $ref: '#/components/schemas/RelacionesLexicas' }
+            adverbios: { $ref: '#/components/schemas/RelacionesLexicas' }
+        accion:
+          type: object
+          description: Solo cuando `encontrado` es false (CA-4.2.3).
+          properties:
+            tipo: { type: string, example: registrar_palabra }
+            mensaje: { type: string }
+  responses:
+    BadRequest:
+      description: Petición inválida (campos faltantes, formato o longitud).
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Unauthorized:
+      description: Falta el token, es inválido o expiró.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Forbidden:
+      description: El rol del usuario no permite esta acción.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    NotFound:
+      description: El recurso no existe.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Conflict:
+      description: La petición choca con el estado actual del recurso.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    TooManyRequests:
+      description: Límite de peticiones superado (code RATE_LIMITED). Aplica a /auth y /reports.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    InternalError:
+      description: Error inesperado del servidor (code INTERNAL_ERROR).
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Pdf:
+      description: Archivo PDF (`Content-Disposition attachment`).
+      content:
+        application/pdf:
+          schema: { type: string, format: binary }
