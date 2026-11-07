@@ -116,6 +116,280 @@ paths:
           content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/InternalError' }
+  # ======================= decks =======================
+  /decks:
+    post:
+      tags: [decks]
+      operationId: crearMazo
+      summary: Crea un mazo
+      description: |
+        **Supuesto pendiente de validar (D-09):** el DER exige `curso_id`, `fecha_apertura` y `fecha_cierre`.
+        El controlador valida `nombre_lectura`, `semana`, `autor`, `fecha_apertura` y `fecha_cierre`, pero NO
+        valida `curso_id`: si falta, el INSERT falla y responde 500.
+
+        Solo docente. El `docente_id` sale del token (no del body). El mazo siempre se crea en estado
+        `abierto` (CA-1.1.1); el `estado` y la `fecha_creacion` que vengan en el body se ignoran.
+      x-hu: HU-1.1
+      x-ca: [CA-1.1.1, CA-1.1.2]
+      x-pendiente: 'D-09: curso_id es NOT NULL en el DER pero el controlador no lo valida (500 si falta)'
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre_lectura, semana, autor, fecha_apertura, fecha_cierre]
+              properties:
+                curso_id: { type: integer, description: 'Obligatorio en el DER; el controlador no lo valida (D-09)' }
+                nombre_lectura: { type: string, maxLength: 200 }
+                autor: { type: string, maxLength: 150 }
+                semana: { type: integer }
+                variante_regional_predeterminada: { type: string, maxLength: 100 }
+                fecha_apertura: { type: string, format: date }
+                fecha_cierre: { type: string, format: date }
+      responses:
+        '201':
+          description: Mazo creado en estado abierto.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Mazo' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    get:
+      tags: [decks]
+      operationId: listarMazos
+      summary: Lista los mazos
+      description: |
+        Token opcional. Sin token (Invitado, CA-5.4.3) o con rol docente devuelve todos los mazos;
+        un estudiante con sesión recibe solo los de los cursos donde tiene inscripción activa (CA-1.2.1).
+      x-hu: HU-1.2
+      x-ca: [CA-1.2.1, CA-5.4.3]
+      security: [{}, { bearerAuth: [] }]
+      responses:
+        '200':
+          description: Lista de mazos.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Mazo' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /decks/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [decks]
+      operationId: obtenerMazo
+      summary: Obtiene un mazo
+      description: |
+        **Supuesto pendiente de validar:** este endpoint es público en el código actual (no pide token).
+
+        Endpoint de apoyo para el frontend.
+      x-hu: HU-1.1
+      x-pendiente: 'Endpoint público: el código no pide token'
+      security: []
+      responses:
+        '200':
+          description: El mazo.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Mazo' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    put:
+      tags: [decks]
+      operationId: actualizarMazo
+      summary: Edita un mazo
+      description: |
+        Solo la docente dueña del mazo (403 DECK_NOT_OWNER si no). Los campos que no vengan conservan su valor.
+        Solo se pueden cambiar `nombre_lectura`, `autor`, `semana`, `variante_regional_predeterminada`,
+        `fecha_apertura` y `fecha_cierre`; el estado se cambia con PATCH /decks/{id}/estado.
+        Cambiar aquí la variante NO la propaga a las tarjetas (para eso está /default-variant).
+      x-hu: HU-1.1
+      x-ca: [CA-1.1.2]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre_lectura: { type: string, maxLength: 200 }
+                autor: { type: string, maxLength: 150 }
+                semana: { type: integer }
+                variante_regional_predeterminada: { type: string, maxLength: 100 }
+                fecha_apertura: { type: string, format: date }
+                fecha_cierre: { type: string, format: date }
+      responses:
+        '200':
+          description: Mazo actualizado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Mazo' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    delete:
+      tags: [decks]
+      operationId: eliminarMazo
+      summary: Elimina un mazo
+      description: |
+        Solo la docente dueña del mazo. Si el mazo todavía tiene tarjetas asociadas, la foreign key
+        impide borrarlo y responde 500.
+      x-hu: HU-1.1
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Mazo eliminado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Eliminado' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /decks/{id}/estado:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    patch:
+      tags: [decks]
+      operationId: cambiarEstadoMazo
+      summary: Abre o cierra un mazo
+      description: |
+        Solo la docente dueña del mazo. Un mazo `cerrado` no acepta nuevos aportes (CA-1.1.3;
+        la verificación está en POST /decks/{id}/cards).
+      x-hu: HU-1.1
+      x-ca: [CA-1.1.3]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [estado]
+              properties:
+                estado: { type: string, enum: [abierto, cerrado] }
+      responses:
+        '200':
+          description: Mazo con el estado nuevo.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Mazo' } } }
+        '400':
+          description: Id inválido, falta `estado` o no es válido (INVALID_STATUS_VALUE).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /decks/{id}/default-variant:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    patch:
+      tags: [decks]
+      operationId: asignarVarianteMazo
+      summary: Asigna la variante regional a todo el mazo
+      description: |
+        **Supuesto pendiente de validar:** CLAUDE.md dice que el body usa `variante_dialectal`,
+        pero el código lee `variante_regional`. Aquí se documenta el del código.
+
+        Solo la docente dueña del mazo. Guarda la variante como predeterminada del mazo y la propaga a
+        todas sus tarjetas, sobrescribiendo la etiqueta `variante_regional` de cada una (CA-2.2.2).
+      x-hu: HU-2.2
+      x-ca: [CA-2.2.2]
+      x-pendiente: 'CLAUDE.md dice variante_dialectal; el código lee variante_regional'
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [variante_regional]
+              properties:
+                variante_regional:
+                  type: string
+                  description: Sin distinguir mayúsculas.
+                  enum: [británico, nigeriano, jamaicano, inglés ghanés, estadounidense]
+      responses:
+        '200':
+          description: Mazo actualizado y cantidad de tarjetas modificadas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mazo: { $ref: '#/components/schemas/Mazo' }
+                  tarjetas_actualizadas: { type: integer }
+        '400':
+          description: Id inválido, falta `variante_regional` o no es válida (CONTEXT_INVALID_VARIANT).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /decks/{id}/cards:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    post:
+      tags: [decks]
+      operationId: registrarTarjeta
+      summary: Registra una palabra en el mazo
+      description: |
+        **Supuesto pendiente de validar (D-08):** el índice único `tarjeta (mazo_id, palabra)` impide guardar
+        una acepción como tarjeta nueva. El código, si la palabra ya existe en el mazo, NO crea tarjeta:
+        registra un `aporte` sobre la existente con `tipo_aporte` `coautoria` (misma definición y ejemplo,
+        CA-1.3.1) o `acepcion_nueva` (CA-1.3.2). La comparación de la palabra ignora mayúsculas (CA-1.3.3).
+
+        Requiere sesión (cualquier rol). El usuario del token debe tener inscripción activa en el curso del
+        mazo (403 DECK_NOT_ENROLLED) y el mazo debe estar `abierto` (409 DECK_CLOSED, CA-1.2.3). La tarjeta
+        nueva queda en `pendiente_revision` con un aporte tipo `creada` (CA-1.2.1).
+      x-hu: HU-1.2
+      x-ca: [CA-1.2.1, CA-1.2.2, CA-1.2.3, CA-1.3.1, CA-1.3.2, CA-1.3.3, CA-1.3.4]
+      x-pendiente: 'D-08: las acepciones se guardan como aporte (coautoria / acepcion_nueva), no como tarjeta'
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [palabra, traduccion, definicion]
+              properties:
+                palabra: { type: string, maxLength: 150 }
+                traduccion: { type: string, maxLength: 255 }
+                definicion: { type: string }
+                ejemplo: { type: string, maxLength: 150 }
+      responses:
+        '201':
+          description: Tarjeta creada, o aporte agregado a una tarjeta existente.
+          content: { application/json: { schema: { $ref: '#/components/schemas/ResultadoRegistroTarjeta' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: El mazo está cerrado (DECK_CLOSED).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /decks/{id}/export-pdf:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [decks]
+      operationId: exportarMazoPdf
+      summary: Exporta el mazo a PDF
+      description: |
+        Solo docente (decisión D-07). PDF listo para imprimir con las tarjetas `revisado_docente` del mazo:
+        términos, traducciones, definiciones y contexto.
+      x-hu: HU-3.3
+      x-ca: [CA-3.3.1, CA-3.3.3]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Pdf' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
 components:
   securitySchemes:
     bearerAuth:
