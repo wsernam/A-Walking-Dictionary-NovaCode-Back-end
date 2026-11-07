@@ -1,5 +1,14 @@
+/**
+ * @file Controlador REST del reporte de progreso individual en PDF (HU-018). Delega en
+ * ReporteProgresoPDFService.
+ */
+
 import { ReporteProgresoPDFService } from '../services/ReporteProgresoPDFService.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const ReporteProgresoController = {
   /**
    * HU-018: GET /api/v1/reports/students/:id/progress/export-pdf

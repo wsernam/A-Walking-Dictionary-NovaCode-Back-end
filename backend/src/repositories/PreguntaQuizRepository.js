@@ -1,6 +1,5 @@
 /**
- * @file PreguntaQuizRepository.js
- * @brief Repositorio de PreguntaQuiz: acceso a datos para la tabla "pregunta_quiz" del DER
+ * @file Repositorio de PreguntaQuiz: acceso a datos para la tabla "pregunta_quiz" del DER
  * oficial.
  * @note crear se usa al generar un quiz (HU-3.1), dentro de la transacción de
  * QuizRepository.crearConMazosYPreguntas. listarPorQuiz es la consulta que usan las HU de HE-03
@@ -10,9 +9,13 @@
 import { pool } from '../config/db.js';
 import { PreguntaQuiz } from '../models/PreguntaQuiz.js';
 
+/**
+ * Repositorio: consultas SQL a PostgreSQL.
+ * @namespace
+ */
 export const PreguntaQuizRepository = {
   /**
-   * @brief Inserta una pregunta nueva en la base de datos.
+   * Inserta una pregunta nueva en la base de datos.
    * @param {Object} datos - Campos de "pregunta_quiz" (quiz_id, tarjeta_id, tipo_pregunta,
    * enunciado, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta, orden).
    * @param {import('pg').Pool|import('pg').PoolClient} [db=pool] - Conexión a usar; se pasa un
@@ -43,7 +46,7 @@ export const PreguntaQuizRepository = {
   },
 
   /**
-   * @brief Busca una pregunta por su id_pregunta.
+   * Busca una pregunta por su id_pregunta.
    * @param {number} id_pregunta - Id de la pregunta a buscar.
    * @return {Promise<PreguntaQuiz|null>} La pregunta encontrada, o null si no existe.
    */
@@ -53,7 +56,7 @@ export const PreguntaQuizRepository = {
   },
 
   /**
-   * @brief Lista todas las preguntas existentes, sin filtros.
+   * Lista todas las preguntas existentes, sin filtros.
    * @return {Promise<PreguntaQuiz[]>} Arreglo con todas las preguntas existentes.
    */
   async listar() {
@@ -62,7 +65,7 @@ export const PreguntaQuizRepository = {
   },
 
   /**
-   * @brief Lista las preguntas de un quiz específico, en el orden en que fueron generadas.
+   * Lista las preguntas de un quiz específico, en el orden en que fueron generadas.
    * @param {number} quiz_id - Id del quiz.
    * @return {Promise<PreguntaQuiz[]>} Preguntas del quiz, ordenadas por "orden" ascendente.
    */
@@ -75,7 +78,7 @@ export const PreguntaQuizRepository = {
   },
 
   /**
-   * @brief Reemplaza todos los campos de una pregunta existente (UPDATE completo).
+   * Reemplaza todos los campos de una pregunta existente (UPDATE completo).
    * @param {number} id_pregunta - Id de la pregunta a actualizar.
    * @param {Object} datos - Nuevos valores de todas las columnas de "pregunta_quiz".
    * @return {Promise<PreguntaQuiz|null>} La pregunta actualizada, o null si el id no existe.
@@ -105,7 +108,7 @@ export const PreguntaQuizRepository = {
   },
 
   /**
-   * @brief Elimina una pregunta por su id_pregunta.
+   * Elimina una pregunta por su id_pregunta.
    * @param {number} id_pregunta - Id de la pregunta a eliminar.
    * @return {Promise<boolean>} true si se eliminó una fila, false si el id no existía.
    */

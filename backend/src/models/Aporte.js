@@ -1,16 +1,14 @@
 /**
- * @file Aporte.js
- * @brief Modelo de dominio: representa la tabla "aporte" del DER oficial.
+ * @file Modelo de dominio: representa la tabla "aporte" del DER oficial.
  */
 
 /**
- * @class Aporte
- * @brief Representa el registro de un estudiante proponiendo o coautorando una palabra.
+ * Representa el registro de un estudiante proponiendo o coautorando una palabra.
  * Cada tarjeta puede tener varios aportes (creación original, coautorías, acepciones nuevas).
  */
 export class Aporte {
   /**
-   * @brief Construye un Aporte a partir de una fila de la base de datos (o de un payload equivalente).
+   * Construye un Aporte a partir de una fila de la base de datos (o de un payload equivalente).
    * @param {number} config.id_aporte - Id autoincremental (pk).
    * @param {number} config.tarjeta_id - Id de la tarjeta sobre la que se hace el aporte
    * (fk -> tarjeta.id_tarjeta).

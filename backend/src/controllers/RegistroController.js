@@ -1,14 +1,17 @@
 /**
- * @file RegistroController.js
- * @brief Controlador REST para el registro autónomo mediante Google OAuth (HU-5.1).
+ * @file Controlador REST para el registro autónomo mediante Google OAuth (HU-5.1).
  */
 
 import { RegistroService } from '../services/RegistroService.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const RegistroController = {
 
   /**
-   * @brief CA-5.1.1: registra un estudiante mediante Google.
+   * CA-5.1.1: registra un estudiante mediante Google.
    *
    * POST /api/v1/auth/register
    *

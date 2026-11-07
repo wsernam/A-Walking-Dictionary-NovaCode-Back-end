@@ -1,6 +1,5 @@
 /**
- * @file validacionMiddleware.js
- * @brief Archivo reservado, sin implementación: ningún archivo lo importa todavía.
+ * @file Archivo reservado, sin implementación: ningún archivo lo importa todavía.
  *
  * Pendiente: validar que el body de cada petición tenga los campos obligatorios definidos por
  * cada Historia de Usuario (ej. palabra/traduccion/definicion en HU-002) y sanitizar el texto de

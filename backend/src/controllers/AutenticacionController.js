@@ -1,14 +1,17 @@
 /**
- * @file AutenticacionController.js
- * @brief Controlador REST de autenticación (HU-5.4): recibe la petición HTTP, llama a
+ * @file Controlador REST de autenticación (HU-5.4): recibe la petición HTTP, llama a
  * AutenticacionService y devuelve la respuesta.
  */
 
 import { AutenticacionService } from '../services/AutenticacionService.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const AutenticacionController = {
   /**
-   * @brief CA-5.4.1: inicia sesión con el token de Google. POST /api/v1/auth/google
+   * CA-5.4.1: inicia sesión con el token de Google. POST /api/v1/auth/google
    *
    * @param {import('express').Request} req - req.body debe traer idToken (el "credential" que
    * entrega Google Identity Services en el frontend).

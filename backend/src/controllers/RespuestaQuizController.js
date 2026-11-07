@@ -1,6 +1,5 @@
 /**
- * @file RespuestaQuizController.js
- * @brief Controlador REST (CRUD genérico) de RespuestaQuiz: recibe la petición HTTP, llama
+ * @file Controlador REST (CRUD genérico) de RespuestaQuiz: recibe la petición HTTP, llama
  * directamente al repositorio (RespuestaQuizRepository) y devuelve la respuesta. Cuando exista
  * lógica de negocio en services/, se insertará entre el controlador y el repositorio sin cambiar
  * esta firma.
@@ -12,7 +11,17 @@
 
 import { RespuestaQuizRepository } from '../repositories/RespuestaQuizRepository.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const RespuestaQuizController = {
+  /**
+   * Crea una respuesta de quiz (CRUD genérico, sin ruta montada).
+   * @param {import('express').Request} req - req.body trae las columnas de "respuesta_quiz".
+   * @param {import('express').Response} res - 201 con la respuesta creada, 400 si
+   * respuesta_estudiante supera 255 caracteres, 500 ante error inesperado.
+   */
   async crear(req, res) {
     try {
       const { respuesta_estudiante } = req.body;
@@ -33,6 +42,12 @@ export const RespuestaQuizController = {
     }
   },
 
+  /**
+   * Consulta una respuesta por su id_respuesta (CRUD genérico, sin ruta montada).
+   * @param {import('express').Request} req - req.params.id es el id_respuesta.
+   * @param {import('express').Response} res - 200 con la respuesta, 400 si el id no es numérico,
+   * 404 si no existe, 500 ante error inesperado.
+   */
   async obtenerPorId(req, res) {
     try {
       const id = Number(req.params.id);
@@ -49,6 +64,11 @@ export const RespuestaQuizController = {
     }
   },
 
+  /**
+   * Lista todas las respuestas de quiz (CRUD genérico, sin ruta montada).
+   * @param {import('express').Request} req - No se usa (sin filtros).
+   * @param {import('express').Response} res - 200 con el arreglo, 500 ante error inesperado.
+   */
   async listar(req, res) {
     try {
       const respuestas = await RespuestaQuizRepository.listar();
@@ -58,6 +78,13 @@ export const RespuestaQuizController = {
     }
   },
 
+  /**
+   * Reemplaza los campos de una respuesta (CRUD genérico, sin ruta montada).
+   * @param {import('express').Request} req - req.params.id es el id_respuesta; req.body trae las
+   * columnas de "respuesta_quiz".
+   * @param {import('express').Response} res - 200 con la respuesta actualizada, 400 si el id no
+   * es numérico, 404 si no existe, 500 ante error inesperado.
+   */
   async actualizar(req, res) {
     try {
       const id = Number(req.params.id);
@@ -74,6 +101,12 @@ export const RespuestaQuizController = {
     }
   },
 
+  /**
+   * Elimina una respuesta por su id_respuesta (CRUD genérico, sin ruta montada).
+   * @param {import('express').Request} req - req.params.id es el id_respuesta.
+   * @param {import('express').Response} res - 200 con { eliminado: true }, 400 si el id no es
+   * numérico, 404 si no existe, 500 ante error inesperado.
+   */
   async eliminar(req, res) {
     try {
       const id = Number(req.params.id);

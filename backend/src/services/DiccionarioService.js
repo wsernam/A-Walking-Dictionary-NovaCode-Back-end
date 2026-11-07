@@ -1,17 +1,20 @@
 
 /**
- * @file DiccionarioService.js
- * @brief Lógica de negocio del Diccionario Global.
+ * @file Lógica de negocio del Diccionario Global.
  *
  * HU-016 / HU-1.4
  */
 
 import { DiccionarioRepository } from '../repositories/DiccionarioRepository.js';
 
+/**
+ * Servicio: lógica de negocio que usan los controladores.
+ * @namespace
+ */
 export const DiccionarioService = {
 
   /**
-   * @brief Consulta el vocabulario aprobado.
+   * Consulta el vocabulario aprobado.
    *
    * CA-1.4.1: Solo tarjetas aprobadas.
    * CA-1.4.2: Búsqueda parcial por palabra.
@@ -28,7 +31,7 @@ export const DiccionarioService = {
   },
 
   /**
-   * @brief Obtiene una tarjeta aprobada por su ID.
+   * Obtiene una tarjeta aprobada por su ID.
    *
    * @param {number} id Identificador de tarjeta.
    * @returns {Promise<Object|null>} Tarjeta o null.

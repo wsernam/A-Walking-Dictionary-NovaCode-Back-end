@@ -1,6 +1,5 @@
 /**
- * @file index.js
- * @brief Agrupa los routers de recursos genéricos (CRUD) que aún no forman parte de ningún flujo
+ * @file Agrupa los routers de recursos genéricos (CRUD) que aún no forman parte de ningún flujo
  * de negocio activo.
  *
  * @note Este archivo NO se importa desde app.js por ahora; queda como referencia para cuando se

@@ -1,17 +1,15 @@
 /**
- * @file WordNetCache.js
- * @brief Modelo de dominio: representa la tabla "wordnet_cache" del DER oficial.
+ * @file Modelo de dominio: representa la tabla "wordnet_cache" del DER oficial.
  */
 
 /**
- * @class WordNetCache
- * @brief Caché de consultas léxicas por palabra y sentido (HU-4.2 / HU-011). Única por
+ * Caché de consultas léxicas por palabra y sentido (HU-4.2 / HU-011). Única por
  * (palabra, sentido) según el DER. La política de qué se guarda y cuándo está explicada en el
  * comentario al final de este archivo.
  */
 export class WordNetCache {
   /**
-   * @brief Construye un WordNetCache a partir de una fila de la base de datos (o de un payload equivalente).
+   * Construye un WordNetCache a partir de una fila de la base de datos (o de un payload equivalente).
    * @param {number} config.id_cache - Id autoincremental (pk).
    * @param {string} config.palabra - Palabra consultada (varchar 150).
    * @param {number} config.sentido - Número de sentido de la palabra (int, default 1).

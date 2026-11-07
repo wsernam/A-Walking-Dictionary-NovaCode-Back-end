@@ -1,16 +1,23 @@
-// Repositorio de reportes del modo de estudio (HU-019): consultas de solo lectura sobre
-// "progreso_estudio", "inscripcion", "curso", "usuario" y "tarjeta" del DER oficial.
-//
-// Filtros de alcance (el servicio decide cuál usar según el rol del JWT):
-//   - docenteId:    solo inscripciones de cursos donde curso.docente_id = docenteId.
-//   - estudianteId: solo inscripciones de ese estudiante (usuario.id_usuario).
-// Con un filtro en null no se aplica esa restricción.
-//
-// Las fechas de progreso_estudio son TIMESTAMP sin zona y se guardan en UTC (ver config/db.js),
-// por eso "ahora" se calcula explícitamente en UTC (S4) y no depende de la zona de la sesión.
+/**
+ * @file Repositorio de reportes del modo de estudio (HU-019): consultas de solo lectura sobre
+ * "progreso_estudio", "inscripcion", "curso", "usuario" y "tarjeta" del DER oficial.
+ *
+ * Filtros de alcance (el servicio decide cuál usar según el rol del JWT):
+ *   - docenteId:    solo inscripciones de cursos donde curso.docente_id = docenteId.
+ *   - estudianteId: solo inscripciones de ese estudiante (usuario.id_usuario).
+ * Con un filtro en null no se aplica esa restricción.
+ *
+ * @note Las fechas de progreso_estudio son TIMESTAMP sin zona y se guardan en UTC (ver
+ * config/db.js), por eso "ahora" se calcula explícitamente en UTC (S4) y no depende de la zona
+ * de la sesión.
+ */
 
 import { pool } from '../config/db.js';
 
+/**
+ * Repositorio: consultas SQL a PostgreSQL.
+ * @namespace
+ */
 export const ReporteEstudioRepository = {
   /**
    * CA-19.1: una fila por inscripción activa con tarjetas repasadas, último repaso,

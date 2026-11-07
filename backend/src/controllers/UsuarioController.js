@@ -1,14 +1,17 @@
 /**
- * @file UsuarioController.js
- * @brief Controlador REST de Usuario: recibe la petición HTTP, llama a PerfilService (HU-5.2) y
+ * @file Controlador REST de Usuario: recibe la petición HTTP, llama a PerfilService (HU-5.2) y
  * devuelve la respuesta.
  */
 
 import { PerfilService } from '../services/PerfilService.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const UsuarioController = {
   /**
-   * @brief HU-5.2: obtiene el perfil académico. GET /api/v1/users/:id
+   * HU-5.2: obtiene el perfil académico. GET /api/v1/users/:id
    *
    * @note Shape acordado con el frontend (estudiante_id, correo, sin password_hash), distinto del
    * obtenerPorId() genérico. Ver PerfilService.js.
@@ -38,7 +41,7 @@ export const UsuarioController = {
   },
 
   /**
-   * @brief CA-5.2.1 + CA-5.2.2: actualiza el perfil académico. PATCH /api/v1/users/profile
+   * CA-5.2.1 + CA-5.2.2: actualiza el perfil académico. PATCH /api/v1/users/profile
    *
    * @note estudiante_id viaja en el body (no en la URL) porque esta rama todavía no tiene auth
    * real -- mismo patrón que ya usan mazos/tarjetas/inscripción (contrato acordado con frontend).
@@ -70,7 +73,7 @@ export const UsuarioController = {
 },
 
   /**
-   * @brief HU-5.2: contexto académico (curso y semestre) de solo lectura.
+   * HU-5.2: contexto académico (curso y semestre) de solo lectura.
    * GET /api/v1/students/:id/context
    *
    * @param {import('express').Request} req - req.params.id es el id_usuario del estudiante.

@@ -1,6 +1,5 @@
 /**
- * @file ReporteEstudioPDFService.js
- * @brief HU-019: genera el PDF del reporte del modo de estudio (CA-19.1 y CA-19.2).
+ * @file HU-019: genera el PDF del reporte del modo de estudio (CA-19.1 y CA-19.2).
  *
  * Endpoint relacionado: GET /api/v1/reports/study-mode/export-pdf (parámetro opcional student_id).
  * Reutiliza el maquetado de ExportarPDFService (mismos márgenes, colores, encabezado y pie).
@@ -25,7 +24,7 @@ import { ReporteEstudioService } from './ReporteEstudioService.js';
 import { limpiar, recortar, formatearFecha } from '../utils/formatoPdf.js';
 
 const ALTO_FILA = 16;
-/** @brief Posición horizontal de cada columna de la tabla de palabras difíciles. */
+/** Posición horizontal de cada columna de la tabla de palabras difíciles. */
 const COLUMNAS = {
   palabra: MARGEN + 8,
   factor: MARGEN + 200,
@@ -35,7 +34,7 @@ const COLUMNAS = {
 const ANCHO_PALABRA = 180;
 
 /**
- * @brief Dibuja (o solo mide) el bloque de un estudiante: datos, resumen de repaso,
+ * Dibuja (o solo mide) el bloque de un estudiante: datos, resumen de repaso,
  * distribución de valoraciones y tabla de palabras de mayor dificultad. Medir primero permite
  * no partir un bloque entre dos páginas.
  * @param {import('pdf-lib').PDFPage|null} p - Página donde dibujar; null para solo medir.
@@ -135,9 +134,13 @@ function bloqueEstudiante(p, yTop, e, fuentes) {
   return yTop - b;
 }
 
+/**
+ * Servicio: lógica de negocio que usan los controladores.
+ * @namespace
+ */
 export const ReporteEstudioPDFService = {
   /**
-   * @brief CA-19.1, CA-19.2 y CA-19.3: genera el PDF del reporte del modo de estudio.
+   * CA-19.1, CA-19.2 y CA-19.3: genera el PDF del reporte del modo de estudio.
    * @param {{ id_usuario: number, rol: string }} usuario - Payload del JWT (req.usuario).
    * @param {string|number|undefined} studentId - Valor opcional de ?student_id.
    * @return {Promise<Uint8Array>} Bytes del PDF generado.

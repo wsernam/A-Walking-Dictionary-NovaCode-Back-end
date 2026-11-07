@@ -1,6 +1,5 @@
 /**
- * @file EnriquecimientoLexicoService.js
- * @brief Archivo reservado, sin implementación: ningún archivo lo importa.
+ * @file Archivo reservado, sin implementación: ningún archivo lo importa.
  *
  * Pendiente (según su diseño original): integración con node-wordnet, consulta de
  * sinónimos/hiperónimos/hipónimos con caché y respaldo con Free Dictionary API bajo

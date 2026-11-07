@@ -1,16 +1,14 @@
 /**
- * @file ProgresoEstudio.js
- * @brief Modelo de dominio: representa la tabla "progreso_estudio" del DER oficial.
+ * @file Modelo de dominio: representa la tabla "progreso_estudio" del DER oficial.
  */
 
 /**
- * @class ProgresoEstudio
- * @brief Estado SM-2 de una tarjeta para un estudiante (HU-4.1). Único por
+ * Estado SM-2 de una tarjeta para un estudiante (HU-4.1). Único por
  * (inscripcion_id, tarjeta_id) según el DER.
  */
 export class ProgresoEstudio {
   /**
-   * @brief Construye un ProgresoEstudio a partir de una fila de la base de datos (o de un payload equivalente).
+   * Construye un ProgresoEstudio a partir de una fila de la base de datos (o de un payload equivalente).
    * @param {number} config.id_progreso - Id autoincremental (pk).
    * @param {number} config.inscripcion_id - Id de la inscripción (fk -> inscripcion.id_inscripcion).
    * @param {number} config.tarjeta_id - Id de la tarjeta (fk -> tarjeta.id_tarjeta).

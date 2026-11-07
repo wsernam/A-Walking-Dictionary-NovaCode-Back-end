@@ -1,16 +1,14 @@
 /**
- * @file Tarjeta.js
- * @brief Modelo de dominio: representa la tabla "tarjeta" del DER oficial.
+ * @file Modelo de dominio: representa la tabla "tarjeta" del DER oficial.
  */
 
 /**
- * @class Tarjeta
- * @brief Representa una palabra de vocabulario registrada en un mazo. Única por
+ * Representa una palabra de vocabulario registrada en un mazo. Única por
  * (mazo_id, palabra) según el índice único del DER.
  */
 export class Tarjeta {
   /**
-   * @brief Construye una Tarjeta a partir de una fila de la base de datos (o de un payload equivalente).
+   * Construye una Tarjeta a partir de una fila de la base de datos (o de un payload equivalente).
    * @param {number} config.id_tarjeta - Id autoincremental (pk).
    * @param {number} config.mazo_id - Id del mazo al que pertenece (fk -> mazo.id_mazo).
    * @param {string} config.palabra - La palabra en inglés (varchar 150), guardada ya

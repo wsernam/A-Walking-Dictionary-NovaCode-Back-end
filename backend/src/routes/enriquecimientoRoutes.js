@@ -1,6 +1,5 @@
 /**
- * @file enriquecimientoRoutes.js
- * @brief Rutas REST para las sugerencias léxicas mediante WordNet.
+ * @file Rutas REST para las sugerencias léxicas mediante WordNet.
  *
  * HU-011: Sugerencias léxicas (WordNet)
  *

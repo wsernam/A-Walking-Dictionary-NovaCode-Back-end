@@ -1,6 +1,5 @@
 /**
- * @file respuestaQuizRoutes.js
- * @brief Rutas REST (CRUD genérico) del recurso RespuestaQuiz: POST /, GET /, GET /:id,
+ * @file Rutas REST (CRUD genérico) del recurso RespuestaQuiz: POST /, GET /, GET /:id,
  * PUT /:id, DELETE /:id.
  *
  * @warning Este router NO está montado en app.js (solo lo importa routes/index.js, que tampoco se

@@ -1,6 +1,5 @@
 /**
- * @file CuraduriaService.js
- * @brief HU-2.1: revisión, edición y aprobación de tarjetas por parte de la docente.
+ * @file HU-2.1: revisión, edición y aprobación de tarjetas por parte de la docente.
  *
  * Historia de Usuario: HU-2.1 (HU-004 en la numeración de ramas del equipo)
  * Endpoints relacionados: GET /api/v1/cards/pending, PUT /api/v1/cards/:id,
@@ -16,10 +15,14 @@ import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
 import { EtiquetaContextoRepository } from '../repositories/EtiquetaContextoRepository.js';
 import { AporteRepository } from '../repositories/AporteRepository.js';
 
+/**
+ * Servicio: lógica de negocio que usan los controladores.
+ * @namespace
+ */
 export const CuraduriaService = {
 
   /**
-   * @brief CA-2.1.1: lista las tarjetas en estado "pendiente_revision". Cada tarjeta lleva el
+   * CA-2.1.1: lista las tarjetas en estado "pendiente_revision". Cada tarjeta lleva el
    * nombre del estudiante que la creó ("Desconocido" si no se encuentra), para que la docente
    * vea quién la aportó en "Revisión de palabras".
    * @return {Promise<Object[]>} Tarjetas pendientes, cada una con el campo estudiante.
@@ -37,7 +40,7 @@ export const CuraduriaService = {
   },
 
   /**
-   * @brief Historial de tarjetas aprobadas ("revisado_docente"). Cada una lleva además su
+   * Historial de tarjetas aprobadas ("revisado_docente"). Cada una lleva además su
    * registro, su variante_regional (etiqueta_contexto) y el nombre del estudiante que la creó.
    * Se consulta en lote (3 queries en total) en vez de una por tarjeta.
    * @return {Promise<Object[]>} Tarjetas aprobadas con registro, variante_regional y estudiante.
@@ -63,7 +66,7 @@ export const CuraduriaService = {
   },
 
   /**
-   * @brief CA-2.1.2: aprueba una tarjeta pendiente: pasa a "revisado_docente" con la fecha de
+   * CA-2.1.2: aprueba una tarjeta pendiente: pasa a "revisado_docente" con la fecha de
    * revisión actual, y queda habilitada para quices.
    * @param {number} idTarjeta - Id de la tarjeta.
    * @return {Promise<Object>} La tarjeta actualizada.
@@ -96,7 +99,7 @@ export const CuraduriaService = {
   },
 
   /**
-   * @brief CA-2.1.2: corrige una tarjeta que sigue pendiente de revisión. Los campos que no
+   * CA-2.1.2: corrige una tarjeta que sigue pendiente de revisión. Los campos que no
    * lleguen en "datos" conservan su valor actual; el estado no cambia.
    * @param {number} idTarjeta - Id de la tarjeta.
    * @param {Object} datos - Campos corregidos: palabra, traduccion, definicion, ejemplo.

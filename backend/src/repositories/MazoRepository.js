@@ -1,6 +1,5 @@
 /**
- * @file MazoRepository.js
- * @brief Repositorio de Mazo: acceso a datos para la tabla "mazo" del DER oficial.
+ * @file Repositorio de Mazo: acceso a datos para la tabla "mazo" del DER oficial.
  *
  * @note "docente_id" es redundante con curso.docente_id, pero el equipo confirmó mantenerlo
  * duplicado en "mazo" por conveniencia de consulta. Decisión confirmada, ya no es un pendiente.
@@ -9,9 +8,13 @@
 import { pool } from '../config/db.js';
 import { Mazo } from '../models/Mazo.js';
 
+/**
+ * Repositorio: consultas SQL a PostgreSQL.
+ * @namespace
+ */
 export const MazoRepository = {
   /**
-   * @brief Inserta un mazo nuevo en la base de datos. fecha_creacion la calcula Postgres
+   * Inserta un mazo nuevo en la base de datos. fecha_creacion la calcula Postgres
    * con NOW(), no se recibe por parámetro.
    * @param {Object} datos - Campos de "mazo" (curso_id, docente_id, nombre_lectura, autor,
    * semana, variante_regional_predeterminada, estado, fecha_apertura, fecha_cierre).
@@ -39,7 +42,7 @@ export const MazoRepository = {
   },
 
   /**
-   * @brief Busca un mazo por su id_mazo.
+   * Busca un mazo por su id_mazo.
    * @param {number} id_mazo - Id del mazo a buscar.
    * @return {Promise<Mazo|null>} El mazo encontrado, o null si no existe.
    */
@@ -49,7 +52,7 @@ export const MazoRepository = {
   },
 
   /**
-   * @brief Lista todos los mazos, sin filtros.
+   * Lista todos los mazos, sin filtros.
    * @return {Promise<Mazo[]>} Arreglo con todos los mazos existentes.
    */
   async listar() {
@@ -58,7 +61,7 @@ export const MazoRepository = {
   },
 
   /**
-   * @brief Lista los mazos de los cursos en los que el estudiante tiene inscripción activa
+   * Lista los mazos de los cursos en los que el estudiante tiene inscripción activa
    * (CA-1.2.1: solo aporta el estudiante inscrito).
    * @param {number} estudiante_id - id_usuario del estudiante.
    * @return {Promise<Mazo[]>} Mazos de sus cursos; vacío si no está inscrito en ninguno.
@@ -76,7 +79,7 @@ export const MazoRepository = {
   },
 
   /**
-   * @brief Reemplaza todos los campos de un mazo existente (UPDATE completo).
+   * Reemplaza todos los campos de un mazo existente (UPDATE completo).
    * @param {number} id_mazo - Id del mazo a actualizar.
    * @param {Object} datos - Nuevos valores de todas las columnas de "mazo".
    * @return {Promise<Mazo|null>} El mazo actualizado, o null si el id no existe.
@@ -107,7 +110,7 @@ export const MazoRepository = {
   },
 
   /**
-   * @brief Elimina un mazo por su id_mazo.
+   * Elimina un mazo por su id_mazo.
    * @param {number} id_mazo - Id del mazo a eliminar.
    * @return {Promise<boolean>} true si se eliminó una fila, false si el id no existía.
    * @note Falla (rechaza la promesa) si el mazo todavía tiene tarjetas asociadas, por la
@@ -119,7 +122,7 @@ export const MazoRepository = {
   },
 
   /**
-   * @brief Cambia únicamente variante_regional_predeterminada de un mazo. Usado por
+   * Cambia únicamente variante_regional_predeterminada de un mazo. Usado por
    * MazoController.actualizarVarianteRegional (CA-2.2.2).
    * @param {number} id_mazo - Id del mazo.
    * @param {string} variante_regional_predeterminada - Nuevo valor por defecto.

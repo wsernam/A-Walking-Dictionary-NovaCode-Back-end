@@ -1,6 +1,5 @@
 /**
- * @file reporteRoutes.js
- * @brief Rutas REST de los reportes en PDF (HU-018, HU-019, HU-021), montadas en app.js bajo el
+ * @file Rutas REST de los reportes en PDF (HU-018, HU-019, HU-021), montadas en app.js bajo el
  * prefijo /api/v1/reports. Las tres comparten el límite de peticiones por IP.
  */
 
@@ -26,14 +25,14 @@ const limiteReportes = rateLimit({
 });
 
 /**
- * @brief HU-019: reporte del modo de estudio en PDF. GET /api/v1/reports/study-mode/export-pdf
+ * HU-019: reporte del modo de estudio en PDF. GET /api/v1/reports/study-mode/export-pdf
  * Docente (todos sus estudiantes) y estudiante (solo el propio repaso). No lleva requireRole: la
  * regla de acceso por rol y por student_id está en ReporteEstudioService (CA-19.3).
  */
 router.get('/study-mode/export-pdf', limiteReportes, authenticate, ReporteEstudioController.exportarPdf);
 
 /**
- * @brief HU-018: reporte de progreso individual en PDF.
+ * HU-018: reporte de progreso individual en PDF.
  * GET /api/v1/reports/students/:id/progress/export-pdf
  * La docente descarga el progreso de cualquier estudiante de sus cursos y el estudiante solo el
  * suyo. Igual que HU-019, no lleva requireRole: la regla de acceso (CA-18.3) está en
@@ -42,7 +41,7 @@ router.get('/study-mode/export-pdf', limiteReportes, authenticate, ReporteEstudi
 router.get('/students/:id/progress/export-pdf', limiteReportes, authenticate, ReporteProgresoController.exportarPdf);
 
 /**
- * @brief HU-021 (CA-21.3): reporte de resultados por quiz en PDF.
+ * HU-021 (CA-21.3): reporte de resultados por quiz en PDF.
  * GET /api/v1/reports/quizzes/:id/results/export-pdf
  * Solo docente. Además, ReporteResultadosQuizService exige que el quiz sea de un curso de la
  * docente que inicia sesión.

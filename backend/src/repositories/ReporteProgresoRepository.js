@@ -1,14 +1,20 @@
-// Repositorio del reporte de progreso individual (HU-018): consultas de solo lectura sobre
-// "usuario", "inscripcion", "curso", "aporte", "tarjeta", "mazo", "resultado_quiz", "quiz" y
-// "progreso_estudio" del DER oficial.
-//
-// Filtros de alcance (el servicio decide cuál usar según el rol del JWT):
-//   - estudianteId: el estudiante del reporte (usuario.id_usuario). Obligatorio.
-//   - docenteId:    solo inscripciones de cursos donde curso.docente_id = docenteId.
-// Con docenteId en null no se aplica esa restricción (estudiante viendo lo suyo).
+/**
+ * @file Repositorio del reporte de progreso individual (HU-018): consultas de solo lectura sobre
+ * "usuario", "inscripcion", "curso", "aporte", "tarjeta", "mazo", "resultado_quiz", "quiz" y
+ * "progreso_estudio" del DER oficial.
+ *
+ * Filtros de alcance (el servicio decide cuál usar según el rol del JWT):
+ *   - estudianteId: el estudiante del reporte (usuario.id_usuario). Obligatorio.
+ *   - docenteId:    solo inscripciones de cursos donde curso.docente_id = docenteId.
+ * Con docenteId en null no se aplica esa restricción (estudiante viendo lo suyo).
+ */
 
 import { pool } from '../config/db.js';
 
+/**
+ * Repositorio: consultas SQL a PostgreSQL.
+ * @namespace
+ */
 export const ReporteProgresoRepository = {
   /**
    * CA-18.1: datos personales del estudiante (nombre, código, nivel MCER) y los cursos en los que

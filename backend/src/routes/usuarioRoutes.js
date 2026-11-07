@@ -1,6 +1,5 @@
 /**
- * @file usuarioRoutes.js
- * @brief Rutas REST del recurso Usuario (perfil académico, HU-5.2), montadas en app.js bajo el
+ * @file Rutas REST del recurso Usuario (perfil académico, HU-5.2), montadas en app.js bajo el
  * prefijo /api/v1/users.
  *
  * @note "/profile" está declarada ANTES de "/:id" a propósito: Express evalúa las rutas en
@@ -19,13 +18,13 @@ import { authenticate, requireRole } from '../middleware/autenticacionMiddleware
 const router = Router();
 
 /**
- * @brief HU-5.2 / CA-5.2.1: actualiza el perfil académico (nivel MCER, código estudiantil, avatar).
+ * HU-5.2 / CA-5.2.1: actualiza el perfil académico (nivel MCER, código estudiantil, avatar).
  * PATCH /api/v1/users/profile. Solo estudiante.
  */
 router.patch(  '/profile',  authenticate,  requireRole('estudiante'),  UsuarioController.actualizarPerfil);
 
 /**
- * @brief HU-5.2: consulta un perfil. GET /api/v1/users/:id, shape de perfil acordado con el
+ * HU-5.2: consulta un perfil. GET /api/v1/users/:id, shape de perfil acordado con el
  * frontend (ver PerfilService.js). El estudiante solo ve su propio perfil; la docente ve
  * cualquiera (control en el controlador).
  */

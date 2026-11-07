@@ -1,16 +1,14 @@
 /**
- * @file RespuestaQuiz.js
- * @brief Modelo de dominio: representa la tabla "respuesta_quiz" del DER oficial.
+ * @file Modelo de dominio: representa la tabla "respuesta_quiz" del DER oficial.
  */
 
 /**
- * @class RespuestaQuiz
- * @brief Respuesta de un estudiante a una pregunta de un quiz (HU-3.2). Única por
+ * Respuesta de un estudiante a una pregunta de un quiz (HU-3.2). Única por
  * (resultado_id, pregunta_id) según el DER.
  */
 export class RespuestaQuiz {
   /**
-   * @brief Construye una RespuestaQuiz a partir de una fila de la base de datos (o de un payload equivalente).
+   * Construye una RespuestaQuiz a partir de una fila de la base de datos (o de un payload equivalente).
    * @param {number} config.id_respuesta - Id autoincremental (pk).
    * @param {number} config.resultado_id - Id del resultado (fk -> resultado_quiz.id_resultado).
    * @param {number} config.pregunta_id - Id de la pregunta (fk -> pregunta_quiz.id_pregunta).

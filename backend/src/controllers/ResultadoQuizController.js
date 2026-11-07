@@ -1,6 +1,5 @@
 /**
- * @file ResultadoQuizController.js
- * @brief Controlador REST de ResultadoQuiz. El método `submit` implementa la lógica de negocio
+ * @file Controlador REST de ResultadoQuiz. El método `submit` implementa la lógica de negocio
  * de HE-03 (HU-3.2) delegando en QuizService; el resto (`crear`, `obtenerPorId`, `listar`,
  * `actualizar`, `eliminar`) es CRUD genérico que llama directamente al repositorio
  * (ResultadoQuizRepository), en el mismo patrón que el resto de controladores del proyecto.
@@ -9,9 +8,13 @@
 import { ResultadoQuizRepository } from '../repositories/ResultadoQuizRepository.js';
 import { QuizService } from '../services/QuizService.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const ResultadoQuizController = {
   /**
-   * @brief HU-3.2 (CA-3.2.1, CA-3.2.2, CA-3.2.3): recibe las respuestas de un estudiante para
+   * HU-3.2 (CA-3.2.1, CA-3.2.2, CA-3.2.3): recibe las respuestas de un estudiante para
    * un quiz, calcula la calificación y la registra. POST /api/v1/quizzes/:id/submit
    * @param {import('express').Request} req - req.params.id es el id_quiz; req.usuario (del
    * JWT) identifica al estudiante; req.body: { respuestas: [{pregunta_id,
@@ -46,7 +49,7 @@ export const ResultadoQuizController = {
   },
 
   /**
-   * @brief Crea un resultado_quiz nuevo (CRUD genérico, sin la lógica de negocio de HU-3.2 —
+   * Crea un resultado_quiz nuevo (CRUD genérico, sin la lógica de negocio de HU-3.2 —
    * para eso ver `submit`). POST /api/v1/resultados-quiz
    * @param {import('express').Request} req - req.body con las columnas de "resultado_quiz".
    * @param {import('express').Response} res - 201 con el resultado creado, 500 ante error
@@ -62,7 +65,7 @@ export const ResultadoQuizController = {
   },
 
   /**
-   * @brief Obtiene un resultado_quiz por su id_resultado. GET /api/v1/resultados-quiz/:id
+   * Obtiene un resultado_quiz por su id_resultado. GET /api/v1/resultados-quiz/:id
    * @param {import('express').Request} req - req.params.id es el id_resultado a buscar.
    * @param {import('express').Response} res - 200 con el resultado, 400 si el id no es
    * numérico, 404 si no existe, 500 ante error inesperado.
@@ -84,7 +87,7 @@ export const ResultadoQuizController = {
   },
 
   /**
-   * @brief Lista todos los resultados existentes, sin filtros. GET /api/v1/resultados-quiz
+   * Lista todos los resultados existentes, sin filtros. GET /api/v1/resultados-quiz
    * @param {import('express').Request} req - No se usa (sin filtros ni paginación implementados).
    * @param {import('express').Response} res - 200 con el arreglo de resultados, 500 ante error
    * inesperado.
@@ -99,7 +102,7 @@ export const ResultadoQuizController = {
   },
 
   /**
-   * @brief Reemplaza todos los campos de un resultado existente (UPDATE completo vía PUT).
+   * Reemplaza todos los campos de un resultado existente (UPDATE completo vía PUT).
    * PUT /api/v1/resultados-quiz/:id
    * @param {import('express').Request} req - req.params.id es el id_resultado; req.body trae
    * las columnas nuevas de "resultado_quiz".
@@ -123,7 +126,7 @@ export const ResultadoQuizController = {
   },
 
   /**
-   * @brief Elimina un resultado por su id_resultado. DELETE /api/v1/resultados-quiz/:id
+   * Elimina un resultado por su id_resultado. DELETE /api/v1/resultados-quiz/:id
    * @param {import('express').Request} req - req.params.id es el id_resultado a eliminar.
    * @param {import('express').Response} res - 200 con { eliminado: true }, 400 si el id no es
    * numérico, 404 si no existía, 500 ante error inesperado (ej. si el resultado todavía tiene

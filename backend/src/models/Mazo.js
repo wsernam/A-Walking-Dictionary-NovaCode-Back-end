@@ -1,6 +1,5 @@
 /**
- * @file Mazo.js
- * @brief Modelo de dominio: representa la tabla "mazo" del DER oficial.
+ * @file Modelo de dominio: representa la tabla "mazo" del DER oficial.
  *
  * @note "docente_id" es redundante con curso.docente_id (mazo.curso_id -> curso.docente_id
  * ya da el mismo dato), pero el equipo confirmó mantenerlo duplicado aquí por conveniencia
@@ -8,12 +7,11 @@
  */
 
 /**
- * @class Mazo
- * @brief Representa una fila de la tabla "mazo": una lectura semanal asignada dentro de un curso.
+ * Representa una fila de la tabla "mazo": una lectura semanal asignada dentro de un curso.
  */
 export class Mazo {
   /**
-   * @brief Construye un Mazo a partir de una fila de la base de datos (o de un payload equivalente).
+   * Construye un Mazo a partir de una fila de la base de datos (o de un payload equivalente).
    * @param {number} config.id_mazo - Id autoincremental (pk).
    * @param {number} config.curso_id - Id del curso al que pertenece (fk -> curso.id_curso).
    * @param {number} config.docente_id - Id del docente dueño del mazo (fk -> usuario.id_usuario).

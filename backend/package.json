@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:funcional": "vitest run --config vitest.funcional.config.js",
-    "test:security": "node security-suite/run.mjs"
+    "test:security": "node security-suite/run.mjs",
+    "docs": "jsdoc -c jsdoc.json"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -33,6 +34,7 @@
     "@vitest/coverage-v8": "^4.1.12",
     "@vitest/ui": "^4.1.12",
     "eslint": "^9.9.0",
+    "jsdoc": "^4.0.5",
     "vitest": "^4.1.12"
   }
 }

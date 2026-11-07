@@ -1,15 +1,13 @@
 /**
- * @file Curso.js
- * @brief Modelo de dominio: representa la tabla "curso" del DER oficial.
+ * @file Modelo de dominio: representa la tabla "curso" del DER oficial.
  */
 
 /**
- * @class Curso
- * @brief Representa una fila de la tabla "curso": una asignatura dictada por un docente en un periodo.
+ * Representa una fila de la tabla "curso": una asignatura dictada por un docente en un periodo.
  */
 export class Curso {
   /**
-   * @brief Construye un Curso a partir de una fila de la base de datos (o de un payload equivalente).
+   * Construye un Curso a partir de una fila de la base de datos (o de un payload equivalente).
    * @param {number} config.id_curso - Id autoincremental (pk).
    * @param {string} config.nombre - Nombre del curso (varchar 150).
    * @param {string} config.periodo - Periodo académico, ej. "2026-2" (varchar 20).

@@ -1,8 +1,17 @@
+/**
+ * @file Lógica del registro autónomo con Google OAuth (HU-5.1 / HU-012): valida el token y el
+ * correo institucional, crea la cuenta y emite la sesión.
+ */
+
 import { validarTokenGoogle, emitirSesion } from './AutenticacionService.js';
 import { UsuarioRepository } from '../repositories/UsuarioRepository.js';
 
 const DOMINIO_INSTITUCIONAL = '@unicauca.edu.co';
 
+/**
+ * Servicio: lógica de negocio que usan los controladores.
+ * @namespace
+ */
 export const RegistroService = {
 
   /**

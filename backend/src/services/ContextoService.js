@@ -1,8 +1,10 @@
-// ContextoService.js
-// HU-2.2: asignación de etiquetas de contexto cultural (registro y variante regional) a
-// tarjetas, individualmente (CA-2.2.1) o en bloque por mazo (CA-2.2.2).
-// Endpoints relacionados: PUT /api/v1/cards/:id/context, PATCH /api/v1/decks/:id/default-variant
-// Almacenamiento: tabla etiqueta_contexto
+/**
+ * @file HU-2.2: asignación de etiquetas de contexto cultural (registro y variante regional) a
+ * tarjetas, individualmente (CA-2.2.1) o en bloque por mazo (CA-2.2.2).
+ *
+ * Endpoints relacionados: PUT /api/v1/cards/:id/context, PATCH /api/v1/decks/:id/default-variant
+ * Almacenamiento: tabla etiqueta_contexto
+ */
 
 import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
 import { EtiquetaContextoRepository } from '../repositories/EtiquetaContextoRepository.js';
@@ -31,6 +33,10 @@ function validarVarianteRegional(variante) {
   }
 }
 
+/**
+ * Servicio: lógica de negocio que usan los controladores.
+ * @namespace
+ */
 export const ContextoService = {
   /**
    * CA-2.2.1: Selección de registro y variante regional para UNA tarjeta.

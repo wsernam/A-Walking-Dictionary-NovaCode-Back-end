@@ -1,6 +1,5 @@
 /**
- * @file ReporteResultadosQuizService.js
- * @brief HU-021: reúne los datos del reporte de resultados de un quiz y aplica el control de acceso.
+ * @file HU-021: reúne los datos del reporte de resultados de un quiz y aplica el control de acceso.
  *
  * Endpoint relacionado: GET /api/v1/reports/quizzes/:id/results/export-pdf
  * Supuestos aceptados por el equipo (ver CLAUDE.md, "Decisiones del equipo"):
@@ -16,14 +15,14 @@ import { ReporteResultadosQuizRepository } from '../repositories/ReporteResultad
 import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
 import { errorApi } from '../utils/codigosError.js';
 
-/** @brief Cantidad de preguntas con mayor porcentaje de error que se muestran (S4). */
+/** Cantidad de preguntas con mayor porcentaje de error que se muestran (S4). */
 const PREGUNTAS_CON_MAS_ERROR = 5;
 
-/** @brief Convierte un DECIMAL/INT de pg (string) en número, respetando null. */
+/** Convierte un DECIMAL/INT de pg (string) en número, respetando null. */
 const aNumero = (valor) => (valor === null || valor === undefined ? null : Number(valor));
 
 /**
- * @brief Convierte el parámetro :id en número.
+ * Convierte el parámetro :id en número.
  * @throws {Error} 400 INVALID_ID si no es un entero positivo.
  */
 function leerIdQuiz(valor) {
@@ -34,9 +33,13 @@ function leerIdQuiz(valor) {
   return id;
 }
 
+/**
+ * Servicio: lógica de negocio que usan los controladores.
+ * @namespace
+ */
 export const ReporteResultadosQuizService = {
   /**
-   * @brief CA-21.1, CA-21.2 y CA-21.3: devuelve los datos del reporte de un quiz.
+   * CA-21.1, CA-21.2 y CA-21.3: devuelve los datos del reporte de un quiz.
    * @param {{ id_usuario: number, rol: string }} usuario - Payload del JWT (req.usuario).
    * @param {string|number} idQuiz - Valor de :id.
    * @return {Promise<Object>} { generado_en, quiz, estudiantes, estadisticas, preguntas_con_error }.

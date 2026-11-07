@@ -1,6 +1,5 @@
 /**
- * @file TarjetaController.js
- * @brief Controlador REST de Tarjeta: recibe la petición HTTP, aplica las reglas de HU-1.2,
+ * @file Controlador REST de Tarjeta: recibe la petición HTTP, aplica las reglas de HU-1.2,
  * HU-1.3 (mazo abierto, campos obligatorios, deduplicación) y HU-2.1/HU-2.2 (curaduría
  * docente: editar, aprobar, etiquetar contexto), y llama a los repositorios/servicios
  * correspondientes.
@@ -19,9 +18,13 @@ import { CuraduriaService } from '../services/CuraduriaService.js';
 import { ContextoService } from '../services/ContextoService.js';
 import { TarjetaService } from '../services/TarjetaService.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const TarjetaController = {
   /**
-   * @brief Registra una palabra nueva propuesta por un estudiante (HU-1.2) y aplica la
+   * Registra una palabra nueva propuesta por un estudiante (HU-1.2) y aplica la
    * detección de duplicados (HU-1.3).
    *
    * Según el resultado, crea una tarjeta nueva, o solo un aporte adicional (coautoría o
@@ -176,7 +179,7 @@ export const TarjetaController = {
   },
 
   /**
-   * @brief Revisa si una palabra ya existe en un mazo, SIN crear ni modificar nada.
+   * Revisa si una palabra ya existe en un mazo, SIN crear ni modificar nada.
    *
    * Es la verificación previa que el frontend llama antes de que el estudiante confirme el
    * formulario, para mostrarle el aviso de coautoría/acepción nueva (CA-1.3.4). La creación
@@ -220,7 +223,7 @@ export const TarjetaController = {
   },
 
   /**
-   * @brief Obtiene una tarjeta por su id_tarjeta, incluyendo sus etiquetas de contexto
+   * Obtiene una tarjeta por su id_tarjeta, incluyendo sus etiquetas de contexto
    * (CA-2.2.3: visualización de contexto por estudiante/docente).
    * @param {import('express').Request} req - req.params.id es el id_tarjeta a buscar.
    * @param {import('express').Response} res - 200 con la tarjeta + etiquetas_contexto, 400 si
@@ -243,7 +246,7 @@ export const TarjetaController = {
   },
 
   /**
-   * @brief Lista todas las tarjetas existentes, sin filtros.
+   * Lista todas las tarjetas existentes, sin filtros.
    * @param {import('express').Request} req - No se usa (sin filtros ni paginación implementados).
    * @param {import('express').Response} res - 200 con el arreglo de tarjetas, 500 ante error inesperado.
    */
@@ -257,7 +260,7 @@ export const TarjetaController = {
   },
 
   /**
-   * @brief Actualiza todos los campos de una tarjeta existente (reemplazo completo vía PUT).
+   * Actualiza todos los campos de una tarjeta existente (reemplazo completo vía PUT).
    * No aplica ninguna regla de HU-1.2/HU-1.3/HU-2.1 — es la edición genérica sin restricciones
    * de estado. Para el flujo de curaduría docente (edición solo si "pendiente_revision"), ver
    * editarRevision().
@@ -283,7 +286,7 @@ export const TarjetaController = {
   },
 
   /**
-   * @brief CA-2.1.2 (paso "editar, corregir"): edita una tarjeta en revisión individual.
+   * CA-2.1.2 (paso "editar, corregir"): edita una tarjeta en revisión individual.
    * A diferencia de actualizar(), exige que la tarjeta esté en estado 'pendiente_revision'
    * (vía CuraduriaService.editarTarjeta) — no se puede editar una tarjeta ya aprobada o
    * rechazada por esta vía.
@@ -308,7 +311,7 @@ export const TarjetaController = {
   },
 
   /**
-   * @brief CA-2.1.2 (paso "aprobar"): aprueba una tarjeta en revisión individual.
+   * CA-2.1.2 (paso "aprobar"): aprueba una tarjeta en revisión individual.
    * Cambia tarjeta.estado de 'pendiente_revision' a 'revisado_docente' y registra
    * fecha_revision, vía CuraduriaService.aprobarTarjeta (que valida que esté pendiente).
    *
@@ -334,7 +337,7 @@ export const TarjetaController = {
   },
 
   /**
-   * @brief CA-2.1.1: lista las tarjetas en estado 'pendiente_revision' para el panel de
+   * CA-2.1.1: lista las tarjetas en estado 'pendiente_revision' para el panel de
    * curaduría de la docente.
    * @param {import('express').Request} req - No usa parámetros.
    * @param {import('express').Response} res - 200 con el arreglo de tarjetas pendientes, 500
@@ -350,7 +353,7 @@ export const TarjetaController = {
   },
 
   /**
-   * @brief Lista las tarjetas en estado 'revisado_docente' (pestaña "Historial Aprobadas" del
+   * Lista las tarjetas en estado 'revisado_docente' (pestaña "Historial Aprobadas" del
    * panel de curaduría). No corresponde a un CA explícito del backlog de HE-02 -- HU-2.1/
    * CA-2.1.1 solo pide el filtrado de 'pendiente_revision' -- se agrega por pedido directo
    * del equipo para destrabar esa pestaña del frontend, documentado en CLAUDE.md.
@@ -368,7 +371,7 @@ export const TarjetaController = {
   },
 
   /**
-   * @brief CA-2.2.1: asigna registro y/o variante regional a una tarjeta individual.
+   * CA-2.2.1: asigna registro y/o variante regional a una tarjeta individual.
    * @param {import('express').Request} req - req.params.id es el id_tarjeta; req.body puede
    * traer "registro" y/o "variante_regional".
    * @param {import('express').Response} res - 200 con las etiquetas creadas, 400 si no viene
@@ -388,7 +391,7 @@ export const TarjetaController = {
   },
 
   /**
-   * @brief Elimina una tarjeta por su id_tarjeta.
+   * Elimina una tarjeta por su id_tarjeta.
    * @param {import('express').Request} req - req.params.id es el id_tarjeta a eliminar.
    * @param {import('express').Response} res - 200 con { eliminado: true }, 400 si el id no es
    * numérico, 404 si no existía, 500 ante error inesperado.

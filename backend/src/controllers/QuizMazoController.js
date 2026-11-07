@@ -1,6 +1,5 @@
 /**
- * @file QuizMazoController.js
- * @brief Controlador REST (CRUD genérico) de QuizMazo: recibe la petición HTTP, llama
+ * @file Controlador REST (CRUD genérico) de QuizMazo: recibe la petición HTTP, llama
  * directamente al repositorio (QuizMazoRepository) y devuelve la respuesta. Cuando exista lógica
  * de negocio en services/, se insertará entre el controlador y el repositorio sin cambiar esta
  * firma.
@@ -17,10 +16,14 @@
 
 import { QuizMazoRepository } from '../repositories/QuizMazoRepository.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const QuizMazoController = {
 
   /**
-   * @brief Crea la relación entre un quiz y un mazo. No valida campos propios: ambos son int.
+   * Crea la relación entre un quiz y un mazo. No valida campos propios: ambos son int.
    * @param {import('express').Request} req - req.body: quiz_id y mazo_id.
    * @param {import('express').Response} res - 201 con la relación, 500 ante error inesperado.
    */
@@ -34,7 +37,7 @@ export const QuizMazoController = {
   },
 
   /**
-   * @brief Consulta una relación por su pk compuesta.
+   * Consulta una relación por su pk compuesta.
    * @param {import('express').Request} req - req.params.quizId y req.params.mazoId.
    * @param {import('express').Response} res - 200 con la relación, 400 si alguno no es numérico, 404 si no existe, 500 ante error inesperado.
    */
@@ -56,7 +59,7 @@ export const QuizMazoController = {
   },
 
   /**
-   * @brief Lista todas las relaciones quiz-mazo.
+   * Lista todas las relaciones quiz-mazo.
    * @param {import('express').Request} req - Sin parámetros.
    * @param {import('express').Response} res - 200 con el listado, 500 ante error inesperado.
    */
@@ -70,7 +73,7 @@ export const QuizMazoController = {
   },
 
   /**
-   * @brief Actualiza una relación identificada por su pk compuesta.
+   * Actualiza una relación identificada por su pk compuesta.
    * @param {import('express').Request} req - req.params.quizId y req.params.mazoId; req.body trae las columnas.
    * @param {import('express').Response} res - 200 con la relación actualizada, 400 si alguno no es numérico, 404 si no existe, 500 ante error inesperado.
    */
@@ -92,7 +95,7 @@ export const QuizMazoController = {
   },
 
   /**
-   * @brief Elimina una relación identificada por su pk compuesta.
+   * Elimina una relación identificada por su pk compuesta.
    * @param {import('express').Request} req - req.params.quizId y req.params.mazoId.
    * @param {import('express').Response} res - 200 con { eliminado: true }, 400 si alguno no es numérico, 404 si no existe, 500 ante error inesperado.
    */

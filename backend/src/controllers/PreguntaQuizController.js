@@ -1,6 +1,5 @@
 /**
- * @file PreguntaQuizController.js
- * @brief Controlador REST (CRUD genérico) de PreguntaQuiz: recibe la petición HTTP, llama
+ * @file Controlador REST (CRUD genérico) de PreguntaQuiz: recibe la petición HTTP, llama
  * directamente al repositorio (PreguntaQuizRepository) y devuelve la respuesta. Cuando exista
  * lógica de negocio en services/, se insertará entre el controlador y el repositorio sin cambiar
  * esta firma.
@@ -12,10 +11,14 @@
 
 import { PreguntaQuizRepository } from '../repositories/PreguntaQuizRepository.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const PreguntaQuizController = {
 
   /**
-   * @brief Crea una pregunta. Exige tipo_pregunta y respuesta_correcta y respeta las longitudes
+   * Crea una pregunta. Exige tipo_pregunta y respuesta_correcta y respeta las longitudes
    * del DER (tipo_pregunta 50; respuesta_correcta y opcion_a..d 255). El enunciado (text) no
    * tiene límite.
    * @param {import('express').Request} req - req.body: columnas de pregunta_quiz.
@@ -81,7 +84,7 @@ export const PreguntaQuizController = {
   },
 
   /**
-   * @brief Consulta una pregunta por su id_pregunta.
+   * Consulta una pregunta por su id_pregunta.
    * @param {import('express').Request} req - req.params.id es el id_pregunta.
    * @param {import('express').Response} res - 200 con la pregunta, 400 si el id no es numérico, 404 si no existe, 500 ante error inesperado.
    */
@@ -102,7 +105,7 @@ export const PreguntaQuizController = {
   },
 
   /**
-   * @brief Lista todas las preguntas.
+   * Lista todas las preguntas.
    * @param {import('express').Request} req - Sin parámetros.
    * @param {import('express').Response} res - 200 con el listado, 500 ante error inesperado.
    */
@@ -116,7 +119,7 @@ export const PreguntaQuizController = {
   },
 
   /**
-   * @brief Actualiza una pregunta.
+   * Actualiza una pregunta.
    * @param {import('express').Request} req - req.params.id es el id_pregunta; req.body trae las columnas.
    * @param {import('express').Response} res - 200 con la pregunta actualizada, 400 si el id no es numérico, 404 si no existe, 500 ante error inesperado.
    */
@@ -137,7 +140,7 @@ export const PreguntaQuizController = {
   },
 
   /**
-   * @brief Elimina una pregunta.
+   * Elimina una pregunta.
    * @param {import('express').Request} req - req.params.id es el id_pregunta.
    * @param {import('express').Response} res - 200 con { eliminado: true }, 400 si el id no es numérico, 404 si no existe, 500 ante error inesperado.
    */

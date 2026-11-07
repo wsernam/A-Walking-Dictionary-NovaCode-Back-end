@@ -1,6 +1,5 @@
 /**
- * @file app.js
- * @brief Configuración de la aplicación Express: middlewares globales y montaje de rutas.
+ * @file Configuración de la aplicación Express: middlewares globales y montaje de rutas.
  *
  * No arranca el servidor HTTP (eso ocurre en server.js). Endpoints expuestos actualmente:
  *
@@ -95,7 +94,7 @@ import reporteRoutes from './routes/reporteRoutes.js';
 import { codigoPorStatus, esCodigoPropio } from './utils/codigosError.js';
 
 
-/** @brief Instancia principal de la aplicación Express. */
+/** Instancia principal de la aplicación Express. */
 const app = express();
 
 // Auditoría OWASP H-07: Render está detrás de un proxy; con esto req.ip es la IP real del cliente.

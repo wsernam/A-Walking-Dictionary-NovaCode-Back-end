@@ -1,6 +1,5 @@
 /**
- * @file AporteController.js
- * @brief Controlador REST de Aporte: recibe la petición HTTP, llama directamente al
+ * @file Controlador REST de Aporte: recibe la petición HTTP, llama directamente al
  * repositorio (AporteRepository) y devuelve la respuesta.
  *
  * @note Las coautorías/acepciones nuevas solo se pueden editar y aprobar (aprobar()); no existe
@@ -10,7 +9,19 @@
 
 import { AporteRepository } from '../repositories/AporteRepository.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const AporteController = {
+  /**
+   * Crea un aporte (CRUD genérico). POST /api/v1/aportes. Cualquier rol con sesión.
+   * Valida los campos obligatorios y las longitudes máximas del DER.
+   * @param {import('express').Request} req - req.body trae traduccion_aportada y tipo_aporte
+   * (obligatorios) y el resto de columnas de "aporte".
+   * @param {import('express').Response} res - 201 con el aporte creado, 400 si falta un campo
+   * obligatorio o alguno supera su longitud, 500 ante error inesperado.
+   */
   async crear(req, res) {
     try {
       const { traduccion_aportada, ejemplo_aportado, tipo_aporte } = req.body;
@@ -56,6 +67,12 @@ export const AporteController = {
     }
   },
 
+  /**
+   * Consulta un aporte por su id_aporte. GET /api/v1/aportes/:id. Cualquier rol con sesión.
+   * @param {import('express').Request} req - req.params.id es el id_aporte.
+   * @param {import('express').Response} res - 200 con el aporte, 400 si el id no es numérico,
+   * 404 si no existe, 500 ante error inesperado.
+   */
   async obtenerPorId(req, res) {
     try {
       const id = Number(req.params.id);
@@ -72,6 +89,11 @@ export const AporteController = {
     }
   },
 
+  /**
+   * Lista todos los aportes. GET /api/v1/aportes. Cualquier rol con sesión.
+   * @param {import('express').Request} req - No se usa (sin filtros).
+   * @param {import('express').Response} res - 200 con el arreglo, 500 ante error inesperado.
+   */
   async listar(req, res) {
     try {
       const aportes = await AporteRepository.listar();
@@ -82,7 +104,7 @@ export const AporteController = {
   },
 
   /**
-   * @brief Lista las coautorías/acepciones nuevas pendientes de revisión docente
+   * Lista las coautorías/acepciones nuevas pendientes de revisión docente
    * (GET /api/v1/aportes/pending). Endpoint adicional, fuera de los CA de HU-1.3.
    * Incluye los aportes pendientes aunque su palabra (tarjeta) ya esté aprobada.
    * @param {import('express').Request} req
@@ -99,7 +121,7 @@ export const AporteController = {
   },
 
   /**
-   * @brief Aprueba una coautoría/acepción nueva, con correcciones opcionales
+   * Aprueba una coautoría/acepción nueva, con correcciones opcionales
    * (PATCH /api/v1/aportes/:id/approve). Endpoint adicional, fuera de los CA de HU-1.3.
    *
    * No aplica a aportes 'creada': esos se aprueban por la revisión individual de la tarjeta
@@ -153,6 +175,13 @@ export const AporteController = {
     }
   },
 
+  /**
+   * Reemplaza los campos de un aporte (CRUD genérico). PUT /api/v1/aportes/:id. Solo docente.
+   * @param {import('express').Request} req - req.params.id es el id_aporte; req.body trae las
+   * columnas de "aporte".
+   * @param {import('express').Response} res - 200 con el aporte actualizado, 400 si el id no es
+   * numérico, 404 si no existe, 500 ante error inesperado.
+   */
   async actualizar(req, res) {
     try {
       const id = Number(req.params.id);
@@ -169,6 +198,12 @@ export const AporteController = {
     }
   },
 
+  /**
+   * Elimina un aporte. DELETE /api/v1/aportes/:id. Solo docente.
+   * @param {import('express').Request} req - req.params.id es el id_aporte.
+   * @param {import('express').Response} res - 200 con { eliminado: true }, 400 si el id no es
+   * numérico, 404 si no existe, 500 ante error inesperado.
+   */
   async eliminar(req, res) {
     try {
       const id = Number(req.params.id);

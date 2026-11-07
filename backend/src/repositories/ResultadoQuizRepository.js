@@ -1,6 +1,5 @@
 /**
- * @file ResultadoQuizRepository.js
- * @brief Repositorio de ResultadoQuiz: acceso a datos para la tabla "resultado_quiz" del DER
+ * @file Repositorio de ResultadoQuiz: acceso a datos para la tabla "resultado_quiz" del DER
  * oficial. (quiz_id, estudiante_id) es único según el DER.
  * @note Usado por QuizService.enviarRespuestas() (HU-3.2) para registrar la calificación de un
  * estudiante y, mediante obtenerPorQuizYEstudiante(), para bloquear reintentos (CA-3.2.3).
@@ -10,9 +9,13 @@ import { pool } from '../config/db.js';
 import { ResultadoQuiz } from '../models/ResultadoQuiz.js';
 import { RespuestaQuizRepository } from './RespuestaQuizRepository.js';
 
+/**
+ * Repositorio: consultas SQL a PostgreSQL.
+ * @namespace
+ */
 export const ResultadoQuizRepository = {
   /**
-   * @brief Inserta un resultado_quiz nuevo en la base de datos.
+   * Inserta un resultado_quiz nuevo en la base de datos.
    * @param {Object} datos - Campos de "resultado_quiz" (quiz_id, estudiante_id, fecha_inicio,
    * fecha_envio, puntaje_obtenido, puntaje_maximo, calificacion, tiempo_empleado_seg).
    * @param {import('pg').Pool|import('pg').PoolClient} [db=pool] - Conexión a usar; se pasa un
@@ -43,7 +46,7 @@ export const ResultadoQuizRepository = {
   },
 
   /**
-   * @brief HU-3.2 (CA-3.2.2): guarda el resultado_quiz de un estudiante junto con sus filas de
+   * HU-3.2 (CA-3.2.2): guarda el resultado_quiz de un estudiante junto con sus filas de
    * respuesta_quiz en una sola transacción. Si cualquier inserción falla, se revierte todo y no
    * queda un resultado sin desglose que bloquee un nuevo envío (CA-3.2.3) sin haberse calificado.
    * @param {Object} datosResultado - Campos de "resultado_quiz" (ver crear).
@@ -75,7 +78,7 @@ export const ResultadoQuizRepository = {
   },
 
   /**
-   * @brief Busca un resultado_quiz por su id_resultado.
+   * Busca un resultado_quiz por su id_resultado.
    * @param {number} id_resultado - Id del resultado a buscar.
    * @return {Promise<ResultadoQuiz|null>} El resultado encontrado, o null si no existe.
    */
@@ -85,7 +88,7 @@ export const ResultadoQuizRepository = {
   },
 
   /**
-   * @brief CA-3.2.3: busca si un estudiante ya envió un quiz específico, para bloquear un
+   * CA-3.2.3: busca si un estudiante ya envió un quiz específico, para bloquear un
    * segundo intento y devolver el resumen del resultado previo en su lugar.
    * @param {number} quiz_id - Id del quiz.
    * @param {number} estudiante_id - Id del estudiante (usuario).
@@ -101,7 +104,7 @@ export const ResultadoQuizRepository = {
   },
 
   /**
-   * @brief Lista todos los resultados existentes, sin filtros.
+   * Lista todos los resultados existentes, sin filtros.
    * @return {Promise<ResultadoQuiz[]>} Arreglo con todos los resultados existentes.
    */
   async listar() {
@@ -110,7 +113,7 @@ export const ResultadoQuizRepository = {
   },
 
   /**
-   * @brief Reemplaza todos los campos de un resultado existente (UPDATE completo).
+   * Reemplaza todos los campos de un resultado existente (UPDATE completo).
    * @param {number} id_resultado - Id del resultado a actualizar.
    * @param {Object} datos - Nuevos valores de todas las columnas de "resultado_quiz".
    * @return {Promise<ResultadoQuiz|null>} El resultado actualizado, o null si el id no existe.
@@ -138,7 +141,7 @@ export const ResultadoQuizRepository = {
   },
 
   /**
-   * @brief Elimina un resultado por su id_resultado.
+   * Elimina un resultado por su id_resultado.
    * @param {number} id_resultado - Id del resultado a eliminar.
    * @return {Promise<boolean>} true si se eliminó una fila, false si el id no existía.
    * @note Falla (rechaza la promesa) si el resultado todavía tiene respuestas asociadas en

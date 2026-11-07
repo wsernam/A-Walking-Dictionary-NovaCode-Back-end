@@ -1,5 +1,14 @@
+/**
+ * @file Repositorio del modo de estudio (HU-4.1): consulta las tarjetas aprobadas disponibles
+ * para repasar según la inscripción del estudiante.
+ */
+
 import { pool } from '../config/db.js';
 
+/**
+ * Repositorio: consultas SQL a PostgreSQL.
+ * @namespace
+ */
 export const EstudioRepository = {
   /**
    * Tarjetas aprobadas de los mazos del curso de la inscripción que ya abrieron.

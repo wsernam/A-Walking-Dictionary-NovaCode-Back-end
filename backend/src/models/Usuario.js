@@ -1,11 +1,9 @@
 /**
- * @file Usuario.js
- * @brief Modelo de dominio: representa la tabla "usuario" del DER oficial.
+ * @file Modelo de dominio: representa la tabla "usuario" del DER oficial.
  */
 
 /**
- * @class Usuario
- * @brief Usuario de la plataforma (rol docente o estudiante).
+ * Usuario de la plataforma (rol docente o estudiante).
  *
  * @note password_hash es opcional en el DER: el login actual es con Google (ver
  * docs/CONTRATO_AUTENTICACION_FRONTEND.md).
@@ -14,7 +12,7 @@
  */
 export class Usuario {
   /**
-   * @brief Construye un Usuario a partir de una fila de la base de datos (o de un payload equivalente).
+   * Construye un Usuario a partir de una fila de la base de datos (o de un payload equivalente).
    * @param {number} config.id_usuario - Id autoincremental (pk).
    * @param {string} config.nombre_completo - Nombre completo (varchar 150).
    * @param {string} config.email - Correo electrónico (varchar 150, único).

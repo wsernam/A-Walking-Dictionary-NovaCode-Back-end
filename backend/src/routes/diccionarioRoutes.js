@@ -1,7 +1,6 @@
 
 /**
- * @file diccionarioRoutes.js
- * @brief Rutas REST del Diccionario Global.
+ * @file Rutas REST del Diccionario Global.
  *
  * HU-016 / HU-1.4
  *
@@ -15,7 +14,7 @@ import { DiccionarioController } from '../controllers/DiccionarioController.js';
 const router = Router();
 
 /**
- * @brief Consulta el vocabulario aprobado.
+ * Consulta el vocabulario aprobado.
  *
  * CA-1.4.1: Consulta del vocabulario aprobado.
  * CA-1.4.2: Búsqueda de palabras.
@@ -27,7 +26,7 @@ const router = Router();
 router.get('/', DiccionarioController.listar);
 
 /**
- * @brief Consulta el detalle de una tarjeta aprobada.
+ * Consulta el detalle de una tarjeta aprobada.
  *
  * GET /api/v1/dictionary/:card_id
  */

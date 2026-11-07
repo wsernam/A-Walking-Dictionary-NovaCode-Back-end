@@ -1,6 +1,5 @@
 /**
- * @file PerfilService.js
- * @brief Lógica de negocio de HU-5.2 (configurar perfil académico): valida y persiste nivel MCER,
+ * @file Lógica de negocio de HU-5.2 (configurar perfil académico): valida y persiste nivel MCER,
  * código estudiantil, avatar e intereses, y arma el shape de perfil acordado con el frontend.
  *
  * Endpoints relacionados: PATCH /api/v1/users/profile (CA-5.2.1 + CA-5.2.2),
@@ -17,16 +16,16 @@
 import { UsuarioRepository } from '../repositories/UsuarioRepository.js';
 import { InscripcionRepository } from '../repositories/InscripcionRepository.js';
 
-/** @brief CA-5.2.1: niveles MCER permitidos (A1-C2); selección controlada, no texto libre. */
+/** CA-5.2.1: niveles MCER permitidos (A1-C2); selección controlada, no texto libre. */
 const NIVELES_MCER = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
-/** @brief Longitud máxima de usuario.codigo_estudiantil (VARCHAR(20)). */
+/** Longitud máxima de usuario.codigo_estudiantil (VARCHAR(20)). */
 const MAX_CODIGO_ESTUDIANTIL = 20;
-/** @brief Longitud máxima de usuario.avatar (VARCHAR(500)). */
+/** Longitud máxima de usuario.avatar (VARCHAR(500)). */
 const MAX_AVATAR = 500;
 
 /**
- * @brief Crea un Error de validación con status HTTP 400.
+ * Crea un Error de validación con status HTTP 400.
  * @param {string} mensaje - Mensaje que llegará al cliente.
  * @returns {Error} Error con la propiedad `status = 400`.
  */
@@ -38,7 +37,7 @@ function errorValidacion(mensaje) {
 }
 
 /**
- * @brief Valida que el código estudiantil no supere la longitud de la columna.
+ * Valida que el código estudiantil no supere la longitud de la columna.
  * @param {string} [codigo_estudiantil] - Valor recibido (opcional).
  * @throws {Error} status 400 si supera MAX_CODIGO_ESTUDIANTIL caracteres.
  */
@@ -49,7 +48,7 @@ function validarCodigoEstudiantil(codigo_estudiantil) {
 }
 
 /**
- * @brief Valida el avatar (CA-5.2.1).
+ * Valida el avatar (CA-5.2.1).
  *
  * @note Se guarda como URL/ruta de una imagen fija del front (public/avatars/...), no como
  * archivo: se rechaza un data URI (base64) o cualquier string que no quepa en la columna.
@@ -67,7 +66,7 @@ function validarAvatar(avatar) {
 }
 
 /**
- * @brief Valida los intereses (CA-5.2.2).
+ * Valida los intereses (CA-5.2.2).
  * @param {string[]} [intereses] - Arreglo de strings no vacíos; undefined/null se acepta (no cambia).
  * @throws {Error} status 400 si no es un arreglo o contiene elementos no string o vacíos.
  */
@@ -79,7 +78,7 @@ function validarIntereses(intereses) {
 }
 
 /**
- * @brief Valida el nivel MCER (CA-5.2.1), sin distinguir mayúsculas/minúsculas.
+ * Valida el nivel MCER (CA-5.2.1), sin distinguir mayúsculas/minúsculas.
  * @param {string} [nivel_ingles] - Nivel recibido (opcional).
  * @throws {Error} status 400 si no está en NIVELES_MCER.
  */
@@ -93,7 +92,7 @@ function validarNivelIngles(nivel_ingles) {
 }
 
 /**
- * @brief Pone en mayúscula la primera letra (ej. "estudiante" -> "Estudiante").
+ * Pone en mayúscula la primera letra (ej. "estudiante" -> "Estudiante").
  * @param {string} texto - Texto a capitalizar.
  * @returns {string} Texto capitalizado, o el mismo valor si es falsy.
  */
@@ -102,7 +101,7 @@ function capitalizar(texto) {
 }
 
 /**
- * @brief Convierte un Usuario al shape de perfil acordado con el frontend.
+ * Convierte un Usuario al shape de perfil acordado con el frontend.
  *
  * @note No es el shape crudo del modelo: estudiante_id (no id_usuario), correo (no email); sin
  * password_hash/activo/fecha_registro. El front trata los campos vacíos como '' (su formulario
@@ -126,11 +125,12 @@ function mapearPerfil(usuario) {
 }
 
 /**
- * @brief Servicio de perfil académico (HU-5.2).
+ * Servicio de perfil académico (HU-5.2).
+ * @namespace
  */
 export const PerfilService = {
   /**
-   * @brief Obtiene el perfil de un usuario. GET /api/v1/users/:id
+   * Obtiene el perfil de un usuario. GET /api/v1/users/:id
    * @param {number} estudiante_id - id_usuario.
    * @returns {Promise<object>} Perfil con el shape de mapearPerfil().
    * @throws {Error} status 404 si el usuario no existe.
@@ -147,7 +147,7 @@ export const PerfilService = {
   },
 
   /**
-   * @brief CA-5.2.1 + CA-5.2.2: actualiza el perfil académico. PATCH /api/v1/users/profile
+   * CA-5.2.1 + CA-5.2.2: actualiza el perfil académico. PATCH /api/v1/users/profile
    *
    * Actualización parcial: los campos omitidos (undefined/null) conservan su valor actual.
    *
@@ -185,7 +185,7 @@ export const PerfilService = {
   },
 
   /**
-   * @brief Contexto académico de solo lectura. GET /api/v1/students/:id/context
+   * Contexto académico de solo lectura. GET /api/v1/students/:id/context
    *
    * @note curso_asignado y semestre_activo salen de la inscripción más reciente del estudiante
    * (JOIN con curso). departamento_universidad no tiene fuente en la BD todavía (supuesto

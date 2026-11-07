@@ -1,6 +1,5 @@
 /**
- * @file QuizRepository.js
- * @brief Repositorio de Quiz: acceso a datos para la tabla "quiz" del DER oficial.
+ * @file Repositorio de Quiz: acceso a datos para la tabla "quiz" del DER oficial.
  * @note Solo ejecuta SQL; las reglas de negocio de los quices (HE-03) viven en src/services/.
  * crearConMazosYPreguntas guarda un quiz generado (HU-3.1) junto con sus mazos y preguntas en
  * una sola transacción.
@@ -11,9 +10,13 @@ import { Quiz } from '../models/Quiz.js';
 import { QuizMazoRepository } from './QuizMazoRepository.js';
 import { PreguntaQuizRepository } from './PreguntaQuizRepository.js';
 
+/**
+ * Repositorio: consultas SQL a PostgreSQL.
+ * @namespace
+ */
 export const QuizRepository = {
   /**
-   * @brief Inserta un quiz nuevo en la base de datos.
+   * Inserta un quiz nuevo en la base de datos.
    * @param {Object} datos - Campos de "quiz" (curso_id, titulo, semana_corte, fecha_creacion,
    * fecha_apertura, fecha_cierre, tiempo_limite_min, estado).
    * @param {import('pg').Pool|import('pg').PoolClient} [db=pool] - Conexión a usar; se pasa un
@@ -41,7 +44,7 @@ export const QuizRepository = {
   },
 
   /**
-   * @brief HU-3.1: guarda un quiz generado junto con sus filas de quiz_mazo y pregunta_quiz en
+   * HU-3.1: guarda un quiz generado junto con sus filas de quiz_mazo y pregunta_quiz en
    * una sola transacción. Si cualquier inserción falla, se revierte todo y no queda un quiz a
    * medias (sin mazos o sin preguntas) en la base de datos.
    * @param {Object} datosQuiz - Campos de "quiz" (ver crear).
@@ -74,7 +77,7 @@ export const QuizRepository = {
   },
 
   /**
-   * @brief Busca un quiz por su id_quiz.
+   * Busca un quiz por su id_quiz.
    * @param {number} id_quiz - Id del quiz a buscar.
    * @return {Promise<Quiz|null>} El quiz encontrado, o null si no existe.
    */
@@ -84,7 +87,7 @@ export const QuizRepository = {
   },
 
   /**
-   * @brief Lista todos los quices existentes, sin filtros.
+   * Lista todos los quices existentes, sin filtros.
    * @return {Promise<Quiz[]>} Arreglo con todos los quices existentes.
    */
   async listar() {
@@ -93,7 +96,7 @@ export const QuizRepository = {
   },
 
   /**
-   * @brief HU-3.2: quices de los cursos donde el estudiante tiene inscripción activa, cada uno
+   * HU-3.2: quices de los cursos donde el estudiante tiene inscripción activa, cada uno
    * con el resultado del estudiante si ya lo envió. Orden: fecha_apertura descendente.
    * @param {number} estudiante_id - id_usuario del estudiante.
    * @return {Promise<Array<{quiz:Quiz, resultado:?Object}>>} Cada quiz con `resultado`
@@ -122,7 +125,7 @@ export const QuizRepository = {
   },
 
   /**
-   * @brief Reemplaza todos los campos de un quiz existente (UPDATE completo).
+   * Reemplaza todos los campos de un quiz existente (UPDATE completo).
    * @param {number} id_quiz - Id del quiz a actualizar.
    * @param {Object} datos - Nuevos valores de todas las columnas de "quiz".
    * @return {Promise<Quiz|null>} El quiz actualizado, o null si el id no existe.
@@ -150,7 +153,7 @@ export const QuizRepository = {
   },
 
   /**
-   * @brief Elimina un quiz por su id_quiz.
+   * Elimina un quiz por su id_quiz.
    * @param {number} id_quiz - Id del quiz a eliminar.
    * @return {Promise<boolean>} true si se eliminó una fila, false si el id no existía.
    * @note Falla (rechaza la promesa) si el quiz todavía tiene filas asociadas en quiz_mazo,

@@ -1,14 +1,17 @@
 /**
- * @file AporteRepository.js
- * @brief Repositorio de Aporte: acceso a datos para la tabla "aporte" del DER oficial.
+ * @file Repositorio de Aporte: acceso a datos para la tabla "aporte" del DER oficial.
  */
 
 import { pool } from '../config/db.js';
 import { Aporte } from '../models/Aporte.js';
 
+/**
+ * Repositorio: consultas SQL a PostgreSQL.
+ * @namespace
+ */
 export const AporteRepository = {
   /**
-   * @brief Inserta un aporte nuevo en la base de datos. Se usa tanto para el aporte original
+   * Inserta un aporte nuevo en la base de datos. Se usa tanto para el aporte original
    * (tipo_aporte='creada') como para coautorías/acepciones nuevas sobre una tarjeta existente.
    * @param {Object} datos - Campos de "aporte" (tarjeta_id, inscripcion_id,
    * traduccion_aportada, definicion_aportada, ejemplo_aportado, tipo_aporte, fecha_aporte).
@@ -34,7 +37,7 @@ export const AporteRepository = {
   },
 
   /**
-   * @brief Busca un aporte por su id_aporte.
+   * Busca un aporte por su id_aporte.
    * @param {number} id_aporte - Id del aporte a buscar.
    * @return {Promise<Aporte|null>} El aporte encontrado, o null si no existe.
    */
@@ -44,7 +47,7 @@ export const AporteRepository = {
   },
 
   /**
-   * @brief Lista todos los aportes, sin filtros.
+   * Lista todos los aportes, sin filtros.
    * @return {Promise<Aporte[]>} Arreglo con todos los aportes existentes.
    */
   async listar() {
@@ -53,7 +56,7 @@ export const AporteRepository = {
   },
 
   /**
-   * @brief Lista los aportes de tipo 'coautoria' o 'acepcion_nueva' pendientes de revisión docente.
+   * Lista los aportes de tipo 'coautoria' o 'acepcion_nueva' pendientes de revisión docente.
    *
    * La revisión del aporte es independiente de la tarjeta: la palabra es del estudiante que la
    * creó y lo que llega después son aportes que se revisan por separado. Por eso NO se filtra por
@@ -88,7 +91,7 @@ export const AporteRepository = {
   },
 
   /**
-   * @brief Aprueba un aporte de coautoría/acepción nueva, con correcciones opcionales de la docente.
+   * Aprueba un aporte de coautoría/acepción nueva, con correcciones opcionales de la docente.
    * @note Depende de la columna aporte.estado (supuesto pendiente de validar, no está en el DER).
    * @param {number} id_aporte - Id del aporte a aprobar.
    * @param {Object} [datosEditados] - traduccion_aportada/definicion_aportada/ejemplo_aportado
@@ -117,7 +120,7 @@ export const AporteRepository = {
   },
 
   /**
-   * @brief Obtiene, en una sola consulta, el nombre del estudiante que creó cada tarjeta
+   * Obtiene, en una sola consulta, el nombre del estudiante que creó cada tarjeta
    * (aporte tipo 'creada' -> inscripcion -> usuario).
    * @param {number[]} tarjetaIds - Ids de las tarjetas a consultar.
    * @return {Promise<Map<number, string>>} Mapa tarjeta_id -> nombre_completo del autor.
@@ -137,7 +140,7 @@ export const AporteRepository = {
   },
 
   /**
-   * @brief Reemplaza todos los campos de un aporte existente (UPDATE completo).
+   * Reemplaza todos los campos de un aporte existente (UPDATE completo).
    * @param {number} id_aporte - Id del aporte a actualizar.
    * @param {Object} datos - Nuevos valores de todas las columnas de "aporte".
    * @return {Promise<Aporte|null>} El aporte actualizado, o null si el id no existe.
@@ -164,7 +167,7 @@ export const AporteRepository = {
   },
 
   /**
-   * @brief Elimina un aporte por su id_aporte.
+   * Elimina un aporte por su id_aporte.
    * @param {number} id_aporte - Id del aporte a eliminar.
    * @return {Promise<boolean>} true si se eliminó una fila, false si el id no existía.
    */

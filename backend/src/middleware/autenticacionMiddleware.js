@@ -1,6 +1,5 @@
 /**
- * @file autenticacionMiddleware.js
- * @brief Middlewares de autenticación y control de acceso por rol (HU-5.4).
+ * @file Middlewares de autenticación y control de acceso por rol (HU-5.4).
  *
  * Depende de: la variable de entorno JWT_SECRET (con la que AutenticacionService firma el token).
  * Se aplican por ruta, en los archivos de src/routes/, no de forma global en app.js.
@@ -9,7 +8,7 @@
 import jwt from 'jsonwebtoken';
 
 /**
- * @brief Indica si el interruptor de desarrollo DISABLE_AUTH está activo.
+ * Indica si el interruptor de desarrollo DISABLE_AUTH está activo.
  *
  * Interruptor SOLO para desarrollo/pruebas locales: con DISABLE_AUTH=true en el entorno,
  * authenticate y requireRole dejan pasar todo sin pedir token, simulando un usuario con el rol
@@ -23,7 +22,7 @@ import jwt from 'jsonwebtoken';
 export const authDeshabilitado = () => process.env.DISABLE_AUTH === 'true' && process.env.NODE_ENV !== 'production';
 
 /**
- * @brief CA-5.4.1: verifica el token JWT del header "Authorization: Bearer <token>".
+ * CA-5.4.1: verifica el token JWT del header "Authorization: Bearer <token>".
  *
  * Si es válido, adjunta el payload decodificado ({ id_usuario, email, rol }) en req.usuario para
  * que las rutas y controladores siguientes lo usen, y continúa con next().
@@ -60,7 +59,7 @@ export function authenticate(req, res, next) {
 }
 
 /**
- * @brief Autenticación opcional para rutas públicas de lectura (Invitado, CA-5.4.3).
+ * Autenticación opcional para rutas públicas de lectura (Invitado, CA-5.4.3).
  *
  * Si llega un JWT válido, adjunta req.usuario igual que authenticate, para que la ruta pueda
  * personalizar la respuesta (p. ej. GET /decks filtra por los cursos del estudiante). Si no hay
@@ -83,7 +82,7 @@ export function autenticacionOpcional(req, res, next) {
 }
 
 /**
- * @brief CA-5.4.2: crea un middleware que deniega con 403 si el rol del usuario autenticado no
+ * CA-5.4.2: crea un middleware que deniega con 403 si el rol del usuario autenticado no
  * está entre los permitidos.
  *
  * Debe usarse DESPUÉS de authenticate, porque necesita req.usuario ya poblado.

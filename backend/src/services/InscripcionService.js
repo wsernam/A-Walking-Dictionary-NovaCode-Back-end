@@ -1,3 +1,8 @@
+/**
+ * @file Lógica de inscripción a cursos (HU-5.3): genera el código de acceso del curso, inscribe
+ * al estudiante por código y permite a la docente asignarlo por correo.
+ */
+
 import { randomInt } from 'node:crypto';
 import { CursoRepository } from '../repositories/CursoRepository.js';
 import { UsuarioRepository } from '../repositories/UsuarioRepository.js';
@@ -17,6 +22,10 @@ function generarCodigo() {
   return codigo;
 }
 
+/**
+ * Servicio: lógica de negocio que usan los controladores.
+ * @namespace
+ */
 export const InscripcionService = {
 
   /**

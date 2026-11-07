@@ -1,6 +1,5 @@
 /**
- * @file EnriquecimientoController.js
- * @brief Controlador REST para las sugerencias léxicas mediante WordNet.
+ * @file Controlador REST para las sugerencias léxicas mediante WordNet.
  *
  * HU-011: Sugerencias léxicas (WordNet)
  *
@@ -10,10 +9,14 @@
 
 import { WordnetService } from '../services/WordnetService.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const EnriquecimientoController = {
 
   /**
-   * @brief Obtiene sugerencias léxicas relacionadas con una palabra.
+   * Obtiene sugerencias léxicas relacionadas con una palabra.
    *
    * Consulta WordNet 3.1 mediante el servicio de enriquecimiento.
    * Si la información ya está almacenada en wordnet_cache,

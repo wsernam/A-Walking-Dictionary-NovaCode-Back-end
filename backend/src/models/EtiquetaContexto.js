@@ -1,16 +1,14 @@
 /**
- * @file EtiquetaContexto.js
- * @brief Modelo de dominio: representa la tabla "etiqueta_contexto" del DER oficial.
+ * @file Modelo de dominio: representa la tabla "etiqueta_contexto" del DER oficial.
  */
 
 /**
- * @class EtiquetaContexto
- * @brief Etiqueta de contexto cultural que la docente asigna a una tarjeta (HU-2.2), por ejemplo
+ * Etiqueta de contexto cultural que la docente asigna a una tarjeta (HU-2.2), por ejemplo
  * su registro ("registro") o su variante regional ("variante_regional").
  */
 export class EtiquetaContexto {
   /**
-   * @brief Construye una EtiquetaContexto a partir de una fila de la base de datos (o de un payload equivalente).
+   * Construye una EtiquetaContexto a partir de una fila de la base de datos (o de un payload equivalente).
    * @param {number} config.id_etiqueta - Id autoincremental (pk).
    * @param {number} config.tarjeta_id - Id de la tarjeta etiquetada (fk -> tarjeta.id_tarjeta).
    * @param {string} config.tipo - Tipo de etiqueta (varchar 40, obligatorio).

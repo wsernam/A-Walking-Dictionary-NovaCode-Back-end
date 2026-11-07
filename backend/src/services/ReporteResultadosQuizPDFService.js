@@ -1,6 +1,5 @@
 /**
- * @file ReporteResultadosQuizPDFService.js
- * @brief HU-021: genera el PDF del reporte de resultados de un quiz (CA-21.1 y CA-21.2).
+ * @file HU-021: genera el PDF del reporte de resultados de un quiz (CA-21.1 y CA-21.2).
  *
  * Endpoint relacionado: GET /api/v1/reports/quizzes/:id/results/export-pdf
  * Reutiliza el maquetado de ExportarPDFService (mismos márgenes, colores, encabezado y pie).
@@ -26,7 +25,7 @@ import {
 import { ReporteResultadosQuizService } from './ReporteResultadosQuizService.js';
 
 const ALTO_FILA = 18;
-/** @brief Posición horizontal de cada columna de la tabla de resultados. */
+/** Posición horizontal de cada columna de la tabla de resultados. */
 const COLUMNAS = {
   nombre: MARGEN + 8,
   calificacion: MARGEN + 165,
@@ -35,15 +34,15 @@ const COLUMNAS = {
   enviado: MARGEN + 385,
 };
 const ANCHO_NOMBRE = 150;
-/** @brief Ancho disponible para el enunciado de una pregunta con error. */
+/** Ancho disponible para el enunciado de una pregunta con error. */
 const ANCHO_ENUNCIADO = ANCHO_UTIL - 24;
 
-/** @brief Deja solo caracteres que las fuentes estándar de pdf-lib pueden dibujar (Latin-1). */
+/** Deja solo caracteres que las fuentes estándar de pdf-lib pueden dibujar (Latin-1). */
 function limpiar(texto) {
   return String(texto ?? '').replace(/[^\u0020-\u007E\u00A0-\u00FF]/g, '?');
 }
 
-/** @brief Recorta un texto con "..." para que quepa en un ancho máximo. */
+/** Recorta un texto con "..." para que quepa en un ancho máximo. */
 function recortar(texto, fuente, tamano, ancho) {
   let cadena = limpiar(texto);
   if (fuente.widthOfTextAtSize(cadena, tamano) <= ancho) return cadena;
@@ -53,13 +52,13 @@ function recortar(texto, fuente, tamano, ancho) {
   return `${cadena}...`;
 }
 
-/** @brief Formatea una fecha como AAAA-MM-DD (UTC) o "Sin registro" si no hay valor. */
+/** Formatea una fecha como AAAA-MM-DD (UTC) o "Sin registro" si no hay valor. */
 function formatearFecha(valor) {
   const fecha = valor ? new Date(valor) : null;
   return fecha && !Number.isNaN(fecha.getTime()) ? fecha.toISOString().slice(0, 10) : 'Sin registro';
 }
 
-/** @brief Formatea una fecha como AAAA-MM-DD HH:MM (UTC) o "-" si no hay valor. */
+/** Formatea una fecha como AAAA-MM-DD HH:MM (UTC) o "-" si no hay valor. */
 function formatearFechaHora(valor) {
   const fecha = valor ? new Date(valor) : null;
   return fecha && !Number.isNaN(fecha.getTime())
@@ -67,23 +66,23 @@ function formatearFechaHora(valor) {
     : '-';
 }
 
-/** @brief Tiempo empleado como "12 min 40 s", o "-" si no hay dato. */
+/** Tiempo empleado como "12 min 40 s", o "-" si no hay dato. */
 function formatearTiempo(segundos) {
   if (segundos === null || segundos === undefined) return '-';
   return `${Math.floor(segundos / 60)} min ${segundos % 60} s`;
 }
 
-/** @brief Nota tal cual (S3), con hasta 2 decimales y sin ceros sobrantes (4.5, 3.75). */
+/** Nota tal cual (S3), con hasta 2 decimales y sin ceros sobrantes (4.5, 3.75). */
 function formatearNota(nota) {
   return nota === null || nota === undefined ? '-' : String(Number(nota.toFixed(2)));
 }
 
-/** @brief Porcentaje con 1 decimal y coma, como en el contrato: "66,7 %". */
+/** Porcentaje con 1 decimal y coma, como en el contrato: "66,7 %". */
 function formatearPorcentaje(valor) {
   return `${valor.toFixed(1).replace('.', ',')} %`;
 }
 
-/** @brief Dibuja un recuadro gris con un aviso (sin estudiantes / sin resultados). */
+/** Dibuja un recuadro gris con un aviso (sin estudiantes / sin resultados). */
 function dibujarAviso(m, fuentes, texto) {
   m.asegurarEspacio(40);
   m.pagina.drawRectangle({ x: MARGEN, y: m.y - 30, width: ANCHO_UTIL, height: 30, color: COLORES.fondo });
@@ -93,14 +92,14 @@ function dibujarAviso(m, fuentes, texto) {
   m.bajar(40);
 }
 
-/** @brief Título de sección; deja espacio para que no quede solo al final de una página. */
+/** Título de sección; deja espacio para que no quede solo al final de una página. */
 function dibujarSubtitulo(m, fuentes, texto) {
   m.asegurarEspacio(60);
   m.pagina.drawText(texto, { x: MARGEN, y: m.y - 12, size: 12, font: fuentes.titulo, color: COLORES.azul });
   m.bajar(26);
 }
 
-/** @brief Cabecera azul de la tabla de resultados individuales. */
+/** Cabecera azul de la tabla de resultados individuales. */
 function dibujarCabeceraTabla(m, fuentes) {
   const base = m.y - ALTO_FILA;
   m.pagina.drawRectangle({ x: MARGEN, y: base, width: ANCHO_UTIL, height: ALTO_FILA, color: COLORES.azul });
@@ -116,7 +115,7 @@ function dibujarCabeceraTabla(m, fuentes) {
   m.bajar(ALTO_FILA);
 }
 
-/** @brief Fila de un estudiante (CA-21.1). Repite la cabecera si la fila cae en una página nueva. */
+/** Fila de un estudiante (CA-21.1). Repite la cabecera si la fila cae en una página nueva. */
 function dibujarFila(m, fuentes, e, indice) {
   const paginaAntes = m.pagina;
   m.asegurarEspacio(ALTO_FILA);
@@ -146,7 +145,7 @@ function dibujarFila(m, fuentes, e, indice) {
   m.bajar(ALTO_FILA);
 }
 
-/** @brief Etiquetas con promedio, máxima, mínima y % que presentó (CA-21.2). */
+/** Etiquetas con promedio, máxima, mínima y % que presentó (CA-21.2). */
 function dibujarEstadisticas(m, fuentes, estadisticas) {
   m.asegurarEspacio(40);
   const etiquetas = [
@@ -164,7 +163,7 @@ function dibujarEstadisticas(m, fuentes, estadisticas) {
   m.bajar(34);
 }
 
-/** @brief Lista numerada de las preguntas con mayor porcentaje de error (CA-21.2, S4). */
+/** Lista numerada de las preguntas con mayor porcentaje de error (CA-21.2, S4). */
 function dibujarPreguntasConError(m, fuentes, preguntas) {
   m.asegurarEspacio(50);
   m.pagina.drawText('Preguntas con mayor porcentaje de error', {
@@ -189,9 +188,13 @@ function dibujarPreguntasConError(m, fuentes, preguntas) {
   });
 }
 
+/**
+ * Servicio: lógica de negocio que usan los controladores.
+ * @namespace
+ */
 export const ReporteResultadosQuizPDFService = {
   /**
-   * @brief CA-21.1, CA-21.2 y CA-21.3: genera el PDF de resultados de un quiz.
+   * CA-21.1, CA-21.2 y CA-21.3: genera el PDF de resultados de un quiz.
    * @param {{ id_usuario: number, rol: string }} usuario - Payload del JWT (req.usuario).
    * @param {string|number} idQuiz - Valor de :id.
    * @return {Promise<Uint8Array>} Bytes del PDF generado.

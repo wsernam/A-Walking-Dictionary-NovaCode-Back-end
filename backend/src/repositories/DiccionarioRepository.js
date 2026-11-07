@@ -1,7 +1,6 @@
 
 /**
- * @file DiccionarioRepository.js
- * @brief Acceso a datos del Diccionario Global.
+ * @file Acceso a datos del Diccionario Global.
  *
  * HU-016 / HU-1.4
  *
@@ -10,10 +9,14 @@
 
 import { pool } from '../config/db.js';
 
+/**
+ * Repositorio: consultas SQL a PostgreSQL.
+ * @namespace
+ */
 export const DiccionarioRepository = {
 
   /**
-   * @brief Lista las tarjetas aprobadas.
+   * Lista las tarjetas aprobadas.
    *
    * CA-1.4.1: Solo vocabulario revisado_docente.
    * CA-1.4.2: Búsqueda parcial sin distinguir
@@ -81,7 +84,7 @@ export const DiccionarioRepository = {
   },
 
   /**
-   * @brief Obtiene el detalle de una tarjeta aprobada.
+   * Obtiene el detalle de una tarjeta aprobada.
    *
    * Solo permite consultar tarjetas cuyo estado
    * sea revisado_docente.

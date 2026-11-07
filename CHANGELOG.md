@@ -10,6 +10,7 @@ Notas:
 ## [Sin publicar]
 
 ### Agregado
+- 2026-11-06 · Documentación del código con JSDoc: `npm run docs` genera la página de documentación en `backend/docs-generados/`. Etiquetas Doxygen (`@brief`, `@class`) convertidas a JSDoc, `@namespace` en controladores, servicios y repositorios, y comentarios en los 16 archivos y 38 métodos que faltaban (ahora 107/107 archivos y 242/242 métodos). Convención y estándares en [`docs/DOCUMENTACION_CODIGO.md`](docs/DOCUMENTACION_CODIGO.md).
 - 2026-11-04 · HU-021: `GET /api/v1/reports/quizzes/:id/results/export-pdf`, PDF de resultados por quiz (solo docente). (#44)
 - 2026-11-03 · HU-018: `GET /api/v1/reports/students/:id/progress/export-pdf`, PDF de progreso individual. (#41)
 - 2026-10-30 · HU-019: `GET /api/v1/reports/study-mode/export-pdf`, PDF del modo de estudio. (#37)
@@ -32,6 +33,7 @@ Notas:
 - 2026-10-08 · HU-3.1 alineada con el contrato del front: mínimo 4 traducciones distintas, ventana de apertura-cierre, validación de curso y mazos, título de máximo 200 caracteres.
 
 ### Corregido
+- 2026-11-06 · `TarjetaRepository.js`: dos comentarios estaban sobre la función equivocada (`listarPorEstado` y `actualizarEstado` tenían la descripción de `actualizar` y `eliminar`).
 - 2026-11-01 · Las tarjetas pendientes incluyen el nombre del estudiante. (#39)
 - 2026-10-21 · `WordnetService` responde 400 (en vez de 500) ante una palabra vacía o de más de 150 caracteres. (#32)
 - 2026-10-18 · Zona horaria: los `TIMESTAMP` de la BD se leen y escriben en UTC. (#27, #28)

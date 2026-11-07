@@ -17,7 +17,7 @@ Dónde vive cada cosa:
 | OpenAPI | `docs/api/openapi.yaml` | Pendiente |
 | Arc42 | `docs/arquitectura/arc42/` | Parcial: ver «Contexto y decisiones» (`docs/ai/CONTEXTO_PROYECTO.md`, `docs/ai/DECISIONES.md`) |
 | Documentación de usuario (IEEE 1063 / ISO/IEC/IEEE 26514) | Front-end: `docs/usuario/` | Pendiente |
-| Documentación del código (JSDoc) | Comentarios en `backend/src/` | Parcial: ver pendientes en el plan de documentación |
+| Documentación del código (JSDoc) | Comentarios en `backend/src/`; página con `npm run docs`; convención y estándares en [`DOCUMENTACION_CODIGO.md`](DOCUMENTACION_CODIGO.md) | Completo: 107 archivos y 242 métodos documentados |
 
 ## API y contratos con el front
 

@@ -1,6 +1,5 @@
 /**
- * @file InscripcionController.js
- * @brief Controlador REST de Inscripcion (HU-5.3). Los métodos de inscripción por código,
+ * @file Controlador REST de Inscripcion (HU-5.3). Los métodos de inscripción por código,
  * asignación por correo, código de acceso y listado de estudiantes delegan en InscripcionService
  * o InscripcionRepository y se exponen en cursoRoutes.js (/api/v1/courses/...). Los métodos
  * crear, obtenerPorId, listar, actualizar y eliminar son CRUD genérico sobre
@@ -13,10 +12,14 @@
 import { InscripcionRepository } from '../repositories/InscripcionRepository.js';
 import { InscripcionService } from '../services/InscripcionService.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const InscripcionController = {
 
   /**
-   * @brief Crea una inscripción (CRUD genérico). El único campo validado es estado, obligatorio
+   * Crea una inscripción (CRUD genérico). El único campo validado es estado, obligatorio
    * y de máximo 30 caracteres (varchar 30 del DER).
    * @param {import('express').Request} req - req.body: columnas de inscripcion.
    * @param {import('express').Response} res - 201 con la inscripción, 400 (REQUIRED_FIELDS_MISSING o FIELD_TOO_LONG), 500 ante error inesperado.
@@ -54,7 +57,7 @@ export const InscripcionController = {
   },
 
   /**
-   * @brief Consulta una inscripción por su id_inscripcion (CRUD genérico).
+   * Consulta una inscripción por su id_inscripcion (CRUD genérico).
    * @param {import('express').Request} req - req.params.id es el id_inscripcion.
    * @param {import('express').Response} res - 200 con la inscripción, 400 (INVALID_ID), 404 (ENROLLMENT_NOT_FOUND), 500 ante error inesperado.
    */
@@ -88,7 +91,7 @@ export const InscripcionController = {
   },
 
   /**
-   * @brief Lista todas las inscripciones (CRUD genérico).
+   * Lista todas las inscripciones (CRUD genérico).
    * @param {import('express').Request} req - Sin parámetros.
    * @param {import('express').Response} res - 200 con el listado, 500 ante error inesperado.
    */
@@ -106,7 +109,7 @@ export const InscripcionController = {
   },
 
   /**
-   * @brief Actualiza una inscripción (CRUD genérico).
+   * Actualiza una inscripción (CRUD genérico).
    * @param {import('express').Request} req - req.params.id es el id_inscripcion; req.body trae las columnas.
    * @param {import('express').Response} res - 200 con la inscripción actualizada, 400 (INVALID_ID), 404 (ENROLLMENT_NOT_FOUND), 500 ante error inesperado.
    */
@@ -143,7 +146,7 @@ export const InscripcionController = {
   },
 
   /**
-   * @brief Elimina una inscripción (CRUD genérico).
+   * Elimina una inscripción (CRUD genérico).
    * @param {import('express').Request} req - req.params.id es el id_inscripcion.
    * @param {import('express').Response} res - 200 con { eliminado: true }, 400 (INVALID_ID), 404 (ENROLLMENT_NOT_FOUND), 500 ante error inesperado.
    */
@@ -179,7 +182,7 @@ export const InscripcionController = {
   },
 
   /**
-   * @brief HU-5.3: genera el código de acceso de un curso. POST /api/v1/courses/:id/access-code
+   * HU-5.3: genera el código de acceso de un curso. POST /api/v1/courses/:id/access-code
    * (solo docente, ver cursoRoutes.js). La lógica está en InscripcionService.
    * @param {import('express').Request} req - req.params.id es el id_curso.
    * @param {import('express').Response} res - 200 con el resultado del servicio, 400 (INVALID_ID) o el status y code que lance el servicio.
@@ -210,7 +213,7 @@ export const InscripcionController = {
   },
 
   /**
-   * @brief HU-5.3 (CA-5.3.1): inscribe al estudiante del token en el curso del código. El
+   * HU-5.3 (CA-5.3.1): inscribe al estudiante del token en el curso del código. El
    * estudiante_id sale del JWT (req.usuario.id_usuario), no del body; el código se normaliza con
    * trim y mayúsculas. POST /api/v1/courses/enroll (solo estudiante).
    * @param {import('express').Request} req - req.body.codigo_acceso es el código del curso.
@@ -245,7 +248,7 @@ export const InscripcionController = {
     },
 
   /**
-   * @brief HU-5.3 (CA-5.3.2): inscribe a un estudiante en un curso a partir de su correo.
+   * HU-5.3 (CA-5.3.2): inscribe a un estudiante en un curso a partir de su correo.
    * POST /api/v1/courses/:id/assign (solo docente).
    * @param {import('express').Request} req - req.params.id es el id_curso; req.body.email es el correo del estudiante.
    * @param {import('express').Response} res - 201 con la inscripción, 400 (INVALID_ID o REQUIRED_FIELDS_MISSING) o el status y code que lance el servicio.
@@ -286,7 +289,7 @@ export const InscripcionController = {
   },
 
   /**
-   * @brief HU-5.3: lista los estudiantes inscritos en un curso. GET /api/v1/courses/:id/students
+   * HU-5.3: lista los estudiantes inscritos en un curso. GET /api/v1/courses/:id/students
    * (solo docente).
    * @param {import('express').Request} req - req.params.id es el id_curso.
    * @param {import('express').Response} res - 200 con los estudiantes, 400 (INVALID_ID), 500 ante error inesperado.

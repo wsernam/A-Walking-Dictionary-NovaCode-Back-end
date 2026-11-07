@@ -1,6 +1,5 @@
 /**
- * @file mazoRoutes.js
- * @brief Rutas REST de HE-01 para "decks" (mazos) y "cards" (tarjetas) anidadas bajo un deck.
+ * @file Rutas REST de HE-01 para "decks" (mazos) y "cards" (tarjetas) anidadas bajo un deck.
  *
  * Nombres de URL en inglés por acuerdo con el equipo; los campos del body siguen en español,
  * alineados al DER (mazo_id, palabra, traduccion, definicion, etc.). Montado en app.js bajo
@@ -15,13 +14,13 @@ import { authenticate, autenticacionOpcional, requireRole } from '../middleware/
 const router = Router();
 
 /**
- * @brief HU-1.1: crea un mazo nuevo (CA-1.1.1, CA-1.1.2). POST /api/v1/decks
+ * HU-1.1: crea un mazo nuevo (CA-1.1.1, CA-1.1.2). POST /api/v1/decks
  * Acción exclusiva de docente (HU-1.1: "Como docente del curso..."); CA-5.4.2 exige rol docente.
  */
 router.post('/', authenticate, requireRole('docente'), MazoController.crear);
 
 /**
- * @brief Lista los mazos. GET /api/v1/decks
+ * Lista los mazos. GET /api/v1/decks
  * Usada por la vista "Mazos de estudio" de los tres roles. Token opcional: sin token (Invitado,
  * CA-5.4.3) o como docente devuelve todos; con token de estudiante devuelve solo los de sus
  * cursos con inscripción activa (CA-1.2.1).
@@ -29,20 +28,20 @@ router.post('/', authenticate, requireRole('docente'), MazoController.crear);
 router.get('/', autenticacionOpcional, MazoController.listar);
 
 /**
- * @brief Busca un mazo por su id_mazo. GET /api/v1/decks/:id
+ * Busca un mazo por su id_mazo. GET /api/v1/decks/:id
  * @note Consulta de apoyo. Sin autenticación (CA-5.4.3).
  */
 router.get('/:id', MazoController.obtenerPorId);
 
 /**
- * @brief Edita los datos de un mazo (nombre, autor, semana, fechas, variante). PUT /api/v1/decks/:id
+ * Edita los datos de un mazo (nombre, autor, semana, fechas, variante). PUT /api/v1/decks/:id
  * Acción de docente (CA-5.4.2); además el controlador exige que sea el docente dueño del mazo.
  * No modifica el estado (para eso está PATCH /:id/estado).
  */
 router.put('/:id', authenticate, requireRole('docente'), MazoController.actualizar);
 
 /**
- * @brief CA-1.1.3: cambia el estado del mazo (ej. a "cerrado"). PATCH /api/v1/decks/:id/estado
+ * CA-1.1.3: cambia el estado del mazo (ej. a "cerrado"). PATCH /api/v1/decks/:id/estado
  *
  * Cerrar el mazo inhabilita la recepción de nuevos aportes para ese mazo; esa verificación
  * vive en TarjetaController.crear, no en esta ruta. Acción de docente (CA-5.4.2).
@@ -50,7 +49,7 @@ router.put('/:id', authenticate, requireRole('docente'), MazoController.actualiz
 router.patch('/:id/estado', authenticate, requireRole('docente'), MazoController.actualizarEstado);
 
 /**
- * @brief CA-2.2.2: actualiza la variante regional predeterminada del mazo y la propaga a
+ * CA-2.2.2: actualiza la variante regional predeterminada del mazo y la propaga a
  * todas sus tarjetas. PATCH /api/v1/decks/:id/default-variant. Acción de docente (CA-5.4.2).
  */
 router.patch(
@@ -61,7 +60,7 @@ router.patch(
 );
 
 /**
- * @brief HU-1.2 / HU-1.3: registra una palabra nueva dentro de un mazo específico.
+ * HU-1.2 / HU-1.3: registra una palabra nueva dentro de un mazo específico.
  * POST /api/v1/decks/:id/cards
  *
  * Cubre CA-1.2.1, CA-1.2.2, CA-1.2.3 y la detección de duplicados de HU-1.3
@@ -72,14 +71,14 @@ router.patch(
 router.post('/:id/cards', authenticate, TarjetaController.crear);
 
 /**
- * @brief HU-3.3 (CA-3.3.1, CA-3.3.3): exporta el mazo a PDF. GET /api/v1/decks/:id/export-pdf
+ * HU-3.3 (CA-3.3.1, CA-3.3.3): exporta el mazo a PDF. GET /api/v1/decks/:id/export-pdf
  * @note Solo docente por decisión del equipo (D-07, 2026-10-07), aunque CA-3.3.1 menciona
  * "docente o estudiante"; queda anotado para reconsiderar el acceso del estudiante.
  */
 router.get('/:id/export-pdf', authenticate, requireRole('docente'), MazoController.exportarPdf);
 
 /**
- * @brief Elimina un mazo por su id_mazo. DELETE /api/v1/decks/:id
+ * Elimina un mazo por su id_mazo. DELETE /api/v1/decks/:id
  * @note Acción de docente (antes solo exigía sesión, lo que permitía a un estudiante borrar
  * mazos). Falla con 500 (violación de foreign key) si el mazo todavía tiene tarjetas asociadas.
  */

@@ -1,8 +1,17 @@
+/**
+ * @file Lógica del modo de estudio (HU-4.1): arma la sesión de repaso ordenada con SM-2 y
+ * actualiza el progreso del estudiante con cada valoración.
+ */
+
 import { InscripcionRepository } from '../repositories/InscripcionRepository.js';
 import { EstudioRepository } from '../repositories/EstudioRepository.js';
 import { ProgresoEstudioRepository } from '../repositories/ProgresoEstudioRepository.js';
 import { SM2Service } from './SM2Service.js';
 
+/**
+ * Servicio: lógica de negocio que usan los controladores.
+ * @namespace
+ */
 export const EstudioService = {
   /**
    * Inicia una sesión de repaso para un estudiante.

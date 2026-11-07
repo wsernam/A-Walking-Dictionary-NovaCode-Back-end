@@ -1,6 +1,5 @@
 /**
- * @file QuizController.js
- * @brief Controlador REST de Quiz. Los métodos `generar` y `exportarPdf` implementan la lógica
+ * @file Controlador REST de Quiz. Los métodos `generar` y `exportarPdf` implementan la lógica
  * de negocio de HE-03 (HU-3.1, HU-3.3) delegando en QuizService/ExportarPDFService; el resto
  * (`crear`, `obtenerPorId`, `listar`, `actualizar`, `eliminar`) es CRUD genérico que llama
  * directamente al repositorio (QuizRepository), en el mismo patrón que el resto de
@@ -11,9 +10,13 @@ import { QuizRepository } from '../repositories/QuizRepository.js';
 import { QuizService } from '../services/QuizService.js';
 import { ExportarPDFService } from '../services/ExportarPDFService.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const QuizController = {
   /**
-   * @brief HU-3.1 (CA-3.1.1, CA-3.1.2, CA-3.1.3): genera un quiz acumulativo a partir de las
+   * HU-3.1 (CA-3.1.1, CA-3.1.2, CA-3.1.3): genera un quiz acumulativo a partir de las
    * tarjetas revisado_docente de los mazos elegidos. POST /api/v1/quizzes/generate
    * @param {import('express').Request} req - req.body: { curso_id, titulo, mazo_ids,
    * fecha_apertura, fecha_cierre, tiempo_limite_min, cantidad_preguntas? } (ver
@@ -32,7 +35,7 @@ export const QuizController = {
   },
 
   /**
-   * @brief HU-3.3 (CA-3.3.2): exporta el quiz a PDF con hoja de preguntas y hoja de respuestas
+   * HU-3.3 (CA-3.3.2): exporta el quiz a PDF con hoja de preguntas y hoja de respuestas
    * separada. GET /api/v1/quizzes/:id/export-pdf
    * @param {import('express').Request} req - req.params.id es el id_quiz.
    * @param {import('express').Response} res - 200 con el PDF como `application/pdf`
@@ -58,7 +61,7 @@ export const QuizController = {
   },
 
   /**
-   * @brief Crea un quiz nuevo (CRUD genérico, sin la lógica de negocio de HU-3.1 — para eso
+   * Crea un quiz nuevo (CRUD genérico, sin la lógica de negocio de HU-3.1 — para eso
    * ver `generar`). POST /api/v1/quizzes
    * @param {import('express').Request} req - req.body con las columnas de "quiz"; requiere al
    * menos `titulo` y `estado`.
@@ -105,7 +108,7 @@ export const QuizController = {
   },
 
   /**
-   * @brief Obtiene un quiz por su id_quiz, con `estado_efectivo` calculado (CA-3.1.3).
+   * Obtiene un quiz por su id_quiz, con `estado_efectivo` calculado (CA-3.1.3).
    * GET /api/v1/quizzes/:id
    * @param {import('express').Request} req - req.params.id es el id_quiz a buscar.
    * @param {import('express').Response} res - 200 con el quiz (incluye `estado_efectivo`), 400
@@ -130,7 +133,7 @@ export const QuizController = {
   },
 
   /**
-   * @brief HU-3.2: preguntas de un quiz para que el estudiante lo responda, sin
+   * HU-3.2: preguntas de un quiz para que el estudiante lo responda, sin
    * `respuesta_correcta`. GET /api/v1/quizzes/:id/preguntas (endpoint adicional aprobado por el
    * equipo, ver QuizService.obtenerPreguntasParaEstudiante).
    * @param {import('express').Request} req - req.params.id es el id_quiz; req.usuario (del
@@ -153,7 +156,7 @@ export const QuizController = {
   },
 
   /**
-   * @brief HU-3.2: quices de los cursos del estudiante con su resultado si ya los envió.
+   * HU-3.2: quices de los cursos del estudiante con su resultado si ya los envió.
    * GET /api/v1/quizzes/mine (endpoint adicional, ver QuizService.listarDelEstudiante).
    * @param {import('express').Request} req - req.usuario (del JWT) identifica al estudiante.
    * @param {import('express').Response} res - 200 con el arreglo de quices, 500 ante error
@@ -169,7 +172,7 @@ export const QuizController = {
   },
 
   /**
-   * @brief CA-3.2.3: resultado previo del estudiante, aunque el quiz esté cerrado.
+   * CA-3.2.3: resultado previo del estudiante, aunque el quiz esté cerrado.
    * GET /api/v1/quizzes/:id/result (endpoint adicional, ver
    * QuizService.obtenerResultadoEstudiante).
    * @param {import('express').Request} req - req.params.id es el id_quiz; req.usuario (del
@@ -192,7 +195,7 @@ export const QuizController = {
   },
 
   /**
-   * @brief Lista todos los quices existentes, sin filtros, cada uno con `estado_efectivo`
+   * Lista todos los quices existentes, sin filtros, cada uno con `estado_efectivo`
    * calculado (CA-3.1.3). GET /api/v1/quizzes
    * @param {import('express').Request} req - No se usa (sin filtros ni paginación implementados).
    * @param {import('express').Response} res - 200 con el arreglo de quices, 500 ante error
@@ -208,7 +211,7 @@ export const QuizController = {
   },
 
   /**
-   * @brief Reemplaza todos los campos de un quiz existente (UPDATE completo vía PUT).
+   * Reemplaza todos los campos de un quiz existente (UPDATE completo vía PUT).
    * PUT /api/v1/quizzes/:id
    * @param {import('express').Request} req - req.params.id es el id_quiz; req.body trae las
    * columnas nuevas de "quiz".
@@ -232,7 +235,7 @@ export const QuizController = {
   },
 
   /**
-   * @brief Elimina un quiz por su id_quiz. DELETE /api/v1/quizzes/:id
+   * Elimina un quiz por su id_quiz. DELETE /api/v1/quizzes/:id
    * @param {import('express').Request} req - req.params.id es el id_quiz a eliminar.
    * @param {import('express').Response} res - 200 con { eliminado: true }, 400 si el id no es
    * numérico, 404 si no existía, 500 ante error inesperado (ej. si el quiz todavía tiene filas

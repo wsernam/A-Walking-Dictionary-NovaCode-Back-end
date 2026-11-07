@@ -1,3 +1,8 @@
+/**
+ * @file Repositorio de la tabla "wordnet_cache": guarda y consulta los sentidos de WordNet ya
+ * buscados (HU-011), para no repetir la consulta al diccionario léxico.
+ */
+
 import { pool } from '../config/db.js';
 
 function parseJsonArray(value) {
@@ -17,6 +22,10 @@ function parseJsonArray(value) {
   }
 }
 
+/**
+ * Repositorio: consultas SQL a PostgreSQL.
+ * @namespace
+ */
 export const WordnetCacheRepository = {
   /**
    * Busca todos los sentidos almacenados para una palabra.

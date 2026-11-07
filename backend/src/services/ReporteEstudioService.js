@@ -1,6 +1,5 @@
 /**
- * @file ReporteEstudioService.js
- * @brief HU-019: reúne los datos del reporte del modo de estudio y aplica la regla de acceso.
+ * @file HU-019: reúne los datos del reporte del modo de estudio y aplica la regla de acceso.
  *
  * Endpoint relacionado: GET /api/v1/reports/study-mode/export-pdf (parámetro opcional student_id).
  * Reglas de acceso (CA-19.3, supuestos S5 y S6 aceptados por el equipo):
@@ -20,11 +19,11 @@ import { ReporteEstudioRepository } from '../repositories/ReporteEstudioReposito
 import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
 import { errorApi } from '../utils/codigosError.js';
 
-/** @brief Cantidad de palabras difíciles por estudiante (S7/S8). */
+/** Cantidad de palabras difíciles por estudiante (S7/S8). */
 const PALABRAS_DIFICILES_POR_ESTUDIANTE = 10;
 
 /**
- * @brief Convierte el parámetro student_id de la query en número, o null si no vino.
+ * Convierte el parámetro student_id de la query en número, o null si no vino.
  * @throws {Error} 400 INVALID_ID si viene pero no es un entero positivo.
  */
 function leerStudentId(studentId) {
@@ -36,9 +35,13 @@ function leerStudentId(studentId) {
   return id;
 }
 
+/**
+ * Servicio: lógica de negocio que usan los controladores.
+ * @namespace
+ */
 export const ReporteEstudioService = {
   /**
-   * @brief CA-19.1, CA-19.2 y CA-19.3: devuelve los datos del reporte según el rol del JWT.
+   * CA-19.1, CA-19.2 y CA-19.3: devuelve los datos del reporte según el rol del JWT.
    * @param {{ id_usuario: number, rol: string }} usuario - Payload del JWT (req.usuario).
    * @param {string|number|undefined} studentId - Valor opcional de ?student_id.
    * @return {Promise<{ generado_en: Date, estudiantes: Object[] }>} Una entrada por inscripción

@@ -1,6 +1,5 @@
 /**
- * @file DeduplicacionService.js
- * @brief Implementa la detección de duplicados de HU-1.3: normaliza la palabra (CA-1.3.3),
+ * @file Implementa la detección de duplicados de HU-1.3: normaliza la palabra (CA-1.3.3),
  * busca si ya existe en el mazo (usando el índice único mazo_id+palabra de la tabla tarjeta)
  * y resuelve si el aporte nuevo es coautoría (CA-1.3.1) o acepción adicional (CA-1.3.2).
  *
@@ -14,9 +13,13 @@
 
 import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
 
+/**
+ * Servicio: lógica de negocio que usan los controladores.
+ * @namespace
+ */
 export const DeduplicacionService = {
   /**
-   * @brief Normaliza una palabra para que la comparación de duplicados ignore
+   * Normaliza una palabra para que la comparación de duplicados ignore
    * mayúsculas/minúsculas y espacios sobrantes (CA-1.3.3).
    * @param {string} palabra - Palabra tal como la escribió el estudiante.
    * @return {string} La palabra sin espacios al inicio/final y en minúsculas.
@@ -26,7 +29,7 @@ export const DeduplicacionService = {
   },
 
   /**
-   * @brief Busca si la palabra ya fue registrada como tarjeta en el mismo mazo. Normaliza la
+   * Busca si la palabra ya fue registrada como tarjeta en el mismo mazo. Normaliza la
    * palabra antes de buscar, para que la comparación sea insensible a mayúsculas.
    * @param {number} mazoId - id_mazo del mazo donde se está registrando la palabra.
    * @param {string} palabra - Palabra tal como la escribió el estudiante (sin normalizar).
@@ -38,7 +41,7 @@ export const DeduplicacionService = {
   },
 
   /**
-   * @brief Decide qué tipo de aporte corresponde cuando ya existe una tarjeta con esa palabra
+   * Decide qué tipo de aporte corresponde cuando ya existe una tarjeta con esa palabra
    * en el mazo.
    *
    * Si la definición y el ejemplo nuevos coinciden exactamente con los de la tarjeta

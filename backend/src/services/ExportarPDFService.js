@@ -1,6 +1,5 @@
 /**
- * @file ExportarPDFService.js
- * @brief HU-3.3: generación de PDF maquetado del mazo (lista de términos) y del quiz (hoja de
+ * @file HU-3.3: generación de PDF maquetado del mazo (lista de términos) y del quiz (hoja de
  * preguntas + hoja de respuestas separada), para poder fotocopiar el material sin conectividad.
  *
  * Endpoints relacionados: GET /api/v1/decks/:id/export-pdf, GET /api/v1/quizzes/:id/export-pdf
@@ -35,21 +34,21 @@ import { QuizRepository } from '../repositories/QuizRepository.js';
 import { PreguntaQuizRepository } from '../repositories/PreguntaQuizRepository.js';
 import { errorApi } from '../utils/codigosError.js';
 
-/** @brief Tamaño de página A4 en puntos PDF (72 puntos = 1 pulgada). */
+/** Tamaño de página A4 en puntos PDF (72 puntos = 1 pulgada). */
 const PAGE_SIZE = [595.28, 841.89];
 export const [ANCHO_PAGINA, ALTO_PAGINA] = PAGE_SIZE;
-/** @brief Margen lateral en puntos (~2cm), para cumplir "márgenes académicos" (CA-3.3.3). */
+/** Margen lateral en puntos (~2cm), para cumplir "márgenes académicos" (CA-3.3.3). */
 export const MARGEN = 56;
-/** @brief Límite inferior del contenido; deja sitio al pie de página. */
+/** Límite inferior del contenido; deja sitio al pie de página. */
 export const LIMITE_INFERIOR = 70;
 export const ANCHO_UTIL = ANCHO_PAGINA - MARGEN * 2;
-/** @brief Columna donde empieza el texto de cada tarjeta/pregunta, a la derecha del número. */
+/** Columna donde empieza el texto de cada tarjeta/pregunta, a la derecha del número. */
 const X_CONTENIDO = MARGEN + 30;
 const ANCHO_CONTENIDO = ANCHO_PAGINA - MARGEN - X_CONTENIDO;
 const LETRAS = ['A', 'B', 'C', 'D'];
 
 /**
- * @brief Convierte un color hexadecimal (#RRGGBB) al formato de pdf-lib.
+ * Convierte un color hexadecimal (#RRGGBB) al formato de pdf-lib.
  * @param {string} color - Color en formato "#RRGGBB".
  * @return {import('pdf-lib').RGB} Color para pdf-lib.
  */
@@ -58,7 +57,7 @@ function hex(color) {
   return rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255);
 }
 
-/** @brief Paleta de la app (sidebar del docente y del estudiante). */
+/** Paleta de la app (sidebar del docente y del estudiante). */
 export const COLORES = {
   azul: hex('#14237A'),
   rojo: hex('#A51C30'),
@@ -72,7 +71,7 @@ export const COLORES = {
 };
 
 /**
- * @brief Crea un Error con un código HTTP adjunto, para que el controlador que atrapa la
+ * Crea un Error con un código HTTP adjunto, para que el controlador que atrapa la
  * excepción sepa con qué status responder (mismo patrón que QuizService.js).
  * @param {number} status - Código HTTP a usar en la respuesta (404, ...).
  * @param {string} code - Código fijo en inglés (ver docs/codigos-error.md).
@@ -84,7 +83,7 @@ function error(status, code, message) {
 }
 
 /**
- * @brief Incrusta en el documento las fuentes estándar que usa el diseño.
+ * Incrusta en el documento las fuentes estándar que usa el diseño.
  * @param {import('pdf-lib').PDFDocument} doc - Documento PDF.
  * @return {Promise<{texto, negrita, cursiva, titulo}>} Fuentes listas para dibujar.
  */
@@ -98,7 +97,7 @@ export async function cargarFuentes(doc) {
 }
 
 /**
- * @brief Parte un texto en líneas que caben dentro de un ancho máximo, midiendo cada palabra
+ * Parte un texto en líneas que caben dentro de un ancho máximo, midiendo cada palabra
  * con la fuente/tamaño dados (pdf-lib no hace ajuste de línea automático).
  * @param {string} texto - Texto a partir en líneas (null/undefined se trata como cadena vacía).
  * @param {import('pdf-lib').PDFFont} fuente - Fuente embebida con la que se medirá el texto.
@@ -124,7 +123,7 @@ export function partirEnLineas(texto, fuente, tamano, anchoMax) {
 }
 
 /**
- * @brief Dibuja una etiqueta redondeada (como las de variante regional en la app).
+ * Dibuja una etiqueta redondeada (como las de variante regional en la app).
  * @param {import('pdf-lib').PDFPage} pagina - Página donde dibujar.
  * @param {string} texto - Texto de la etiqueta.
  * @param {Object} opciones - { x, y (borde inferior), fuente, tamano, fondo, color }.
@@ -143,7 +142,7 @@ export function dibujarEtiqueta(pagina, texto, { x, y, fuente, tamano = 8, fondo
 }
 
 /**
- * @brief Dibuja un número dentro de un círculo de color (numeración de tarjetas y preguntas).
+ * Dibuja un número dentro de un círculo de color (numeración de tarjetas y preguntas).
  * @param {import('pdf-lib').PDFPage} pagina - Página donde dibujar.
  * @param {number} numero - Número a mostrar.
  * @param {Object} opciones - { x, y (centro), fuente, radio }.
@@ -162,7 +161,7 @@ function dibujarNumero(pagina, numero, { x, y, fuente, radio = 9 }) {
 }
 
 /**
- * @brief Helper de maquetado: mantiene la página y la posición Y actuales y crea páginas nuevas
+ * Helper de maquetado: mantiene la página y la posición Y actuales y crea páginas nuevas
  * al llegar al límite inferior (CA-3.3.3, estructura limpia sin contenido cortado entre
  * páginas). Las páginas de continuación llevan un encabezado corrido con el título.
  * @param {import('pdf-lib').PDFDocument} doc - Documento PDF.
@@ -203,7 +202,7 @@ export function crearMaquetador(doc, fuentes, tituloCorrido) {
 }
 
 /**
- * @brief Dibuja el encabezado de portada: franja azul superior, fondo suave, etiqueta en rojo,
+ * Dibuja el encabezado de portada: franja azul superior, fondo suave, etiqueta en rojo,
  * título con serif (como en la app), subtítulo y etiquetas.
  * @param {Object} m - Maquetador (debe estar al inicio de una página).
  * @param {Object} fuentes - Fuentes de cargarFuentes().
@@ -240,7 +239,7 @@ export function dibujarEncabezado(m, fuentes, { etiqueta, titulo, subtitulo, ins
 }
 
 /**
- * @brief Dibuja el pie de todas las páginas (nombre de la plataforma y "Página X de Y"). Se
+ * Dibuja el pie de todas las páginas (nombre de la plataforma y "Página X de Y"). Se
  * llama al final, cuando ya se conoce el total de páginas.
  * @param {import('pdf-lib').PDFDocument} doc - Documento PDF.
  * @param {Object} fuentes - Fuentes de cargarFuentes().
@@ -261,7 +260,7 @@ export function dibujarPies(doc, fuentes) {
 }
 
 /**
- * @brief Dibuja (o solo mide) el bloque de una tarjeta del mazo: número, palabra, traducción,
+ * Dibuja (o solo mide) el bloque de una tarjeta del mazo: número, palabra, traducción,
  * definición, ejemplo y etiquetas de contexto. Medir primero permite no partir una tarjeta
  * entre dos páginas.
  * @param {import('pdf-lib').PDFPage|null} p - Página donde dibujar; null para solo medir.
@@ -313,7 +312,7 @@ function bloqueTarjeta(p, yTop, { numero, tarjeta, registro, variante, fuentes }
 }
 
 /**
- * @brief Dibuja (o solo mide) una pregunta del quiz: número, enunciado y opciones con un
+ * Dibuja (o solo mide) una pregunta del quiz: número, enunciado y opciones con un
  * círculo para marcar la letra.
  * @param {import('pdf-lib').PDFPage|null} p - Página donde dibujar; null para solo medir.
  * @param {number} yTop - Borde superior del bloque.
@@ -345,9 +344,13 @@ function bloquePregunta(p, yTop, { numero, pregunta, fuentes }) {
   return yTop - b + 6;
 }
 
+/**
+ * Servicio: lógica de negocio que usan los controladores.
+ * @namespace
+ */
 export const ExportarPDFService = {
   /**
-   * @brief CA-3.3.1: genera el PDF de un mazo con término, traducción, definición, ejemplo y
+   * CA-3.3.1: genera el PDF de un mazo con término, traducción, definición, ejemplo y
    * contexto (registro / variante regional) de cada tarjeta aprobada, listo para fotocopiar
    * (CA-3.3.3: márgenes académicos, tipografía legible, estructura limpia).
    * @param {number} id_mazo - Id del mazo a exportar.
@@ -407,7 +410,7 @@ export const ExportarPDFService = {
   },
 
   /**
-   * @brief CA-3.3.2: genera el PDF del quiz con una hoja de preguntas de opción múltiple y, en
+   * CA-3.3.2: genera el PDF del quiz con una hoja de preguntas de opción múltiple y, en
    * página(s) separadas, la hoja de respuestas correctas — listo para fotocopiar (CA-3.3.3).
    * @param {number} id_quiz - Id del quiz a exportar.
    * @return {Promise<Uint8Array>} Bytes del PDF generado.

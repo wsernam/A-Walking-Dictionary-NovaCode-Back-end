@@ -1,5 +1,14 @@
+/**
+ * @file Controlador REST del reporte del modo de estudio en PDF (HU-019). Delega en
+ * ReporteEstudioPDFService.
+ */
+
 import { ReporteEstudioPDFService } from '../services/ReporteEstudioPDFService.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const ReporteEstudioController = {
   /**
    * HU-019: GET /api/v1/reports/study-mode/export-pdf?student_id=

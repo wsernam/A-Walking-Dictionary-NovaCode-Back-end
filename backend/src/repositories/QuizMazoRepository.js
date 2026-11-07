@@ -1,6 +1,5 @@
 /**
- * @file QuizMazoRepository.js
- * @brief Repositorio de QuizMazo: acceso a datos para la tabla puente "quiz_mazo" del DER
+ * @file Repositorio de QuizMazo: acceso a datos para la tabla puente "quiz_mazo" del DER
  * oficial. No tiene id propio: su llave es la pk compuesta (quiz_id, mazo_id), por lo que
  * obtenerPorQuizYMazo/actualizar/eliminar reciben ese par en vez de un id único.
  * @note crear se usa al generar un quiz (HU-3.1), dentro de la transacción de
@@ -10,9 +9,13 @@
 import { pool } from '../config/db.js';
 import { QuizMazo } from '../models/QuizMazo.js';
 
+/**
+ * Repositorio: consultas SQL a PostgreSQL.
+ * @namespace
+ */
 export const QuizMazoRepository = {
   /**
-   * @brief Inserta una fila quiz_mazo nueva (asocia un mazo a un quiz).
+   * Inserta una fila quiz_mazo nueva (asocia un mazo a un quiz).
    * @param {Object} datos - { quiz_id, mazo_id }.
    * @param {import('pg').Pool|import('pg').PoolClient} [db=pool] - Conexión a usar; se pasa un
    * cliente cuando la inserción forma parte de una transacción (ver
@@ -31,7 +34,7 @@ export const QuizMazoRepository = {
   },
 
   /**
-   * @brief Busca una fila quiz_mazo por su llave compuesta.
+   * Busca una fila quiz_mazo por su llave compuesta.
    * @param {number} quiz_id - Id del quiz.
    * @param {number} mazo_id - Id del mazo.
    * @return {Promise<QuizMazo|null>} La fila encontrada, o null si no existe esa asociación.
@@ -45,7 +48,7 @@ export const QuizMazoRepository = {
   },
 
   /**
-   * @brief Lista todas las filas quiz_mazo existentes, sin filtros.
+   * Lista todas las filas quiz_mazo existentes, sin filtros.
    * @return {Promise<QuizMazo[]>} Arreglo con todas las asociaciones quiz-mazo existentes.
    */
   async listar() {
@@ -54,7 +57,7 @@ export const QuizMazoRepository = {
   },
 
   /**
-   * @brief Lista los mazos incluidos en un quiz específico.
+   * Lista los mazos incluidos en un quiz específico.
    * @note Hoy ningún servicio lo usa; queda como consulta de apoyo.
    * @param {number} quiz_id - Id del quiz.
    * @return {Promise<QuizMazo[]>} Filas quiz_mazo asociadas a ese quiz.
@@ -65,7 +68,7 @@ export const QuizMazoRepository = {
   },
 
   /**
-   * @brief Reemplaza la llave compuesta de una fila quiz_mazo existente.
+   * Reemplaza la llave compuesta de una fila quiz_mazo existente.
    * @param {number} quiz_id - Id del quiz actual de la fila a actualizar.
    * @param {number} mazo_id - Id del mazo actual de la fila a actualizar.
    * @param {Object} datos - { quiz_id, mazo_id } con los nuevos valores.
@@ -84,7 +87,7 @@ export const QuizMazoRepository = {
   },
 
   /**
-   * @brief Elimina una fila quiz_mazo por su llave compuesta.
+   * Elimina una fila quiz_mazo por su llave compuesta.
    * @param {number} quiz_id - Id del quiz.
    * @param {number} mazo_id - Id del mazo.
    * @return {Promise<boolean>} true si se eliminó una fila, false si esa asociación no existía.

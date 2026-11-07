@@ -1,6 +1,5 @@
 /**
- * @file registroSeguridadMiddleware.js
- * @brief Registro de eventos de seguridad (auditoría OWASP H-09, A09 Security Logging and
+ * @file Registro de eventos de seguridad (auditoría OWASP H-09, A09 Security Logging and
  * Alerting Failures).
  *
  * Se monta una sola vez en app.js, antes de las rutas. Al terminar cada respuesta revisa el código
@@ -16,7 +15,7 @@
  */
 
 /**
- * @brief Arma la línea de log con método, ruta, IP y, si hay sesión, usuario y rol.
+ * Arma la línea de log con método, ruta, IP y, si hay sesión, usuario y rol.
  * @param {import('express').Request} req - req.usuario lo pobla authenticate si hubo JWT válido.
  * @param {import('express').Response} res - Respuesta ya enviada.
  * @return {string} Línea de log.
@@ -29,7 +28,7 @@ function describir(req, res) {
 }
 
 /**
- * @brief Middleware que registra 401, 403 y 5xx cuando la respuesta termina.
+ * Middleware que registra 401, 403 y 5xx cuando la respuesta termina.
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  * @param {import('express').NextFunction} next

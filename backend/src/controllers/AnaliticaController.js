@@ -1,14 +1,17 @@
 /**
- * @file AnaliticaController.js
- * @brief Controlador REST de analíticas de participación para la docente (HU-2.3).
+ * @file Controlador REST de analíticas de participación para la docente (HU-2.3).
  */
 
 import { MazoRepository } from '../repositories/MazoRepository.js';
 import { AnaliticaRepository } from '../repositories/AnaliticaRepository.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const AnaliticaController = {
   /**
-   * @brief CA-2.3.1: resumen de participación por mazo (tabla de estudiantes con palabras
+   * CA-2.3.1: resumen de participación por mazo (tabla de estudiantes con palabras
    * aportadas, coautorías y estado de revisión). CA-2.3.2: si se pasa ?sinAportes=true, filtra
    * solo a los estudiantes sin ningún aporte en el mazo.
    *

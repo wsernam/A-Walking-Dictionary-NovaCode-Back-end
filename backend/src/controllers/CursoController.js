@@ -1,6 +1,5 @@
 /**
- * @file CursoController.js
- * @brief Controlador REST de Curso: recibe la petición HTTP, llama directamente al repositorio
+ * @file Controlador REST de Curso: recibe la petición HTTP, llama directamente al repositorio
  * (CursoRepository) y devuelve la respuesta.
  *
  * @note Expuestos hoy: crear(), listar() y obtenerPorId() (POST/GET /api/v1/courses,
@@ -20,9 +19,13 @@ const ocultarCodigo = (curso, req) => {
   return cursoPublico;
 };
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const CursoController = {
   /**
-   * @brief Crea un curso nuevo. POST /api/v1/courses
+   * Crea un curso nuevo. POST /api/v1/courses
    *
    * Valida que nombre, periodo, estado, fecha_inicio, fecha_fin y docente_id no estén vacíos
    * (todos son NOT NULL en el DER), y que nombre/periodo/estado no superen su longitud máxima.
@@ -85,7 +88,7 @@ export const CursoController = {
   },
 
   /**
-   * @brief Consulta un curso por su id_curso. GET /api/v1/courses/:id
+   * Consulta un curso por su id_curso. GET /api/v1/courses/:id
    * @param {import('express').Request} req - req.params.id es el id_curso a buscar.
    * @param {import('express').Response} res - 200 con el curso, 400 si el id no es numérico,
    * 404 si no existe, 500 ante error inesperado.
@@ -107,7 +110,7 @@ export const CursoController = {
   },
 
   /**
-   * @brief Lista todos los cursos existentes, sin filtros. GET /api/v1/courses
+   * Lista todos los cursos existentes, sin filtros. GET /api/v1/courses
    * @param {import('express').Request} req - No se usa (sin filtros ni paginación implementados).
    * @param {import('express').Response} res - 200 con el arreglo de cursos, 500 ante error inesperado.
    */
@@ -123,6 +126,14 @@ export const CursoController = {
     }
   },
 
+  /**
+   * Reemplaza todos los campos de un curso (UPDATE completo).
+   * @note Ninguna ruta de cursoRoutes.js usa este método.
+   * @param {import('express').Request} req - req.params.id es el id_curso; req.body trae todas
+   * las columnas de "curso".
+   * @param {import('express').Response} res - 200 con el curso actualizado, 400 si el id no es
+   * numérico, 404 si no existe, 500 ante error inesperado.
+   */
   async actualizar(req, res) {
     try {
       const id = Number(req.params.id);
@@ -139,6 +150,13 @@ export const CursoController = {
     }
   },
 
+  /**
+   * Elimina un curso por su id_curso.
+   * @note Ninguna ruta de cursoRoutes.js usa este método.
+   * @param {import('express').Request} req - req.params.id es el id_curso.
+   * @param {import('express').Response} res - 200 con { eliminado: true }, 400 si el id no es
+   * numérico, 404 si no existe, 500 ante error inesperado.
+   */
   async eliminar(req, res) {
     try {
       const id = Number(req.params.id);

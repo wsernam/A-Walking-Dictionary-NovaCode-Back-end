@@ -1,6 +1,5 @@
 /**
- * @file LimiteSemanalService.js
- * @brief Archivo reservado, sin implementación: ningún archivo lo importa.
+ * @file Archivo reservado, sin implementación: ningún archivo lo importa.
  *
  * Pendiente: controlar el conteo de aportes por estudiante y mazo dentro de la semana activa.
  * Historia de Usuario: HU-002

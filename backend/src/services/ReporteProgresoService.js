@@ -1,6 +1,5 @@
 /**
- * @file ReporteProgresoService.js
- * @brief HU-018: reúne los datos del reporte de progreso individual y aplica la regla de acceso.
+ * @file HU-018: reúne los datos del reporte de progreso individual y aplica la regla de acceso.
  *
  * Endpoint relacionado: GET /api/v1/reports/students/:id/progress/export-pdf.
  * Reglas de acceso (CA-18.3; mismo criterio que HU-019, S5 y S6 aceptados por el equipo):
@@ -25,13 +24,13 @@ import { ReporteProgresoRepository } from '../repositories/ReporteProgresoReposi
 import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
 import { errorApi } from '../utils/codigosError.js';
 
-/** @brief Estados de tarjeta que el reporte desglosa (CA-18.1). */
+/** Estados de tarjeta que el reporte desglosa (CA-18.1). */
 const ESTADOS_PALABRA = ['pendiente_revision', 'revisado_docente', 'rechazada'];
-/** @brief Tipos de aporte que cuentan como coautoría (mismo criterio que AnaliticaRepository). */
+/** Tipos de aporte que cuentan como coautoría (mismo criterio que AnaliticaRepository). */
 const TIPOS_COAUTORIA = ['coautoria', 'acepcion_nueva'];
 
 /**
- * @brief Convierte el parámetro :id de la ruta en número.
+ * Convierte el parámetro :id de la ruta en número.
  * @throws {Error} 400 INVALID_ID si no es un entero positivo.
  */
 function leerIdEstudiante(valor) {
@@ -42,16 +41,20 @@ function leerIdEstudiante(valor) {
   return id;
 }
 
-/** @brief Promedio simple redondeado a 2 decimales, o null si no hay valores. */
+/** Promedio simple redondeado a 2 decimales, o null si no hay valores. */
 function promediar(valores) {
   if (valores.length === 0) return null;
   const suma = valores.reduce((total, valor) => total + valor, 0);
   return Number((suma / valores.length).toFixed(2));
 }
 
+/**
+ * Servicio: lógica de negocio que usan los controladores.
+ * @namespace
+ */
 export const ReporteProgresoService = {
   /**
-   * @brief CA-18.1, CA-18.2 y CA-18.3: devuelve los datos del reporte según el rol del JWT.
+   * CA-18.1, CA-18.2 y CA-18.3: devuelve los datos del reporte según el rol del JWT.
    * @param {{ id_usuario: number, rol: string }} usuario - Payload del JWT (req.usuario).
    * @param {string|number} idEstudiante - Valor de :id en la ruta.
    * @return {Promise<Object>} { generado_en, estudiante, palabras, quices, repaso }. Los quices y

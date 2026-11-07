@@ -1,6 +1,5 @@
 /**
- * @file formatoPdf.js
- * @brief Helpers de texto compartidos por los reportes en PDF de HE-07 (HU-018, HU-019...).
+ * @file Helpers de texto compartidos por los reportes en PDF de HE-07 (HU-018, HU-019...).
  *
  * @note Limitación conocida (igual que ExportarPDFService): se usan las fuentes estándar de
  * pdf-lib (WinAnsi). Para que un texto con caracteres fuera de Latin-1 (emoji, alfabetos no
@@ -8,7 +7,7 @@
  */
 
 /**
- * @brief Deja solo caracteres que las fuentes estándar de pdf-lib pueden dibujar (Latin-1).
+ * Deja solo caracteres que las fuentes estándar de pdf-lib pueden dibujar (Latin-1).
  * @param {unknown} texto - Texto a limpiar (null/undefined se trata como cadena vacía).
  * @return {string} Texto sin caracteres fuera de Latin-1.
  */
@@ -17,7 +16,7 @@ export function limpiar(texto) {
 }
 
 /**
- * @brief Recorta un texto con "..." para que quepa en un ancho máximo.
+ * Recorta un texto con "..." para que quepa en un ancho máximo.
  * @param {unknown} texto - Texto a dibujar.
  * @param {import('pdf-lib').PDFFont} fuente - Fuente con la que se medirá.
  * @param {number} tamano - Tamaño de fuente en puntos.
@@ -34,7 +33,7 @@ export function recortar(texto, fuente, tamano, ancho) {
 }
 
 /**
- * @brief Formatea una fecha como AAAA-MM-DD (UTC).
+ * Formatea una fecha como AAAA-MM-DD (UTC).
  * @param {Date|string|null|undefined} valor - Fecha a formatear.
  * @return {string} La fecha, o "Sin registro" si no hay valor o no es una fecha válida.
  */

@@ -1,6 +1,5 @@
 /**
- * @file quizMazoRoutes.js
- * @brief Rutas REST (CRUD genérico) del recurso QuizMazo: POST /, GET /,
+ * @file Rutas REST (CRUD genérico) del recurso QuizMazo: POST /, GET /,
  * GET /:quizId/:mazoId, PUT /:quizId/:mazoId, DELETE /:quizId/:mazoId.
  *
  * Sin id propio (pk compuesta quiz_id + mazo_id): los identificadores van como dos parámetros de

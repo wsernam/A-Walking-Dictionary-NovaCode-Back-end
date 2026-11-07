@@ -1,5 +1,14 @@
+/**
+ * @file Controlador REST del reporte de resultados por quiz en PDF (HU-021). Delega en
+ * ReporteResultadosQuizPDFService.
+ */
+
 import { ReporteResultadosQuizPDFService } from '../services/ReporteResultadosQuizPDFService.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const ReporteResultadosQuizController = {
   /**
    * HU-021: GET /api/v1/reports/quizzes/:id/results/export-pdf

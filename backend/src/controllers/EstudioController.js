@@ -1,3 +1,8 @@
+/**
+ * @file Controlador REST del modo de estudio (HU-4.1): inicia la sesión de repaso y registra la
+ * valoración de cada tarjeta (rutas en estudioRoutes.js, solo estudiante).
+ */
+
 import { EstudioService } from '../services/EstudioService.js';
 import { InscripcionRepository } from '../repositories/InscripcionRepository.js';
 import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
@@ -16,7 +21,20 @@ async function esPropietario(req, inscripcionId) {
   );
 }
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const EstudioController = {
+  /**
+   * HU-4.1: inicia una sesión de repaso. POST /api/v1/study/review-session. Solo estudiante, y
+   * solo sobre una inscripción propia (Auditoría OWASP H-03).
+   * @param {import('express').Request} req - req.body.inscripcion_id es la inscripción del
+   * estudiante en el curso.
+   * @param {import('express').Response} res - 200 con la sesión (tarjetas ordenadas por SM-2),
+   * 400 si falta o es inválido inscripcion_id, 403 si la inscripción no es del usuario, el status
+   * del error del servicio o 500 ante error inesperado.
+   */
   async iniciarSesion(req, res) {
     try {
       const { inscripcion_id } = req.body;
@@ -55,6 +73,15 @@ export const EstudioController = {
     }
   },
 
+  /**
+   * HU-4.1 / CA-4.1.2: registra la valoración de una tarjeta y recalcula su próximo repaso con
+   * SM-2. POST /api/v1/study/review-session/review. Solo estudiante, sobre una inscripción propia.
+   * @param {import('express').Request} req - req.body trae inscripcion_id, tarjeta_id y
+   * valoracion ("Repetir", "Difícil", "Buena" o "Fácil").
+   * @param {import('express').Response} res - 200 con el progreso actualizado, 400 si falta un
+   * campo o un id no es numérico, 403 si la inscripción no es del usuario, el status del error
+   * del servicio o 500 ante error inesperado.
+   */
   async registrarValoracion(req, res) {
     try {
       const { inscripcion_id, tarjeta_id, valoracion } = req.body;

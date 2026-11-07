@@ -1,7 +1,13 @@
-// Repositorio del reporte de resultados por quiz (HU-021): consultas de solo lectura sobre
-// "quiz", "curso", "inscripcion", "usuario", "resultado_quiz", "pregunta_quiz" y "respuesta_quiz".
+/**
+ * @file Repositorio del reporte de resultados por quiz (HU-021): consultas de solo lectura sobre
+ * "quiz", "curso", "inscripcion", "usuario", "resultado_quiz", "pregunta_quiz" y "respuesta_quiz".
+ */
 import { pool } from '../config/db.js';
 
+/**
+ * Repositorio: consultas SQL a PostgreSQL.
+ * @namespace
+ */
 export const ReporteResultadosQuizRepository = {
   /** Encabezado del quiz con el nombre del curso y su docente (S1). Null si no existe. */
   async obtenerQuiz(idQuiz) {

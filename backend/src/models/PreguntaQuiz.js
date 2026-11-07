@@ -1,15 +1,13 @@
 /**
- * @file PreguntaQuiz.js
- * @brief Modelo de dominio: representa la tabla "pregunta_quiz" del DER oficial.
+ * @file Modelo de dominio: representa la tabla "pregunta_quiz" del DER oficial.
  */
 
 /**
- * @class PreguntaQuiz
- * @brief Pregunta de un quiz, generada a partir de una tarjeta aprobada (HU-3.1).
+ * Pregunta de un quiz, generada a partir de una tarjeta aprobada (HU-3.1).
  */
 export class PreguntaQuiz {
   /**
-   * @brief Construye una PreguntaQuiz a partir de una fila de la base de datos (o de un payload equivalente).
+   * Construye una PreguntaQuiz a partir de una fila de la base de datos (o de un payload equivalente).
    * @param {number} config.id_pregunta - Id autoincremental (pk).
    * @param {number} config.quiz_id - Id del quiz (fk -> quiz.id_quiz).
    * @param {number} config.tarjeta_id - Id de la tarjeta de origen (fk -> tarjeta.id_tarjeta).

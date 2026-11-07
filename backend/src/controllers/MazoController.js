@@ -1,6 +1,5 @@
 /**
- * @file MazoController.js
- * @brief Controlador REST de Mazo: recibe la petición HTTP, aplica las validaciones de HU-1.1
+ * @file Controlador REST de Mazo: recibe la petición HTTP, aplica las validaciones de HU-1.1
  * y llama directamente al repositorio (MazoRepository).
  *
  * Cuando exista lógica de negocio adicional en src/services/, se insertará entre el
@@ -15,7 +14,7 @@ import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
 const ESTADOS_VALIDOS = ['abierto', 'cerrado'];
 
 /**
- * @brief Indica si el usuario autenticado es el docente dueño del mazo.
+ * Indica si el usuario autenticado es el docente dueño del mazo.
  * Con DISABLE_AUTH=true (solo desarrollo) siempre devuelve true.
  * @param {import('express').Request} req - req.usuario viene de authenticate.
  * @param {Object} mazo - Mazo ya cargado (con docente_id).
@@ -26,9 +25,13 @@ function esDuenoDelMazo(req, mazo) {
   return Number(mazo.docente_id) === Number(req.usuario?.id_usuario);
 }
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const MazoController = {
   /**
-   * @brief Crea un mazo nuevo.
+   * Crea un mazo nuevo.
    *
    * Valida que nombre_lectura, semana, autor, docente_id, fecha_apertura y fecha_cierre no
    * estén vacíos (CA-1.1.2 + los demás campos NOT NULL del DER que el cliente debe enviar),
@@ -119,7 +122,7 @@ export const MazoController = {
   },
 
   /**
-   * @brief Obtiene un mazo por su id_mazo.
+   * Obtiene un mazo por su id_mazo.
    * @param {import('express').Request} req - req.params.id es el id_mazo a buscar.
    * @param {import('express').Response} res - 200 con el mazo, 400 si el id no es numérico,
    * 404 si no existe, 500 ante error inesperado.
@@ -141,7 +144,7 @@ export const MazoController = {
   },
 
   /**
-   * @brief Lista los mazos. Para un estudiante con sesión, solo los de sus cursos con
+   * Lista los mazos. Para un estudiante con sesión, solo los de sus cursos con
    * inscripción activa (CA-1.2.1); para Invitado (sin token) o docente, todos.
    * @param {import('express').Request} req - req.usuario viene de autenticacionOpcional (puede
    * no existir).
@@ -160,7 +163,7 @@ export const MazoController = {
   },
 
   /**
-   * @brief Edita los datos de un mazo existente (PUT /decks/:id).
+   * Edita los datos de un mazo existente (PUT /decks/:id).
    *
    * Solo el docente dueño del mazo puede editarlo (403 si no). Se mezclan los campos recibidos
    * con el mazo actual, así un body incompleto no deja columnas en null. Solo se pueden cambiar
@@ -245,7 +248,7 @@ export const MazoController = {
   },
 
   /**
-   * @brief Cambia únicamente el campo "estado" de un mazo (ej. de "abierto" a "cerrado").
+   * Cambia únicamente el campo "estado" de un mazo (ej. de "abierto" a "cerrado").
    *
    * CA-1.1.3: cerrar el mazo inhabilita la recepción de nuevos aportes; esa verificación vive
    * en TarjetaController.crear, no aquí. Solo el docente dueño del mazo puede cambiarlo.
@@ -287,7 +290,7 @@ export const MazoController = {
   },
 
   /**
-   * @brief CA-2.2.2: actualiza la variante regional predeterminada del mazo y la propaga
+   * CA-2.2.2: actualiza la variante regional predeterminada del mazo y la propaga
    * automáticamente a todas sus tarjetas (sobrescribiendo la etiqueta 'variante_regional' de
    * cada una). Ver ContextoService.aplicarVarianteRegionalPorMazo para el detalle de la
    * decisión de "sobrescribir siempre" vs. "solo si no tenía". Solo el docente dueño del mazo.
@@ -323,7 +326,7 @@ export const MazoController = {
   },
 
   /**
-   * @brief HU-3.3 (CA-3.3.1, CA-3.3.3): exporta el mazo (tarjetas revisado_docente) a PDF, listo
+   * HU-3.3 (CA-3.3.1, CA-3.3.3): exporta el mazo (tarjetas revisado_docente) a PDF, listo
    * para fotocopiar. GET /api/v1/decks/:id/export-pdf
    * @param {import('express').Request} req - req.params.id es el id_mazo.
    * @param {import('express').Response} res - 200 con el PDF como application/pdf, 400 si el id
@@ -348,7 +351,7 @@ export const MazoController = {
   },
 
   /**
-   * @brief Elimina un mazo por su id_mazo. Solo el docente dueño del mazo.
+   * Elimina un mazo por su id_mazo. Solo el docente dueño del mazo.
    * @param {import('express').Request} req - req.params.id es el id_mazo a eliminar.
    * @param {import('express').Response} res - 200 con { eliminado: true }, 400 si el id no es
    * numérico, 403 si no es el dueño, 404 si no existía, 500 ante error inesperado (ej. si el

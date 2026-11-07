@@ -1,17 +1,20 @@
 
 /**
- * @file DiccionarioController.js
- * @brief Controlador REST del Diccionario Global.
+ * @file Controlador REST del Diccionario Global.
  *
  * HU-016 / HU-1.4
  */
 
 import { DiccionarioService } from '../services/DiccionarioService.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const DiccionarioController = {
 
   /**
-   * @brief Lista y busca el vocabulario aprobado.
+   * Lista y busca el vocabulario aprobado.
    *
    * CA-1.4.1: Consulta de tarjetas aprobadas.
    * CA-1.4.2: Búsqueda parcial de palabras.
@@ -67,7 +70,7 @@ export const DiccionarioController = {
   },
 
   /**
-   * @brief Obtiene el detalle de una tarjeta aprobada.
+   * Obtiene el detalle de una tarjeta aprobada.
    *
    * GET /api/v1/dictionary/:card_id
    */

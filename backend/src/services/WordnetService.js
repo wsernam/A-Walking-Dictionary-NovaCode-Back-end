@@ -1,6 +1,5 @@
 /**
- * @file WordnetService.js
- * @brief Servicio de enriquecimiento léxico mediante WordNet 3.1.
+ * @file Servicio de enriquecimiento léxico mediante WordNet 3.1.
  *
  * HU-011 - Sugerencias léxicas (WordNet)
  *
@@ -573,6 +572,7 @@ function construirSugerenciasWordnet(
 
 /**
  * Servicio principal de HU-011.
+ * @namespace
  */
 export const WordnetService = {
   /**

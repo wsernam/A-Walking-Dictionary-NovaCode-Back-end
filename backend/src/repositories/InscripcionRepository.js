@@ -1,10 +1,22 @@
-// Repositorio de Inscripcion: acceso a datos para la tabla "inscripcion" del DER oficial.
-// (curso_id, estudiante_id) es único según el DER.
+/**
+ * @file Repositorio de Inscripcion: acceso a datos para la tabla "inscripcion" del DER oficial.
+ * @note (curso_id, estudiante_id) es único según el DER.
+ */
 
 import { pool } from '../config/db.js';
 import { Inscripcion } from '../models/Inscripcion.js';
 
+/**
+ * Repositorio: consultas SQL a PostgreSQL.
+ * @namespace
+ */
 export const InscripcionRepository = {
+  /**
+   * Inscribe a un estudiante en un curso.
+   * @param {Object} datos - curso_id, estudiante_id, fecha_inscripcion y estado.
+   * @return {Promise<Inscripcion>} La inscripción creada.
+   * @throws El error de PostgreSQL 23505 si el estudiante ya está inscrito en ese curso.
+   */
   async crear(datos) {
     const {
       curso_id,
@@ -33,6 +45,11 @@ export const InscripcionRepository = {
     return new Inscripcion(rows[0]);
   },
 
+  /**
+   * Busca una inscripción por su id_inscripcion.
+   * @param {number} id_inscripcion - Id de la inscripción.
+   * @return {Promise<Inscripcion|null>} La inscripción, o null si no existe.
+   */
   async obtenerPorId(id_inscripcion) {
     const { rows } = await pool.query(
       'SELECT * FROM inscripcion WHERE id_inscripcion = $1',
@@ -44,6 +61,13 @@ export const InscripcionRepository = {
       : null;
   },
 
+  /**
+   * Busca la inscripción de un estudiante en un curso. Se usa para comprobar que el estudiante
+   * pertenece al curso antes de dejarlo aportar o responder un quiz, y para no inscribirlo dos veces.
+   * @param {number} curso_id - Id del curso.
+   * @param {number} estudiante_id - id_usuario del estudiante.
+   * @return {Promise<Inscripcion|null>} La inscripción, o null si no está inscrito.
+   */
   async obtenerPorCursoYEstudiante(
     curso_id,
     estudiante_id
@@ -65,7 +89,7 @@ export const InscripcionRepository = {
   },
 
   /**
-   * @brief HU-5.2: inscripción más reciente del estudiante con los datos de su curso.
+   * HU-5.2: inscripción más reciente del estudiante con los datos de su curso.
    * @param {number} estudiante_id - id_usuario del estudiante.
    * @returns {Promise<{id_inscripcion:number, curso_asignado:string, semestre_activo:string}|null>}
    * id de la inscripción, curso.nombre y curso.periodo, o null si el estudiante no tiene inscripciones.
@@ -83,6 +107,10 @@ export const InscripcionRepository = {
     return rows[0] || null;
   },
 
+  /**
+   * Lista todas las inscripciones, sin filtros.
+   * @return {Promise<Inscripcion[]>} Todas las inscripciones existentes.
+   */
   async listar() {
     const { rows } = await pool.query(
       'SELECT * FROM inscripcion'
@@ -93,6 +121,13 @@ export const InscripcionRepository = {
     );
   },
 
+  /**
+   * Lista los estudiantes inscritos en un curso con cuántas palabras ha creado cada uno
+   * (aportes con tipo_aporte = 'creada'), ordenados por nombre.
+   * @param {number} curso_id - Id del curso.
+   * @return {Promise<Object[]>} Una fila por estudiante con id_usuario, nombre_completo,
+   * nivel_ingles, codigo_estudiantil y palabras_aportadas.
+   */
   async listarEstudiantesPorCurso(curso_id) {
     const { rows } = await pool.query(
       `SELECT
@@ -121,6 +156,12 @@ export const InscripcionRepository = {
     return rows;
   },
 
+  /**
+   * Reemplaza todos los campos de una inscripción existente (UPDATE completo).
+   * @param {number} id_inscripcion - Id de la inscripción a actualizar.
+   * @param {Object} datos - curso_id, estudiante_id, fecha_inscripcion y estado.
+   * @return {Promise<Inscripcion|null>} La inscripción actualizada, o null si el id no existe.
+   */
   async actualizar(
     id_inscripcion,
     datos
@@ -155,6 +196,11 @@ export const InscripcionRepository = {
       : null;
   },
 
+  /**
+   * Elimina una inscripción por su id_inscripcion.
+   * @param {number} id_inscripcion - Id de la inscripción a eliminar.
+   * @return {Promise<boolean>} true si se eliminó una fila, false si el id no existía.
+   */
   async eliminar(id_inscripcion) {
     const { rowCount } = await pool.query(
       `DELETE FROM inscripcion

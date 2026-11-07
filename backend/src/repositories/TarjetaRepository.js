@@ -1,6 +1,5 @@
 /**
- * @file TarjetaRepository.js
- * @brief Repositorio de Tarjeta: acceso a datos para la tabla "tarjeta" del DER oficial.
+ * @file Repositorio de Tarjeta: acceso a datos para la tabla "tarjeta" del DER oficial.
  * @note (mazo_id, palabra) es único según el DER — obtenerPorMazoYPalabra() se apoya en ese
  * índice para la detección de duplicados de HU-1.3.
  */
@@ -8,9 +7,13 @@
 import { pool } from '../config/db.js';
 import { Tarjeta } from '../models/Tarjeta.js';
 
+/**
+ * Repositorio: consultas SQL a PostgreSQL.
+ * @namespace
+ */
 export const TarjetaRepository = {
   /**
-   * @brief Inserta una tarjeta nueva en la base de datos.
+   * Inserta una tarjeta nueva en la base de datos.
    * @param {Object} datos - Campos de "tarjeta" (mazo_id, palabra, traduccion, definicion,
    * ejemplo, estado, fecha_creacion, fecha_revision).
    * @return {Promise<Tarjeta>} La tarjeta recién creada, con su id_tarjeta asignado.
@@ -27,7 +30,7 @@ export const TarjetaRepository = {
   },
 
   /**
-   * @brief Busca una tarjeta por su id_tarjeta.
+   * Busca una tarjeta por su id_tarjeta.
    * @param {number} id_tarjeta - Id de la tarjeta a buscar.
    * @return {Promise<Tarjeta|null>} La tarjeta encontrada, o null si no existe.
    */
@@ -37,7 +40,7 @@ export const TarjetaRepository = {
   },
 
   /**
-   * @brief Busca una tarjeta por mazo + palabra exacta. Usado por
+   * Busca una tarjeta por mazo + palabra exacta. Usado por
    * DeduplicacionService.buscarDuplicado() para HU-1.3; la palabra debe llegar ya normalizada
    * (trim + minúsculas) para que la comparación sea insensible a mayúsculas (CA-1.3.3).
    * @param {number} mazo_id - Id del mazo donde buscar.
@@ -54,7 +57,7 @@ export const TarjetaRepository = {
   },
 
   /**
-   * @brief Lista todas las tarjetas, sin filtros.
+   * Lista todas las tarjetas, sin filtros.
    * @return {Promise<Tarjeta[]>} Arreglo con todas las tarjetas existentes.
    */
   async listar() {
@@ -63,12 +66,11 @@ export const TarjetaRepository = {
   },
 
   /**
-   * @brief Reemplaza todos los campos de una tarjeta existente (UPDATE completo).
-   * @param {number} id_tarjeta - Id de la tarjeta a actualizar.
-   * @param {Object} datos - Nuevos valores de todas las columnas de "tarjeta".
-   * @return {Promise<Tarjeta|null>} La tarjeta actualizada, o null si el id no existe.
+   * Lista las tarjetas en un estado dado, de la más antigua a la más reciente
+   * (por ejemplo "pendiente_revision" para el panel de curaduría, CA-2.1.1).
+   * @param {string} estado - Estado de la tarjeta (ej. "pendiente_revision", "revisado_docente").
+   * @return {Promise<Tarjeta[]>} Tarjetas en ese estado, ordenadas por fecha_creacion ascendente.
    */
-
   async listarPorEstado(estado) {
   const { rows } = await pool.query(
     'SELECT * FROM tarjeta WHERE estado = $1 ORDER BY fecha_creacion ASC',
@@ -77,8 +79,13 @@ export const TarjetaRepository = {
 
     return rows.map((row) => new Tarjeta(row));
   },
-    
-  
+
+  /**
+   * Reemplaza todos los campos de una tarjeta existente (UPDATE completo).
+   * @param {number} id_tarjeta - Id de la tarjeta a actualizar.
+   * @param {Object} datos - Nuevos valores de todas las columnas de "tarjeta".
+   * @return {Promise<Tarjeta|null>} La tarjeta actualizada, o null si el id no existe.
+   */
   async actualizar(id_tarjeta, datos) {
     const { mazo_id, palabra, traduccion, definicion, ejemplo, estado, fecha_creacion, fecha_revision } = datos;
     const { rows } = await pool.query(
@@ -93,9 +100,11 @@ export const TarjetaRepository = {
   },
 
   /**
-   * @brief Elimina una tarjeta por su id_tarjeta.
-   * @param {number} id_tarjeta - Id de la tarjeta a eliminar.
-   * @return {Promise<boolean>} true si se eliminó una fila, false si el id no existía.
+   * Cambia solo el estado de una tarjeta y su fecha de revisión (ej. al aprobarla, CA-2.1.2).
+   * @param {number} id_tarjeta - Id de la tarjeta.
+   * @param {string} estado - Nuevo estado (ej. "revisado_docente").
+   * @param {Date|string|null} fecha_revision - Fecha en que la docente la revisó.
+   * @return {Promise<Tarjeta|null>} La tarjeta actualizada, o null si el id no existe.
    */
   async actualizarEstado(id_tarjeta, estado, fecha_revision) {
   const { rows } = await pool.query(
@@ -110,13 +119,18 @@ export const TarjetaRepository = {
     return rows[0] ? new Tarjeta(rows[0]) : null;
   },
 
+  /**
+   * Elimina una tarjeta por su id_tarjeta.
+   * @param {number} id_tarjeta - Id de la tarjeta a eliminar.
+   * @return {Promise<boolean>} true si se eliminó una fila, false si el id no existía.
+   */
   async eliminar(id_tarjeta) {
     const { rowCount } = await pool.query('DELETE FROM tarjeta WHERE id_tarjeta = $1', [id_tarjeta]);
     return rowCount > 0;
   },
 
   /**
-   * @brief Lista todas las tarjetas de un mazo específico. Usado por
+   * Lista todas las tarjetas de un mazo específico. Usado por
    * ContextoService.aplicarVarianteRegionalPorMazo (CA-2.2.2, asignación masiva de variante
    * regional al guardar el mazo).
    * @param {number} mazo_id - Id del mazo.
@@ -128,7 +142,7 @@ export const TarjetaRepository = {
   },
 
   /**
-   * @brief HU-3.1 (CA-3.1.1): lista las tarjetas "revisado_docente" que pertenecen a alguno de
+   * HU-3.1 (CA-3.1.1): lista las tarjetas "revisado_docente" que pertenecen a alguno de
    * los mazos indicados. Es el pool exclusivo del que se generan las preguntas del quiz.
    * @param {number[]} mazoIds - Ids de los mazos incluidos en el rango del quiz.
    * @return {Promise<Tarjeta[]>} Tarjetas aprobadas de esos mazos.

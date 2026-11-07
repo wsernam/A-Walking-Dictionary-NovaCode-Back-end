@@ -1,6 +1,5 @@
 /**
- * @file ProgresoEstudioController.js
- * @brief Controlador REST (CRUD genérico) de ProgresoEstudio: recibe la petición HTTP, llama
+ * @file Controlador REST (CRUD genérico) de ProgresoEstudio: recibe la petición HTTP, llama
  * directamente al repositorio (ProgresoEstudioRepository) y devuelve la respuesta. Cuando exista
  * lógica de negocio en services/, se insertará entre el controlador y el repositorio sin cambiar
  * esta firma.
@@ -12,10 +11,14 @@
 
 import { ProgresoEstudioRepository } from '../repositories/ProgresoEstudioRepository.js';
 
+/**
+ * Controlador REST: cada método recibe una petición HTTP y responde.
+ * @namespace
+ */
 export const ProgresoEstudioController = {
 
   /**
-   * @brief Crea un registro de progreso. Solo limita ultima_valoracion a 30 caracteres (varchar 30
+   * Crea un registro de progreso. Solo limita ultima_valoracion a 30 caracteres (varchar 30
    * del DER); es nullable, por eso no es obligatoria.
    * @param {import('express').Request} req - req.body: columnas de progreso_estudio.
    * @param {import('express').Response} res - 201 con el progreso, 400 si ultima_valoracion excede su longitud, 500 ante error inesperado.
@@ -41,7 +44,7 @@ export const ProgresoEstudioController = {
   },
 
   /**
-   * @brief Consulta un progreso por su id_progreso.
+   * Consulta un progreso por su id_progreso.
    * @param {import('express').Request} req - req.params.id es el id_progreso.
    * @param {import('express').Response} res - 200 con el progreso, 400 si el id no es numérico, 404 si no existe, 500 ante error inesperado.
    */
@@ -62,7 +65,7 @@ export const ProgresoEstudioController = {
   },
 
   /**
-   * @brief Lista todos los registros de progreso.
+   * Lista todos los registros de progreso.
    * @param {import('express').Request} req - Sin parámetros.
    * @param {import('express').Response} res - 200 con el listado, 500 ante error inesperado.
    */
@@ -76,7 +79,7 @@ export const ProgresoEstudioController = {
   },
 
   /**
-   * @brief Actualiza un registro de progreso.
+   * Actualiza un registro de progreso.
    * @param {import('express').Request} req - req.params.id es el id_progreso; req.body trae las columnas.
    * @param {import('express').Response} res - 200 con el progreso actualizado, 400 si el id no es numérico, 404 si no existe, 500 ante error inesperado.
    */
@@ -97,7 +100,7 @@ export const ProgresoEstudioController = {
   },
 
   /**
-   * @brief Elimina un registro de progreso.
+   * Elimina un registro de progreso.
    * @param {import('express').Request} req - req.params.id es el id_progreso.
    * @param {import('express').Response} res - 200 con { eliminado: true }, 400 si el id no es numérico, 404 si no existe, 500 ante error inesperado.
    */

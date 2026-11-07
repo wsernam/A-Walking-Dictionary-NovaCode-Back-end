@@ -1,6 +1,5 @@
 /**
- * @file AutenticacionService.js
- * @brief Servicio de autenticación mediante Google OAuth (HU-5.4).
+ * @file Servicio de autenticación mediante Google OAuth (HU-5.4).
  *
  * HU-5.4: autentica usuarios ya registrados.
  * HU-5.1: puede reutilizar la validación del token de Google para registrar usuarios.
@@ -114,6 +113,10 @@ export function emitirSesion(usuario) {
   };
 }
 
+/**
+ * Servicio: lógica de negocio que usan los controladores.
+ * @namespace
+ */
 export const AutenticacionService = {
 
   /**

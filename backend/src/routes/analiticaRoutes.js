@@ -1,6 +1,5 @@
 /**
- * @file analiticaRoutes.js
- * @brief Rutas REST de analíticas de participación (HU-2.3). Montado en app.js bajo el
+ * @file Rutas REST de analíticas de participación (HU-2.3). Montado en app.js bajo el
  * prefijo /api/v1/teacher/analytics (mismo path que las "Tareas Técnicas" del backlog).
  */
 
@@ -11,7 +10,7 @@ import { authenticate, requireRole } from '../middleware/autenticacionMiddleware
 const router = Router();
 
 /**
- * @brief CA-2.3.1/CA-2.3.2: resumen de participación por mazo.
+ * CA-2.3.1/CA-2.3.2: resumen de participación por mazo.
  * GET /api/v1/teacher/analytics/deck/:id
  * GET /api/v1/teacher/analytics/deck/:id?sinAportes=true
  * Panel exclusivo de docente (HU-2.3): rol docente (CA-5.4.2).

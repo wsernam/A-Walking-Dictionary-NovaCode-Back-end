@@ -1,11 +1,9 @@
 /**
- * @file ResultadoQuiz.js
- * @brief Modelo de dominio: representa la tabla "resultado_quiz" del DER oficial.
+ * @file Modelo de dominio: representa la tabla "resultado_quiz" del DER oficial.
  */
 
 /**
- * @class ResultadoQuiz
- * @brief Resultado de un estudiante en un quiz (HU-3.2). Único por (quiz_id, estudiante_id): es
+ * Resultado de un estudiante en un quiz (HU-3.2). Único por (quiz_id, estudiante_id): es
  * lo que impide el reintento no autorizado (CA-3.2.3).
  *
  * @note Los campos DECIMAL (puntaje_obtenido, puntaje_maximo, calificacion) llegan como string
@@ -14,7 +12,7 @@
  */
 export class ResultadoQuiz {
   /**
-   * @brief Construye un ResultadoQuiz a partir de una fila de la base de datos (o de un payload equivalente).
+   * Construye un ResultadoQuiz a partir de una fila de la base de datos (o de un payload equivalente).
    * @param {number} config.id_resultado - Id autoincremental (pk).
    * @param {number} config.quiz_id - Id del quiz (fk -> quiz.id_quiz).
    * @param {number} config.estudiante_id - Id del estudiante (fk -> usuario.id_usuario).

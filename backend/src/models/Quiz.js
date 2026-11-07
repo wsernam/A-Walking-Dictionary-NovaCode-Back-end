@@ -1,11 +1,9 @@
 /**
- * @file Quiz.js
- * @brief Modelo de dominio: representa la tabla "quiz" del DER oficial.
+ * @file Modelo de dominio: representa la tabla "quiz" del DER oficial.
  */
 
 /**
- * @class Quiz
- * @brief Quiz acumulativo de un curso (HU-3.1).
+ * Quiz acumulativo de un curso (HU-3.1).
  *
  * @note fecha_apertura y fecha_cierre son TIMESTAMP sin zona horaria; src/config/db.js los lee
  * y escribe en UTC. El estado efectivo (programado, abierto, cerrado) se calcula por fecha en
@@ -13,7 +11,7 @@
  */
 export class Quiz {
   /**
-   * @brief Construye un Quiz a partir de una fila de la base de datos (o de un payload equivalente).
+   * Construye un Quiz a partir de una fila de la base de datos (o de un payload equivalente).
    * @param {number} config.id_quiz - Id autoincremental (pk).
    * @param {number} config.curso_id - Id del curso (fk -> curso.id_curso).
    * @param {string} config.titulo - Título del quiz (varchar 200).

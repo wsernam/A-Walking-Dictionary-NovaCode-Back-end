@@ -1,6 +1,5 @@
 /**
- * @file cursoRoutes.js
- * @brief Rutas REST de Curso, requeridas por el frontend. Montadas en app.js bajo el prefijo
+ * @file Rutas REST de Curso, requeridas por el frontend. Montadas en app.js bajo el prefijo
  * /api/v1/courses.
  *
  * Nombre de URL en inglés ("courses") por consistencia con decks/cards; los campos del body y
@@ -15,12 +14,12 @@ import { InscripcionController } from '../controllers/InscripcionController.js';
 const router = Router();
 
 /**
- * @brief Crea un curso nuevo. POST /api/v1/courses
+ * Crea un curso nuevo. POST /api/v1/courses
  * @note Solo docente (OWASP H-13): docente_id se toma del token, no del body.
  */
 router.post('/', authenticate, requireRole('docente'), CursoController.crear);
 
-/** @brief Lista todos los cursos existentes, sin filtros. GET /api/v1/courses */
+/** Lista todos los cursos existentes, sin filtros. GET /api/v1/courses */
 router.get('/',  autenticacionOpcional, CursoController.listar);
 
 // HU-014: inscripción mediante código de acceso
@@ -40,7 +39,7 @@ router.get(
   InscripcionController.listarEstudiantesPorCurso
 );
 
-/** @brief Consulta un curso por su id_curso. GET /api/v1/courses/:id */
+/** Consulta un curso por su id_curso. GET /api/v1/courses/:id */
 router.get('/:id',   autenticacionOpcional, CursoController.obtenerPorId);
 
 export default router;

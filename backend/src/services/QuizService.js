@@ -1,6 +1,5 @@
 /**
- * @file QuizService.js
- * @brief HU-3.1: generación automática de quices acumulativos a partir de las tarjetas
+ * @file HU-3.1: generación automática de quices acumulativos a partir de las tarjetas
  * aprobadas ("revisado_docente") de un rango de mazos elegido por la docente. HU-3.2: envío y
  * calificación de las respuestas de un estudiante.
  *
@@ -39,17 +38,17 @@ import { RespuestaQuizRepository } from '../repositories/RespuestaQuizRepository
 import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
 import { errorApi } from '../utils/codigosError.js';
 
-/** @brief Margen (ms) que se tolera al recibir un envío tras vencer el tiempo/cierre (latencia). */
+/** Margen (ms) que se tolera al recibir un envío tras vencer el tiempo/cierre (latencia). */
 const MARGEN_ENVIO_MS = 30 * 1000;
 
-/** @brief Máximo de caracteres de quiz.titulo (columna VARCHAR(200)). */
+/** Máximo de caracteres de quiz.titulo (columna VARCHAR(200)). */
 const MAX_TITULO = 200;
 
-/** @brief Traducciones distintas mínimas para que toda pregunta tenga 1 correcta + 3 distractores. */
+/** Traducciones distintas mínimas para que toda pregunta tenga 1 correcta + 3 distractores. */
 const MIN_TRADUCCIONES_DISTINTAS = 4;
 
 /**
- * @brief Crea un Error con un código HTTP adjunto, para que el controlador que atrapa la
+ * Crea un Error con un código HTTP adjunto, para que el controlador que atrapa la
  * excepción sepa con qué status responder (mismo patrón que ContextoService.js).
  * @param {number} status - Código HTTP a usar en la respuesta (400, 404, 409, ...).
  * @param {string} code - Código fijo en inglés (ver docs/codigos-error.md).
@@ -61,7 +60,7 @@ function error(status, code, message) {
 }
 
 /**
- * @brief CA-3.2.3: construye el error 409 de reintento con el resumen del envío previo adjunto
+ * CA-3.2.3: construye el error 409 de reintento con el resumen del envío previo adjunto
  * (`err.resultado` y `err.respuestas`), que el controlador devuelve en el body.
  * @param {import('../models/ResultadoQuiz.js').ResultadoQuiz} resultadoPrevio - Resultado ya
  * registrado para ese quiz y estudiante.
@@ -75,7 +74,7 @@ async function errorReintento(resultadoPrevio) {
 }
 
 /**
- * @brief Verifica que el estudiante esté inscrito en el curso del quiz.
+ * Verifica que el estudiante esté inscrito en el curso del quiz.
  * @param {import('../models/Quiz.js').Quiz} quiz - Quiz que se quiere consultar o responder.
  * @param {number} estudiante_id - id_usuario del estudiante autenticado.
  * @return {Promise<void>}
@@ -89,7 +88,7 @@ async function verificarInscripcion(quiz, estudiante_id) {
 }
 
 /**
- * @brief Recorta una pregunta para el estudiante: sin `respuesta_correcta` ni `tarjeta_id` (con
+ * Recorta una pregunta para el estudiante: sin `respuesta_correcta` ni `tarjeta_id` (con
  * la tarjeta se podría consultar la traducción).
  * @param {import('../models/PreguntaQuiz.js').PreguntaQuiz} pregunta - Pregunta completa.
  * @return {Object} { id_pregunta, tipo_pregunta, enunciado, opcion_a..d, orden }.
@@ -99,7 +98,7 @@ function sinClaveDeRespuesta({ id_pregunta, tipo_pregunta, enunciado, opcion_a, 
 }
 
 /**
- * @brief Indica si un valor es un entero mayor o igual a 1 (acepta números o strings numéricos,
+ * Indica si un valor es un entero mayor o igual a 1 (acepta números o strings numéricos,
  * como llegan desde un formulario).
  * @param {*} valor - Valor a validar.
  * @return {boolean} true si `Number(valor)` es un entero >= 1.
@@ -110,7 +109,7 @@ function esEnteroPositivo(valor) {
 }
 
 /**
- * @brief Baraja un arreglo sin mutar el original (algoritmo Fisher-Yates).
+ * Baraja un arreglo sin mutar el original (algoritmo Fisher-Yates).
  * @param {Array} arreglo - Arreglo a barajar.
  * @return {Array} Copia nueva de `arreglo` en orden aleatorio.
  */
@@ -125,7 +124,7 @@ function barajar(arreglo) {
 }
 
 /**
- * @brief Normaliza una traducción para compararla sin distinguir mayúsculas ni espacios sobrantes.
+ * Normaliza una traducción para compararla sin distinguir mayúsculas ni espacios sobrantes.
  * @param {string} texto - Traducción a normalizar.
  * @return {string} Texto en minúsculas y sin espacios al inicio ni al final.
  */
@@ -134,7 +133,7 @@ function normalizar(texto) {
 }
 
 /**
- * @brief Construye una pregunta de opción múltiple para una tarjeta, con distractores
+ * Construye una pregunta de opción múltiple para una tarjeta, con distractores
  * aleatorios tomados del resto del pool de tarjetas aprobadas (CA-3.1.2), sin repetir opciones.
  * @param {import('../models/Tarjeta.js').Tarjeta} tarjetaObjetivo - Tarjeta sobre la que se
  * pregunta; su traducción es la respuesta correcta.
@@ -174,9 +173,13 @@ function construirPregunta(tarjetaObjetivo, poolCompleto, orden) {
   };
 }
 
+/**
+ * Servicio: lógica de negocio que usan los controladores.
+ * @namespace
+ */
 export const QuizService = {
   /**
-   * @brief CA-3.1.3: calcula el estado "efectivo" del quiz según la fecha actual, sin
+   * CA-3.1.3: calcula el estado "efectivo" del quiz según la fecha actual, sin
    * sobrescribir el estado guardado en base de datos.
    * @note Decisión: sin infraestructura de jobs/cron en el proyecto, el estado real
    * ("programado" → "abierto" → "cerrado") se deriva en cada consulta en vez de actualizarse
@@ -200,7 +203,7 @@ export const QuizService = {
   },
 
   /**
-   * @brief Adjunta `estado_efectivo` a un Quiz para exponerlo en las respuestas de la API, sin
+   * Adjunta `estado_efectivo` a un Quiz para exponerlo en las respuestas de la API, sin
    * modificar el objeto original.
    * @param {import('../models/Quiz.js').Quiz} quiz - Quiz a enriquecer.
    * @return {Object} Copia superficial del quiz con la propiedad `estado_efectivo` agregada.
@@ -210,7 +213,7 @@ export const QuizService = {
   },
 
   /**
-   * @brief HU-3.1 (CA-3.1.1, CA-3.1.2, CA-3.1.3): genera un quiz acumulativo a partir de las
+   * HU-3.1 (CA-3.1.1, CA-3.1.2, CA-3.1.3): genera un quiz acumulativo a partir de las
    * tarjetas "revisado_docente" de los mazos indicados.
    * @param {Object} datos
    * @param {number} datos.curso_id - Curso al que pertenece el quiz.
@@ -350,7 +353,7 @@ export const QuizService = {
   },
 
   /**
-   * @brief HU-3.2 (CA-3.2.1, CA-3.2.2, CA-3.2.3): registra el envío de respuestas de un
+   * HU-3.2 (CA-3.2.1, CA-3.2.2, CA-3.2.3): registra el envío de respuestas de un
    * estudiante para un quiz y calcula su calificación.
    * @param {number} quiz_id - Id del quiz que se está respondiendo.
    * @param {number} estudiante_id - id_usuario del estudiante autenticado (sale del JWT, no del
@@ -482,7 +485,7 @@ export const QuizService = {
   },
 
   /**
-   * @brief HU-3.2: devuelve las preguntas de un quiz para que el estudiante lo responda, SIN
+   * HU-3.2: devuelve las preguntas de un quiz para que el estudiante lo responda, SIN
    * `respuesta_correcta` ni `tarjeta_id` (con la tarjeta se podría consultar la traducción).
    * @note Endpoint adicional aprobado por el equipo (GET /api/v1/quizzes/:id/preguntas): el
    * backlog solo lista POST /quizzes/:id/submit, pero sin este no hay forma de pintar el
@@ -522,7 +525,7 @@ export const QuizService = {
   },
 
   /**
-   * @brief HU-3.2: lista de quices del estudiante, solo de los cursos donde tiene inscripción
+   * HU-3.2: lista de quices del estudiante, solo de los cursos donde tiene inscripción
    * activa, con su resultado si ya envió el quiz. GET /api/v1/quizzes/mine
    * @note Endpoint adicional pedido por el frontend (docs/contrato-quiz-estudiante.md, 2.1).
    * @param {number} estudiante_id - id_usuario del estudiante autenticado (sale del JWT).
@@ -535,7 +538,7 @@ export const QuizService = {
   },
 
   /**
-   * @brief CA-3.2.3: resumen del envío previo del estudiante, en cualquier dispositivo y aunque
+   * CA-3.2.3: resumen del envío previo del estudiante, en cualquier dispositivo y aunque
    * el quiz ya haya cerrado. GET /api/v1/quizzes/:id/result
    * @note Endpoint adicional pedido por el frontend (docs/contrato-quiz-estudiante.md, 2.2). No
    * depende del estado del quiz: el submit con el quiz cerrado responde 400, no el 409 con el
