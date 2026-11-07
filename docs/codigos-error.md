@@ -124,7 +124,7 @@ Si un error no tiene código específico, la API le pone uno según su status (`
 
 ## Exportacion PDF
 
-| `REPORT_FORBIDDEN` | 403 | El usuario no puede ver ese reporte (estudiante que pide el de otro, o rol sin permiso) | You do not have permission to download this report. |
+| `REPORT_FORBIDDEN` | 403 | El usuario no puede ver ese reporte (estudiante que pide el de otro, rol sin permiso, o docente que pide el reporte de un curso que no es suyo, HU-020) | You do not have permission to download this report. |
 | `REPORT_STUDENT_NOT_FOUND` | 404 | La docente pidió un student_id que no está en sus cursos | The student was not found. |
 ## Para agregar un código nuevo
 
