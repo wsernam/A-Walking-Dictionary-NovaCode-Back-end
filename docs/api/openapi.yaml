@@ -597,6 +597,380 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }
         '500': { $ref: '#/components/responses/InternalError' }
+  # ======================= courses =======================
+  /courses:
+    post:
+      tags: [courses]
+      operationId: crearCurso
+      summary: Crea un curso
+      description: |
+        Solo docente. El `docente_id` sale del token (no del body). Valida que vengan todos los campos
+        (NOT NULL en el DER) y sus longitudes máximas.
+      x-hu: HU-5.3
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, periodo, estado, fecha_inicio, fecha_fin]
+              properties:
+                nombre: { type: string, maxLength: 150 }
+                periodo: { type: string, maxLength: 20, example: 2026-2 }
+                estado: { type: string, maxLength: 30 }
+                fecha_inicio: { type: string, format: date }
+                fecha_fin: { type: string, format: date }
+      responses:
+        '201':
+          description: Curso creado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Curso' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    get:
+      tags: [courses]
+      operationId: listarCursos
+      summary: Lista los cursos
+      description: Token opcional. Todos los cursos, sin filtros. `codigo_acceso` solo se incluye si quien consulta es docente.
+      x-hu: HU-5.3
+      security: [{}, { bearerAuth: [] }]
+      responses:
+        '200':
+          description: Lista de cursos.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Curso' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /courses/enroll:
+    post:
+      tags: [courses]
+      operationId: inscribirsePorCodigo
+      summary: Se inscribe en un curso con el código de acceso
+      description: |
+        **Supuesto pendiente de validar (D-04):** CLAUDE.md dice que `curso` no tiene columna para el código,
+        pero `init.sql` ya tiene `curso.codigo_acceso VARCHAR(20) UNIQUE` y el código la usa. Falta cerrar D-04.
+
+        Solo estudiante. El `estudiante_id` sale del token. El código se normaliza (sin espacios y en mayúsculas).
+        La inscripción queda `activa`.
+      x-hu: HU-5.3
+      x-ca: [CA-5.3.1]
+      x-pendiente: 'D-04: curso.codigo_acceso ya existe en init.sql; falta cerrar la discrepancia en CLAUDE.md'
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [codigo_acceso]
+              properties:
+                codigo_acceso: { type: string, maxLength: 20 }
+      responses:
+        '201':
+          description: Inscripción creada.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Inscripcion' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: El código no corresponde a ningún curso (ENROLL_INVALID_CODE).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '409':
+          description: Ya está inscrito en el curso (ENROLL_ALREADY_ENROLLED).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /courses/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [courses]
+      operationId: obtenerCurso
+      summary: Obtiene un curso
+      description: Token opcional. `codigo_acceso` solo se incluye si quien consulta es docente.
+      x-hu: HU-5.3
+      security: [{}, { bearerAuth: [] }]
+      responses:
+        '200':
+          description: El curso.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Curso' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /courses/{id}/access-code:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    post:
+      tags: [courses]
+      operationId: generarCodigoAcceso
+      summary: Genera el código de acceso del curso
+      description: |
+        **Supuesto pendiente de validar (D-04):** CLAUDE.md dice que `curso` no tiene columna para el código,
+        pero `init.sql` ya tiene `curso.codigo_acceso VARCHAR(20) UNIQUE` y el código la usa. Falta cerrar D-04.
+
+        Solo docente. Genera un código aleatorio de 8 caracteres (con `node:crypto`), único entre los cursos,
+        y lo guarda en el curso (reemplaza el anterior).
+      x-hu: HU-5.3
+      x-ca: [CA-5.3.1]
+      x-pendiente: 'D-04: curso.codigo_acceso ya existe en init.sql; falta cerrar la discrepancia en CLAUDE.md'
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Código generado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id_curso: { type: integer }
+                  codigo_acceso: { type: string, maxLength: 20 }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /courses/{id}/assign:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    post:
+      tags: [courses]
+      operationId: asignarEstudiantePorCorreo
+      summary: Inscribe a un estudiante por su correo
+      description: Solo docente. Busca al estudiante por correo y lo inscribe en el curso con estado `activa`.
+      x-hu: HU-5.3
+      x-ca: [CA-5.3.2]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '201':
+          description: Inscripción creada.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Inscripcion' } } }
+        '400':
+          description: Id inválido, falta `email` o el usuario no es estudiante (USER_NOT_STUDENT).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: El curso no existe (COURSE_NOT_FOUND) o no hay estudiante con ese correo (STUDENT_NOT_FOUND).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '409':
+          description: El estudiante ya está inscrito (ENROLL_ALREADY_ENROLLED).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /courses/{id}/students:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [courses]
+      operationId: listarEstudiantesCurso
+      summary: Lista los estudiantes inscritos en el curso
+      description: Solo docente. Cada estudiante con su nivel, su código estudiantil y la cantidad de palabras aportadas.
+      x-hu: HU-5.3
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Estudiantes del curso.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/EstudianteCurso' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ======================= analytics =======================
+  /teacher/analytics/deck/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [analytics]
+      operationId: resumenParticipacionMazo
+      summary: Resumen de participación por mazo
+      description: |
+        Solo docente. Una fila por estudiante inscrito en el curso del mazo, con palabras aportadas,
+        coautorías y tarjetas pendientes o aprobadas (CA-2.3.1). Con `sinAportes=true` solo devuelve a quienes
+        no tienen ningún aporte en el mazo (CA-2.3.2). No usa caché: cada consulta refleja el estado actual de
+        la base de datos (así se cubre CA-2.3.3, sin WebSockets).
+      x-hu: HU-2.3
+      x-ca: [CA-2.3.1, CA-2.3.2, CA-2.3.3]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: sinAportes
+          in: query
+          required: false
+          schema: { type: string, enum: ['true'] }
+          description: Con `true`, solo estudiantes sin aportes en el mazo.
+      responses:
+        '200':
+          description: Participación por estudiante.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/ParticipacionMazo' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ======================= study =======================
+  /study/review-session:
+    post:
+      tags: [study]
+      operationId: iniciarSesionRepaso
+      summary: Inicia una sesión de repaso
+      description: |
+        Solo estudiante, y la inscripción debe ser suya (403 ENROLLMENT_FORBIDDEN si no, también si no existe).
+        Devuelve todas las tarjetas `revisado_docente` de los mazos ya abiertos del curso, ordenadas por SM-2:
+        primero las vencidas, luego las nuevas y luego las demás. Cada una trae su `progreso` (null si es nueva).
+      x-hu: HU-4.1
+      x-ca: [CA-4.1.1]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [inscripcion_id]
+              properties:
+                inscripcion_id: { type: integer }
+      responses:
+        '200':
+          description: Tarjetas de la sesión.
+          content: { application/json: { schema: { $ref: '#/components/schemas/SesionRepaso' } } }
+        '400':
+          description: Falta o es inválido `inscripcion_id`, o la inscripción no está activa (ENROLLMENT_INACTIVE).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /study/review-session/review:
+    post:
+      tags: [study]
+      operationId: registrarValoracion
+      summary: Registra la valoración de una tarjeta
+      description: |
+        Solo estudiante, y la inscripción debe ser suya. Aplica SM-2 para recalcular el factor de facilidad,
+        el intervalo y la próxima fecha de repaso (CA-4.1.2).
+      x-hu: HU-4.1
+      x-ca: [CA-4.1.2]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [inscripcion_id, tarjeta_id, valoracion]
+              properties:
+                inscripcion_id: { type: integer }
+                tarjeta_id: { type: integer }
+                valoracion: { type: string, enum: [Repetir, Difícil, Buena, Fácil] }
+      responses:
+        '200':
+          description: Progreso actualizado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/ProgresoEstudio' } } }
+        '400':
+          description: Faltan campos, ids inválidos o valoración no válida (STUDY_INVALID_RATING).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: La tarjeta no está disponible para esa inscripción (STUDY_CARD_NOT_AVAILABLE).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ======================= users =======================
+  /users/profile:
+    patch:
+      tags: [users]
+      operationId: actualizarPerfil
+      summary: Actualiza el perfil académico
+      description: |
+        Solo estudiante. Actualiza el perfil del usuario del token (el id no viaja en el body ni en la URL).
+        Todos los campos son opcionales.
+      x-hu: HU-5.2
+      x-ca: [CA-5.2.1, CA-5.2.2]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nivel_ingles: { type: string, enum: [A1, A2, B1, B2, C1, C2] }
+                codigo_estudiantil: { type: string, maxLength: 20 }
+                avatar: { type: string, maxLength: 500, description: URL o ruta de la imagen; se rechaza un data URI }
+                intereses: { type: array, items: { type: string, minLength: 1 } }
+      responses:
+        '200':
+          description: Perfil actualizado.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Perfil' } } }
+        '400':
+          description: Nivel no válido (PROFILE_INVALID_LEVEL) u otro dato no válido (PROFILE_INVALID_DATA).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /users/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [users]
+      operationId: obtenerPerfil
+      summary: Obtiene el perfil académico
+      description: |
+        Requiere sesión. El estudiante solo puede ver su propio perfil (403 PROFILE_FORBIDDEN); la docente
+        puede ver el de cualquiera (auditoría OWASP H-01).
+      x-hu: HU-5.2
+      x-ca: [CA-5.2.1, CA-5.4.2]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: El perfil.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Perfil' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ======================= students =======================
+  /students/{id}/context:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      tags: [students]
+      operationId: obtenerContextoAcademico
+      summary: Obtiene el contexto académico del estudiante
+      description: |
+        Requiere sesión, con el mismo criterio de propiedad que GET /users/{id}: el estudiante solo ve el suyo
+        (403 STUDENT_CONTEXT_FORBIDDEN). Devuelve la inscripción más reciente; sin inscripción, los campos vienen en null.
+      x-hu: HU-5.2
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Contexto académico.
+          content: { application/json: { schema: { $ref: '#/components/schemas/ContextoAcademico' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
 components:
   securitySchemes:
     bearerAuth:
