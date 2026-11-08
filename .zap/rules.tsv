@@ -1,0 +1,8 @@
+# Reglas de OWASP ZAP para el workflow dast-zap.yml (formato: id<TAB>acción<TAB>nombre).
+# Acciones: IGNORE (no se reporta), INFO, WARN (se reporta, no falla) o FAIL.
+# Solo se ignoran falsos positivos verificados; cada uno con su justificación.
+#
+# 30002 Format String Error: falso positivo. Node.js no interpreta %n ni %s en los textos que recibe;
+# ZAP lo marca porque PUT /quizzes/:id respondió 500 con un "estado" inválido, error que ya reporta
+# la regla 100000 (validación de entrada, ver docs/seguridad/README.md). Verificado 2026-11-08.
+30002	IGNORE	(Format String Error)

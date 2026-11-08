@@ -12,12 +12,15 @@ Dónde vive cada cosa:
 
 ## Estado de los marcos de documentación
 
+Cumplimiento completo de la guía de seguridad y documentación (qué es, para qué sirve, cómo se implementó y estado de cada punto): [`cumplimiento-guia-seguridad-documentacion.md`](cumplimiento-guia-seguridad-documentacion.md).
+
 | Marco / estándar | Ubicación | Estado |
 | --- | --- | --- |
 | OpenAPI | [`docs/api/openapi.yaml`](api/openapi.yaml) (cómo verlo y validarlo: [`api/README.md`](api/README.md)) | Completo (con supuestos pendientes marcados con `x-pendiente`) |
 | Arc42 | `docs/arquitectura/arc42/` | Parcial: ver «Contexto y decisiones» (`docs/ai/CONTEXTO_PROYECTO.md`, `docs/ai/DECISIONES.md`) |
 | Documentación de usuario (IEEE 1063 / ISO/IEC/IEEE 26514) | Front-end: `docs/usuario/` | Pendiente |
 | Documentación del código (JSDoc) | Comentarios en `backend/src/` | Parcial: ver pendientes en el plan de documentación |
+| Pruebas de seguridad (SAST, SCA, IAST, DAST) | [`seguridad/README.md`](seguridad/README.md) | Completo (DAST con OWASP ZAP; IAST no aplicado, justificado) |
 
 ## API y contratos con el front
 
