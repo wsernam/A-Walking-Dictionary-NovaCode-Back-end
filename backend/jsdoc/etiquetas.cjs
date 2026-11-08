@@ -13,7 +13,9 @@
  *    analizador de tipos de JSDoc no entiende la sintaxis de TypeScript.
  * 5. @class X: se quita, porque JSDoc ya reconoce las clases de ES6 y con la etiqueta las
  *    duplica (Aporte.html y Aporte_Aporte.html).
- * 6. Contexto del archivo: la página de cada objeto exportado (@namespace) muestra también la
+ * 6. Objetos exportados (export const XService = {...}): se marcan como @namespace para que
+ *    JSDoc muestre sus funciones; sin comentario propio las ocultaba.
+ * 7. Contexto del archivo: la página de cada objeto exportado (@namespace) muestra también la
  *    descripción de su archivo, que es donde está la HU y el detalle.
  */
 
@@ -48,6 +50,33 @@ function definirEtiquetaDeTexto(diccionario, nombre, prefijo) {
   });
 }
 
+/**
+ * @brief Marca como @namespace cada "export const X = { ... }" (servicios, controladores,
+ * repositorios). Sin un comentario propio, JSDoc oculta las funciones del objeto; con la marca
+ * aparecen en su página. Si el objeto ya tiene comentario, se le agrega la etiqueta.
+ * @param {string} codigo - Código fuente del archivo.
+ * @return {string} El código con las marcas.
+ */
+function marcarObjetosExportados(codigo) {
+  const lineas = codigo.split('\n');
+  for (let i = 0; i < lineas.length; i++) {
+    if (!/^export const [\w$]+ = \{/.test(lineas[i])) continue;
+    let anterior = i - 1;
+    while (anterior >= 0 && lineas[anterior].trim() === '') anterior--;
+    if (anterior < 0 || !lineas[anterior].trim().endsWith('*/')) {
+      lineas[i] = `/** @namespace */ ${lineas[i]}`;
+      continue;
+    }
+    let inicio = anterior;
+    while (inicio > 0 && !lineas[inicio].includes('/**')) inicio--;
+    const comentario = lineas.slice(inicio, anterior + 1).join('\n');
+    if (!comentario.includes('@namespace')) {
+      lineas[anterior] = lineas[anterior].replace(/\*\/\s*$/, '\n * @namespace\n */');
+    }
+  }
+  return lineas.join('\n');
+}
+
 exports.handlers = {
   beforeParse(e) {
     e.source = e.source
@@ -55,6 +84,7 @@ exports.handlers = {
       // "@class X" encima de "class X {...}" hace que JSDoc cree la clase dos veces
       // (una por la etiqueta y otra por el código); la clase ya se detecta sola.
       .replace(/^[ \t]*\*[ \t]*@class[ \t]+[\w$]+[ \t]*\r?\n/gm, '');
+    e.source = marcarObjetosExportados(e.source);
   },
 
   parseComplete(e) {
