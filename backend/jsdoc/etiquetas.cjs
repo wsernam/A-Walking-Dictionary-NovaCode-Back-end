@@ -11,7 +11,9 @@
  * 3. @note y @warning: se agregan a la descripción como "Nota: ..." y "Advertencia: ...".
  * 4. Tipos con import(): {import('express').Request} se simplifica a {Request}, porque el
  *    analizador de tipos de JSDoc no entiende la sintaxis de TypeScript.
- * 5. Contexto del archivo: la página de cada objeto exportado (@namespace) muestra también la
+ * 5. @class X: se quita, porque JSDoc ya reconoce las clases de ES6 y con la etiqueta las
+ *    duplica (Aporte.html y Aporte_Aporte.html).
+ * 6. Contexto del archivo: la página de cada objeto exportado (@namespace) muestra también la
  *    descripción de su archivo, que es donde está la HU y el detalle.
  */
 
@@ -48,7 +50,11 @@ function definirEtiquetaDeTexto(diccionario, nombre, prefijo) {
 
 exports.handlers = {
   beforeParse(e) {
-    e.source = e.source.replace(/import\((['"])[^'"]+\1\)\./g, '');
+    e.source = e.source
+      .replace(/import\((['"])[^'"]+\1\)\./g, '')
+      // "@class X" encima de "class X {...}" hace que JSDoc cree la clase dos veces
+      // (una por la etiqueta y otra por el código); la clase ya se detecta sola.
+      .replace(/^[ \t]*\*[ \t]*@class[ \t]+[\w$]+[ \t]*\r?\n/gm, '');
   },
 
   parseComplete(e) {
