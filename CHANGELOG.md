@@ -10,6 +10,7 @@ Notas:
 ## [Sin publicar]
 
 ### Agregado
+- 2026-11-07 · Documentación del código generada con JSDoc a partir de los comentarios (`npm run docs:code`, `docs/codigo/README.md`).
 - 2026-11-06 · Especificación OpenAPI 3.0.3 de la API (`docs/api/openapi.yaml`), con los 55 endpoints montados.
 - 2026-11-04 · HU-021: `GET /api/v1/reports/quizzes/:id/results/export-pdf`, PDF de resultados por quiz (solo docente). (#44)
 - 2026-11-03 · HU-018: `GET /api/v1/reports/students/:id/progress/export-pdf`, PDF de progreso individual. (#41)
