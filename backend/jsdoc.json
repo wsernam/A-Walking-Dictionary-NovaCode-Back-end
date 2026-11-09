@@ -1,0 +1,19 @@
+{
+  "source": {
+    "include": ["src"],
+    "includePattern": "\\.js$"
+  },
+  "sourceType": "module",
+  "plugins": ["plugins/markdown", "jsdoc/etiquetas.cjs"],
+  "opts": {
+    "destination": "docs-generados",
+    "recurse": true,
+    "encoding": "utf8",
+    "readme": "jsdoc/INICIO.md"
+  },
+  "templates": {
+    "default": {
+      "includeDate": false
+    }
+  }
+}

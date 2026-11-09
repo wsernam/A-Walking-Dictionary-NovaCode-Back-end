@@ -139,6 +139,7 @@ Se leen de `backend/.env` (plantilla: `backend/.env.example`).
 | `npm run test:coverage` | Pruebas unitarias con cobertura |
 | `npm run test:funcional` | Pruebas funcionales por CA (requiere backend y PostgreSQL corriendo; ver [`backend/pruebas-funcionales/README.md`](backend/pruebas-funcionales/README.md)) |
 | `npm run test:security` | Suite OWASP (ver [`backend/security-suite/README.md`](backend/security-suite/README.md)) |
+| `npm run docs:code` | Genera la documentación del código en `backend/docs-generados/` (ver [`docs/codigo/README.md`](docs/codigo/README.md)) |
 
 ## Login y datos de prueba
 
