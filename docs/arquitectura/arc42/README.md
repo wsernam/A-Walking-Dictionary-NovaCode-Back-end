@@ -12,10 +12,10 @@ Documentación de la arquitectura del sistema según la plantilla [arc42](https:
 | 6 | [Vista de ejecución](06-vista-de-ejecucion.md) | Disponible |
 | 7 | [Vista de despliegue](07-vista-de-despliegue.md) | Disponible |
 | 8 | [Conceptos transversales](08-conceptos-transversales.md) | Disponible |
-| 9 | Decisiones de arquitectura | Pendiente |
-| 10 | Requisitos de calidad | Pendiente |
-| 11 | Riesgos y deuda técnica | Pendiente |
-| 12 | Glosario | Pendiente |
+| 9 | [Decisiones de arquitectura](09-decisiones.md) | Disponible |
+| 10 | [Requisitos de calidad](10-requisitos-de-calidad.md) | Disponible |
+| 11 | [Riesgos y deuda técnica](11-riesgos-y-deuda-tecnica.md) | Disponible |
+| 12 | [Glosario](12-glosario.md) | Disponible |
 
 Los diagramas están escritos en [Mermaid](https://mermaid.js.org/) y se ven directamente en GitHub.
 
