@@ -1,0 +1,79 @@
+name: SCA - Dependencias
+
+# Variante para cuando el package.json está en la subcarpeta backend/
+# y la raíz del repositorio está un nivel más arriba.
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+  schedule:
+    - cron: "0 13 * * 1" # cada lunes, 8:00 hora Colombia
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sca-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  npm-audit:
+    name: npm audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # Reporte completo (siempre se genera, aunque haya hallazgos)
+      - name: Generar reporte JSON
+        run: npm audit --omit=dev --json > npm-audit-report.json || true
+
+      - name: Resumen en el job
+        run: |
+          echo "## Resultado de npm audit (producción)" >> "$GITHUB_STEP_SUMMARY"
+          node -e '
+            const r = require("./npm-audit-report.json");
+            const v = (r.metadata && r.metadata.vulnerabilities) || {};
+            const rows = ["info","low","moderate","high","critical","total"]
+              .map(k => `| ${k} | ${v[k] ?? 0} |`).join("\n");
+            console.log("| Severidad | Cantidad |\n| --- | --- |\n" + rows);
+          ' >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: npm-audit-report
+          path: backend/npm-audit-report.json
+
+      # Puerta: falla el pipeline si hay vulnerabilidades altas o críticas
+      - name: Fallar si hay high o critical
+        run: npm audit --omit=dev --audit-level=high
+
+  dependency-review:
+    name: Revisión de dependencias del PR
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure
