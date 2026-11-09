@@ -6,7 +6,7 @@
 ## 0. Cabecera
 - Plantilla: 3.0 (facdbd59)
 - Sprint en curso: 4 · Reportes en PDF (HE-07) · líder del sprint (aprueba contratos): **Karen Sandoval**
-- Fuentes al construirlo: backend@476b924, frontend@5e461f2 · backlog: 21 HU · bitácora: 47 sesiones
+- Fuentes al construirlo: backend@722c683, frontend@dfc9de5 · backlog: 21 HU · bitácora: 52 sesiones
 - Se reconstruye con: `python tools/hitl/hitl.py build` (o lo hace el flujo de GitHub Actions y abre un PR para revisión humana)
 
 ## 1. Cómo usar este documento
@@ -349,17 +349,18 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 **Antes de proponer nada, lee los markdowns que apliquen a la tarea** (README y carpeta `docs/` o `doc/` de cada repo). Los marcados como CONTRATO son vinculantes: si tu cambio los contradice, aplica la puerta P2.
 
 - `backend:.github/pull_request_template.md` — (sin título) (497 caracteres; último cambio: 3c9f121 2026-10-22)
-- `backend:CHANGELOG.md` — Changelog (4.134 caracteres; último cambio: b972508 2026-11-06)
-- `backend:CLAUDE.md` — CLAUDE.md — Contexto del proyecto (40.753 caracteres; último cambio: 1ec8ec6 2026-11-06)
+- `backend:CHANGELOG.md` — Changelog (4.269 caracteres; último cambio: 352bfe6 2026-11-07)
+- `backend:CLAUDE.md` — CLAUDE.md — Contexto del proyecto (42.037 caracteres; último cambio: 8db00ff 2026-11-07)
 - `backend:CONTRIBUTING.md` — Guía de contribución — A Walking Dictionary (Back-end) (5.073 caracteres; último cambio: bfe993e 2026-11-06)
-- `backend:README.md` — A Walking Dictionary (7.472 caracteres; último cambio: 6a6db77 2026-11-06)
+- `backend:README.md` — A Walking Dictionary (7.617 caracteres; último cambio: 352bfe6 2026-11-07)
 - `backend:SECURITY.md` — Política de seguridad (1.571 caracteres; último cambio: bfe993e 2026-11-06)
 - `backend:backend/Auditoria_OWASP_Top10_2025.md` — Auditoría de seguridad — OWASP Top 10:2025 (22.729 caracteres; último cambio: 6dcb4bc 2026-10-08)
+- `backend:backend/jsdoc/INICIO.md` — A Walking Dictionary — Documentación del código (Back-end) (525 caracteres; último cambio: 352bfe6 2026-11-07)
 - `backend:backend/pruebas-funcionales/README.md` — Pruebas funcionales de la API (2.981 caracteres; último cambio: f95d046 2026-10-17)
 - `backend:backend/security-suite/README.md` — NovaCode — Suite OWASP v2 (2.101 caracteres; último cambio: ad52a8c 2026-10-18)
 - `backend:docs/CAMBIO_APORTE_ESTADO.md` — Cambio: columna `aporte.estado` y ajustes a la PR #5 (coautorías) (6.606 caracteres; último cambio: c2c2503 2026-09-23)
 - `backend:docs/CAMBIO_REPASO_SM2.md` — Cambio: el repaso SM-2 ya no se queda sin tarjetas (HU-4.1) (7.128 caracteres; último cambio: 4364fa2 2026-09-30)
-- `backend:docs/CHANGELOG_BACKEND.md` — Changelog - Estructura Backend (48.139 caracteres; último cambio: bfe993e 2026-11-06)
+- `backend:docs/CHANGELOG_BACKEND.md` — Changelog - Estructura Backend (49.838 caracteres; último cambio: cce1201 2026-11-07)
 - **[CONTRATO]** `backend:docs/CONTRATO_AUTENTICACION_FRONTEND.md` — Contrato de Autenticación (login con Google) — para Frontend (9.675 caracteres; último cambio: bc07c4f 2026-09-24)
 - **[CONTRATO]** `backend:docs/CONTRATO_FRONTEND_HU-2.3.md` — Contrato Backend → Frontend — HU-2.3 (HU-006 en la numeración de sprint del equipo) (5.140 caracteres; último cambio: 36f0ae3 2026-10-04)
 - **[CONTRATO]** `backend:docs/CONTRATO_FRONTEND_HU-3.1.md` — Contrato Backend → Frontend — HU-3.1 (HU-007 en la numeración de sprint del equipo) (11.950 caracteres; último cambio: 9be996e 2026-10-11)
@@ -369,8 +370,22 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 - `backend:docs/FLUJO_PERFIL_ACADEMICO.md` — Flujo de Perfil Académico (HU-5.2) (7.115 caracteres; último cambio: 3adfb5a 2026-09-19)
 - `backend:docs/FLUJO_REVISION_TARJETAS.md` — Flujo de Revisión de Tarjetas — Individual vs. Coautoría (5.697 caracteres; último cambio: 5d3877e 2026-09-29)
 - `backend:docs/INFORME_PRUEBAS_FUNCIONALES.md` — Informe de pruebas funcionales (10.748 caracteres; último cambio: 4bb640b 2026-10-18)
-- `backend:docs/README.md` — Documentación — A Walking Dictionary (Back-end) (4.514 caracteres; último cambio: b972508 2026-11-06)
+- `backend:docs/README.md` — Documentación — A Walking Dictionary (Back-end) (4.736 caracteres; último cambio: 722c683 2026-11-08)
 - **[CONTRATO]** `backend:docs/api/README.md` — Especificación de la API (OpenAPI) (2.743 caracteres; último cambio: b972508 2026-11-06)
+- `backend:docs/arquitectura/arc42/01-introduccion-y-metas.md` — 1. Introducción y metas (3.913 caracteres; último cambio: 8290960 2026-11-07)
+- `backend:docs/arquitectura/arc42/02-restricciones.md` — 2. Restricciones de la arquitectura (2.344 caracteres; último cambio: 8290960 2026-11-07)
+- `backend:docs/arquitectura/arc42/03-contexto-y-alcance.md` — 3. Contexto y alcance del sistema (2.904 caracteres; último cambio: 8db00ff 2026-11-07)
+- `backend:docs/arquitectura/arc42/04-estrategia-de-solucion.md` — 4. Estrategia de solución (2.870 caracteres; último cambio: 84897f2 2026-11-07)
+- `backend:docs/arquitectura/arc42/05-vista-de-bloques.md` — 5. Vista de bloques de construcción (7.278 caracteres; último cambio: 84897f2 2026-11-07)
+- `backend:docs/arquitectura/arc42/06-vista-de-ejecucion.md` — 6. Vista de ejecución (4.575 caracteres; último cambio: 84897f2 2026-11-07)
+- `backend:docs/arquitectura/arc42/07-vista-de-despliegue.md` — 7. Vista de despliegue (4.238 caracteres; último cambio: 84897f2 2026-11-07)
+- `backend:docs/arquitectura/arc42/08-conceptos-transversales.md` — 8. Conceptos transversales (4.766 caracteres; último cambio: 84897f2 2026-11-07)
+- `backend:docs/arquitectura/arc42/09-decisiones.md` — 9. Decisiones de arquitectura (4.792 caracteres; último cambio: 8db00ff 2026-11-07)
+- `backend:docs/arquitectura/arc42/10-requisitos-de-calidad.md` — 10. Requisitos de calidad (3.531 caracteres; último cambio: 8db00ff 2026-11-07)
+- `backend:docs/arquitectura/arc42/11-riesgos-y-deuda-tecnica.md` — 11. Riesgos y deuda técnica (3.883 caracteres; último cambio: 8db00ff 2026-11-07)
+- `backend:docs/arquitectura/arc42/12-glosario.md` — 12. Glosario (2.965 caracteres; último cambio: 8db00ff 2026-11-07)
+- `backend:docs/arquitectura/arc42/README.md` — Documentación de arquitectura (Arc42) — A Walking Dictionary (1.520 caracteres; último cambio: 8db00ff 2026-11-07)
+- `backend:docs/codigo/README.md` — Documentación del código (generada con JSDoc) (1.927 caracteres; último cambio: 352bfe6 2026-11-07)
 - **[CONTRATO]** `backend:docs/codigos-error.md` — Códigos de error de la API (9.278 caracteres; último cambio: 779c5ad 2026-11-06)
 - `frontend:.github/pull_request_template.md` — (sin título) (495 caracteres; último cambio: ca73e2e 2026-10-23)
 - `frontend:CHANGELOG.md` — Changelog (2.584 caracteres; último cambio: 7624586 2026-11-06)
@@ -492,9 +507,12 @@ Registro de decisiones humanas que Claude debe respetar en todas las sesiones. F
 
 - 2026-11-04 — HU-021 (reporte de resultados por quiz en PDF, `GET /api/v1/reports/quizzes/:id/results/export-pdf`): S1 el quiz debe ser de un curso de la docente (403 `AUTH_FORBIDDEN` si no); S2 cuentan los inscritos `activa` más los no activos que tengan resultado; S3 la calificación se muestra tal cual (0-5) convertida con `Number()`; S4 se muestran las 5 preguntas con mayor % de error, desempate por `pregunta_quiz.orden`; S5 una pregunta sin fila en `respuesta_quiz` no cuenta como error; S6 el % que presentó se calcula sobre todas las filas listadas. Falta reflejar el endpoint en Backlog_HU.xlsx — <quién confirmó>  — Karen Sandoval— HU-021 (CA-21.1, CA-21.2, CA-21.3)
 
+- 2026-11-06 — Docente inicial (**PENDIENTE DE APROBACIÓN P2 de Karen Sandoval**; si se rechaza, borrar esta entrada): en `POST /api/v1/auth/register`, si la tabla `usuario` no tiene ningún docente, la cuenta registrada se crea con rol `docente` (opción A: «el primero que se registre»); si ya hay uno, `estudiante` como dice CA-12.1. Motivo: el lanzamiento arranca con la BD vacía, sin `seed.sql`, y nadie podía llegar a docente para crear el curso. La regla vive en `UsuarioRepository.crearDesdeGoogleConRolInicial` (transacción + `pg_advisory_xact_lock`, sin cambios de esquema). Riesgo aceptado por wsernam: quien se registre primero en un despliegue nuevo queda como docente; se descartó la opción B (solo un correo autorizado por variable de entorno). Rama `feature/docente-inicial` — wsernam — HU-012 (CA-12.1), HU-015
 - 2026-11-03 — HU-018 (reporte de progreso individual en PDF): endpoint `GET /api/v1/reports/students/:id/progress/export-pdf`, el que ya trae el backlog (y el que llama `reportesApi.js` del front). Misma regla de acceso que HU-019 (`authenticate` sin `requireRole`; la regla vive en `ReporteProgresoService`, CA-18.3): el estudiante solo ve su propio reporte (403 `REPORT_FORBIDDEN` si el `:id` es de otro, sin consultar la BD), la docente ve a los estudiantes inscritos en sus cursos y un `:id` fuera de sus cursos responde 404 `REPORT_STUDENT_NOT_FOUND` (supuesto pendiente de validar); `:id` inválido responde 400 `INVALID_ID`. No hay códigos de error nuevos. Supuestos pendientes de validar: «palabras aportadas» = aportes `tipo_aporte = 'creada'` contados por el estado de su tarjeta (`rechazada` saldrá en 0 mientras el rechazo no exista, ver HE-02); «coautorías» = `tipo_aporte IN ('coautoria','acepcion_nueva')` (mismo criterio que `AnaliticaRepository`); nota promedio = promedio simple de `resultado_quiz.calificacion` (escala 0-5); «tarjetas repasadas» = filas de `progreso_estudio` del estudiante (igual que HU-019). Sin quices o sin repasos el PDF muestra «Sin actividad registrada» (CA-18.2). Los helpers de texto del PDF (`limpiar`, `recortar`, `formatearFecha`) pasaron de `ReporteEstudioPDFService.js` a `src/utils/formatoPdf.js` para compartirlos. Archivos nuevos: `ReporteProgresoRepository.js`, `ReporteProgresoService.js`, `ReporteProgresoPDFService.js`, `ReporteProgresoController.js`, `utils/formatoPdf.js` y sus pruebas. Rama `feature/hu-18-reporte-progreso-individual` — HU-018 (CA-18.1, CA-18.2, CA-18.3)
 
 - 2026-11-06 — HU-019, alcance de la docente (reemplaza el supuesto S5 de la decisión del 2026-10-30): el reporte del modo de estudio incluye a todos los estudiantes con inscripción activa, sin filtrar por `curso.docente_id`. Motivo: en el despliegue hay un solo curso, asignado al docente con id 1, y las demás cuentas docentes recibían un reporte vacío; la HU dice "la docente sobre todos los estudiantes" y el MVP es un solo curso cerrado. Se mantiene: el estudiante solo ve su propio repaso (403 `REPORT_FORBIDDEN` si pide otro `student_id`) y un `student_id` sin inscripción activa responde 404 `REPORT_STUDENT_NOT_FOUND`. Se corrige además la nota de distribución que se encimaba con el aviso de lista vacía. Rama `fix/hu-19-alcance-docente-reporte` — decisión de Karen Sandoval, pendiente de que el equipo la confirme (falta verificar si el docente 1 es del seed) — HU-019 (CA-19.1, CA-19.3)
+
+- 2026-11-07 — Documentación de arquitectura Arc42 en `docs/arquitectura/arc42/` (12 secciones, diagramas Mermaid); el orden de las metas de calidad (sección 1.2) es propuesta pendiente de validar; la Free Dictionary API de DP-08 se documenta como no implementada; discrepancias detectadas T11 (DP-17 vs `curso_id` en HU-020) y T12 (estado de HU-4.1/4.2) quedan registradas en la sección 11 sin resolver — Karen Sandoval — sin HU (documentación transversal)
 
 #### Bitácora de trabajo con IA del frontend — `frontend:docs/bitacora.md`
 
@@ -660,11 +678,25 @@ detallados faltaban datos del PDF, así que se ajustó:
 
 
 ## 9. Estado e historial de los repositorios
-- `backend`: rama `develop`, HEAD `476b924`
-- `frontend`: rama `develop`, HEAD `5e461f2`
+- `backend`: rama `develop`, HEAD `722c683`
+- `frontend`: rama `develop`, HEAD `dfc9de5`
 
 ### Historial de commits
-**backend** — últimos 60 de 223 commits (incluye merges de PR):
+**backend** — últimos 60 de 238 commits (incluye merges de PR):
+  - 722c683 2026-11-08 Karen Sandoval: Merge pull request #59 from wsernam/docs/arc42-c
+  - da776c9 2026-11-08 Karen Sandoval: Merge pull request #60 from wsernam/docs/generar-doc-codigo
+  - 32a7486 2026-11-08 wsernam: Update etiquetas.cjs
+  - 409767e 2026-11-08 wsernam: coerreccion en duplicacion
+  - 352bfe6 2026-11-07 wsernam: docs: generar la documentación del código con JSDoc (npm run docs:code)
+  - 8db00ff 2026-11-07 Karen Sandoval: docs: Arc42, secciones 9 a 12 y actualización de índices
+  - a0e9f07 2026-11-07 Karen Sandoval: Merge pull request #58 from wsernam/docs/arc42-b
+  - 84897f2 2026-11-07 Karen Sandoval: docs: Arc42, secciones 5 a 8
+  - dbb2de9 2026-11-07 Karen Sandoval: Merge pull request #57 from wsernam/docs/arc42-a
+  - bc520d3 2026-11-07 Karen Sandoval: Merge pull request #54 from wsernam/feature/docente-inicial
+  - b92fb75 2026-11-07 Karen Sandoval: Merge pull request #53 from wsernam/bot/superprompt
+  - 8290960 2026-11-07 Karen Sandoval: docs: Arc42, secciones 1 a 4
+  - cce1201 2026-11-07 wsernam: Merge remote-tracking branch 'origin/develop' into feature/docente-inicial
+  - e0361d5 2026-11-07 knnsand: docs(ai): reconstruir SUPERPROMPT y registrar PR con IA
   - 476b924 2026-11-06 Karen Sandoval: Merge pull request #52 from wsernam/docs/openapi
   - 19916e8 2026-11-06 Karen Sandoval: Merge pull request #50 from wsernam/bot/superprompt
   - 1ec8ec6 2026-11-06 wsernam: Merge branch 'develop' into docs/openapi
@@ -679,6 +711,7 @@ detallados faltaban datos del PDF, así que se ajustó:
   - 3623f59 2026-11-06 wsernam: docs(openapi): endpoints de auth
   - 4a3804d 2026-11-06 wsernam: docs(openapi): esqueleto y componentes reutilizables
   - 5d72147 2026-11-06 Karen Sandoval: Merge pull request #51 from wsernam/fix/hu-19-alcance-docente-reporte
+  - 39c5f68 2026-11-06 wsernam: feat(auth): el primer usuario registrado sin docentes en la BD queda como docente
   - 8ecd4bf 2026-11-06 Karen Sandoval: docs(reportes): registrar el alcance de la docente en el reporte del modo de estudio
   - 3682ed3 2026-11-06 Karen Sandoval: fix(reportes): bajar el cursor tras el aviso de lista vacía para que no se encime la nota
   - d217b29 2026-11-06 Karen Sandoval: fix(reportes): la docente ve a todos los estudiantes con inscripción activa en el reporte del modo de estudio
@@ -710,22 +743,9 @@ detallados faltaban datos del PDF, así que se ajustó:
   - fe165a0 2026-11-04 Karen Sandoval: feat(reportes): HU-021 servicio de datos del reporte de resultados por quiz
   - 7e27fd3 2026-11-04 Karen Sandoval: feat(reportes): HU-021 repositorio de resultados por quiz
   - f56e936 2026-11-04 Karen Sandoval: Merge pull request #42 from wsernam/feature/HITL
-  - 48ca3f1 2026-11-04 Karen Sandoval: Merge pull request #41 from wsernam/feature/hu-18-reporte-progreso-individual
-  - e01d68b 2026-11-04 Manuela Erazo: docs(ai): agregar usuario de GitHub de Thalia en roles
-  - 802eb23 2026-11-03 Manuela Erazo: docs(reportes): registrar HU-018 en app.js y en las decisiones del equipo
-  - ae625c8 2026-11-03 Manuela Erazo: feat(reportes): HU-018 endpoint GET /api/v1/reports/students/:id/progress/export-pdf
-  - 9b0a7cb 2026-11-03 Manuela Erazo: feat(reportes): HU-018 maquetado del PDF de progreso individual (CA-18.1, CA-18.2)
-  - fcefc9c 2026-11-03 Manuela Erazo: feat(reportes): HU-018 reglas de acceso y consolidación de datos (CA-18.1, CA-18.2, CA-18.3)
-  - a18e39c 2026-11-03 Manuela Erazo: feat(reportes): HU-018 consultas del progreso individual del estudiante
-  - c33bdf7 2026-11-03 Manuela Erazo: chore(reportes): extraer helpers de texto de PDF a utils/formatoPdf.js
-  - 00d1d01 2026-11-02 Manuela Erazo: Merge pull request #40 from wsernam/bot/superprompt
-  - e2bac93 2026-11-03 knnsand: docs(ai): reconstruir SUPERPROMPT y registrar PR con IA
-  - f5d5d7c 2026-11-02 Karen Sandoval: Merge pull request #38 from wsernam/feature/HITL
-  - 0b15eb1 2026-11-02 Karen Sandoval: Merge pull request #39 from wsernam/fix/autor-tarjetas-pendientes
-  - 686bf3f 2026-11-02 Manuela Erazo: docs(hitl): decisiones del Sprint 1 (7 épicas, Sprint 4, rotación 5C) y marca [IA-ASSISTED]
-  - 35e4953 2026-11-01 wsernam: fix: incluir el nombre del estudiante en las tarjetas pendientes
-  - ad6a82d 2026-10-30 Manuela Erazo: feat(hitl): registro automático de PR con IA en bitácora y trazabilidad
-**frontend** — últimos 60 de 251 commits (incluye merges de PR):
+**frontend** — últimos 60 de 253 commits (incluye merges de PR):
+  - dfc9de5 2026-11-07 thaliabernalepe: Merge pull request #70 from knnsand/feature/ver-palabras-mazo
+  - 340b589 2026-11-07 wsernam: feat: habilitar botón "Ver palabras del mazo" para estudiante e invitado
   - 5e461f2 2026-11-06 Karen Sandoval: Merge pull request #67 from knnsand/docs/gobernanza-y-changelog
   - 47d766e 2026-11-06 thaliabernalepe: Merge pull request #69 from knnsand/docs/documentacion-codigo-front
   - f9949be 2026-11-06 wsernam: docs: documentar con Doxygen los 5 archivos del front que faltaban
@@ -784,11 +804,9 @@ detallados faltaban datos del PDF, así que se ajustó:
   - 52e9dc8 2026-10-21 Karen Sandoval: test(i18n): actualizar pruebas de formularios y portada a ingles (lote A)
   - 6b85e58 2026-10-21 Karen Sandoval: feat(i18n): migrar mensaje de respaldo de la API y cargar i18n en pruebas
   - 05c7308 2026-10-21 Karen Sandoval: feat(i18n): migrar respuesta de quices del estudiante a ingles
-  - 89ef7e9 2026-10-21 Karen Sandoval: feat(i18n): migrar generacion de quices del docente a ingles
-  - 7c4fea7 2026-10-21 Karen Sandoval: feat(i18n): migrar cursos, inscripcion y participacion del docente a ingles
 
 ## 10. Historial de prompts y validaciones (bitácora)
-47 sesiones registradas (una sesión copiada en varias hojas cuenta una vez), en orden cronológico (2026-08-18 a 2026-11-07). Estados: ADAPTADO 11, CORREGIDO 1, VALIDACIÓN 1, VALIDADO 34.
+52 sesiones registradas (una sesión copiada en varias hojas cuenta una vez), en orden cronológico (2026-08-18 a 2026-11-09). Estados: ADAPTADO 11, CORREGIDO 1, VALIDACIÓN 1, VALIDADO 39.
 Úsalo para no repetir trabajo, respetar lo ya adaptado o corregido y copiar el estilo de registro.
 
 - 2026-08-18 · Presentaciones - Documentos · ChatGPT · Karen Sandoval: «Compara tecnologías de frontend, para un proyecto de diccionario colaborativo de vocabulario (mazos semanales, aportes de estudiantes, validación docente, repetición espaciada). Evalúa React, Vue y Angular.» → Tres tablas comparativas (Tabla 1A, 1B, 1C) con cifras de adopción citadas a una encuesta de Stack Overflow proporcionada por integrante del proyecto | VALIDADO: Se contrastaron las características y cifras presentadas con fuentes externas y se verificó que la comparación fuera coherente con las necesidades del proyecto. Los resultados sirvieron como recurso para seleccionar la tecnología frontend.
@@ -837,7 +855,12 @@ detallados faltaban datos del PDF, así que se ajustó:
 - 2026-11-06 · Backend · Claude (Anthropic) como asistente de apoyo. Modelo: Haiku 5.5 · Karen Sandoval: «Fix/hu 19 alcance docente reporte» → - `ReporteEstudioService.js`: la docente ya no se filtra por `curso.docente_id` (se quita el import de `authDeshabilitado`, que ya no se usa) y se actualiza el comentario de cabecera. - `ReporteEstud… | VALIDADO: la IA propuso los cambios en pasos; la autora los aplicó y ejecutó `node --check`, `eslint`, `vitest` y `npm test` (515 pruebas pasan). (Revisión: Karen Nathalia Sandoval 06-11-2026)
 - 2026-11-07 · Frontend · Claude Code (Claude Opus 5.5) · Thalia Bernal: «docs: documentación Doxygen de 5 archivos del front» → - `src/setupTests.js`: cabecera del archivo. - `src/cliente-api/mocks/mazosMock.js`: cabecera, variables y las 3 funciones. - `src/cliente-api/mocks/estudioMock.js`: los comentarios `//` pasan a form… | VALIDADO: lint sin errores, `npm test` comparado con `develop` (mismos 5 fallos) y comprobación de 0 líneas de código cambiadas (Revisión: William Serna (wsernam), 2026-11-06)
 - 2026-11-07 · Frontend · Claude Code (Claude Sonnet 5.5) · Karen Sandoval: «Docs/gobernanza y changelog» → - `CONTRIBUTING.md`, `SECURITY.md` y `CHANGELOG.md` (nuevos). - `README.md`: la sección «Flujo de trabajo (Git)» se reemplaza por «Contribuir» con enlaces. - `docs/README.md`: nueva sección «Gobernan… | VALIDADO: Vista previa en GitHub y revisión de enlaces (Revisión: Karen Nathalia Sandoval - 06-11-2026)
+- 2026-11-07 · Frontend · Claude Code (Claude Opus 5.5) · Thalia Bernal: «feat: habilitar botón "Ver palabras del mazo" para estudiante e invitado» → - `MazoItem.jsx`: el botón deshabilitado pasa a ser un enlace activo (`Link`) para estudiante e invitado, hacia `/{rol}/mazos/:idMazo/palabras`. La docente no cambia. - `PalabrasMazo.jsx` (nuevo): le… | VALIDADO: lint sin errores (6 avisos que ya existían en develop) y pruebas de MazoItem y DiccionarioGlobal (33/33). Prueba manual en local como invitado. (Revisión: William Serna, 2026-11-07)
 - 2026-11-07 · Backend · Claude (Sonnet 5.5), usado en conversación y en lectura de los repositorios; no escribió directamente en el repositorio. · Karen Sandoval: «Feature/hu 020 reporte estudiantes curso pdf» → - `ReporteCursoRepository.js`: consultas de solo lectura sobre `curso`, `inscripcion`, `usuario`, `aporte`, `tarjeta`, `quiz` y `resultado_quiz`. - `ReporteCursoService.js`: acceso (403 `AUTH_FORBIDD… | VALIDADO: `npx vitest run` con 568 pruebas aprobadas (37 archivos) y `npx eslint src tests` sin errores, ejecutados tras el último merge con develop; probado en local con el backend y la base de datos. (Revisión: Manuela Meneses Erazo, 06/11/2026)
+- 2026-11-07 · Backend · Claude Code (Claude Opus 5.5) · Karen Sandoval: «Feature/docente inicial» → - `UsuarioRepository.js`: nueva función `crearDesdeGoogleConRolInicial`. Revisa si existe un docente y crea el usuario en una sola transacción con un candado de PostgreSQL (`pg_advisory_xact_lock`), … | VALIDADO: 571 pruebas del back pasan, lint limpio y prueba manual con BD vacía (5 registros simultáneos → 1 docente, 4 estudiantes) (Revisión: William Serna, 2026-11-07)
+- 2026-11-07 · Backend + Backend · Claude Code (Claude Sonnet 5.5) · Karen Sandoval: «docs: Arc42, secciones 5 a 8» → - `CONTRIBUTING.md`, `SECURITY.md` y `CHANGELOG.md` (nuevos). - `README.md`: la sección «Flujo de trabajo (Git)» se reemplaza por «Contribuir» con enlaces. - `docs/README.md`: nueva sección «Gobernan… | VALIDADO: Vista previa en GitHub y revisión de enlaces (Revisión: Karen Nathalia Sandoval - 06-11-2026)
+- 2026-11-09 · Backend · Claude Code (Claude Opus 5.5) · Karen Sandoval: «docs: generar la documentación del código con JSDoc (Bloque 3C)» → - `backend/package.json`: `jsdoc` como dependencia de desarrollo (aprobado por el equipo) y el script `npm run docs:code`. - `backend/jsdoc.json` (nuevo): lee `src/` y guarda la página en `docs-gener… | VALIDADO: generación sobre todo `backend/src` con 0 errores y 0 etiquetas sin reconocer; los 94 archivos y todas las funciones con descripción; 571 pruebas y lint sin cambios. (Revisión: William Serna, 2026-11-07. El plugin parte de una prueba previa de Willi…
+- 2026-11-09 · Backend · Claude Code (Claude Sonnet 5.5) · Karen Sandoval: «docs: Arc42, secciones 9 a 12 y actualización de índices» → - `CONTRIBUTING.md`, `SECURITY.md` y `CHANGELOG.md` (nuevos). - `README.md`: la sección «Flujo de trabajo (Git)» se reemplaza por «Contribuir» con enlaces. - `docs/README.md`: nueva sección «Gobernan… | VALIDADO: Vista previa en GitHub y revisión de enlaces (Revisión: Karen Nathalia Sandoval - 06-11-2026)
 
 ## 11. Trazabilidad registrada
 | Fecha | Prompt-ID | Sprint | Autor (rol) | Repo | HU | Rama | Commits | PR | Estado | Hoja · fila bitácora | Plantilla |
@@ -856,6 +879,12 @@ detallados faltaban datos del PDF, así que se ajustó:
 | 2026-11-07 | P-20261107-0053 | 4 | William Serna (Frontend) | frontend | — | docs/documentacion-codigo-front | f9949be, todos los comentarios agregados | frontend#69 | VALIDADO | Frontend · fila 22 | automático (PR) |
 | 2026-11-07 | P-20261107-0217-HU-020 | 4 | Manuela Meneses (Backend) | backend | HU-020 | feature/HU-020-reporte-estudiantes-curso-pdf | consultas, servicio de datos, maquetado del PDF, controlador y pruebas, y documentación, propuestos por la IA y aplicados, adaptados y ejecutados por <tu nombre>. Commits: 39ddd14, 7ee746c, 9aecdc1, d94a3c4, 6e7ddc7, 779c5ad y los dos merges con develop (b6a631c y 955e10f). | backend#49 | VALIDADO | Backend · fila 16 | automático (PR) |
 | 2026-11-07 | P-20261107-0228 | 4 | Karen Sandoval (PO / SM) | frontend | — | docs/gobernanza-y-changelog | redacción del contenido de README.md y docs/README.md a partir de la revisión del código y la documentación existente; el contenido fue aplicado y subido manualmente por Karen Nathalia Sandoval. | frontend#67 | VALIDADO | Frontend · fila 23 | automático (PR) |
+| 2026-11-07 | P-20261107-1925-HU-012 | 4 | William Serna (Frontend) | backend | HU-012 | feature/docente-inicial | 39c5f68 (el cambio) y cce1201 (merge de develop) | backend#54 | VALIDADO | Backend · fila 17 | automático (PR) |
+| 2026-11-07 | P-20261107-1930 | 4 | Karen Sandoval (PO / SM) | backend | — | docs/arc42-a | redacción del contenido de README.md y docs/README.md a partir de la revisión del código y la documentación existente; el contenido fue aplicado y subido manualmente por Karen Nathalia Sandoval. | backend#57 | VALIDADO | Backend · fila 18 | automático (PR) |
+| 2026-11-07 | P-20261107-1943 | 4 | Karen Sandoval (PO / SM) | backend | — | docs/arc42-b | redacción del contenido de README.md y docs/README.md a partir de la revisión del código y la documentación existente; el contenido fue aplicado y subido manualmente por Karen Nathalia Sandoval. | backend#58 | VALIDADO | Backend · fila 19 | automático (PR) |
+| 2026-11-07 | P-20261107-2025 | 4 | William Serna (Frontend) | frontend | — | feature/ver-palabras-mazo | 340b589 | frontend#70 | VALIDADO | Frontend · fila 24 | automático (PR) |
+| 2026-11-09 | P-20261109-0139 | 4 | William Serna (Frontend) | backend | — | docs/generar-doc-codigo | 352bfe6. El commit no incluye la línea `Co-Authored-By` por olvido; el uso de IA queda registrado aquí. | backend#60 | VALIDADO | Backend · fila 20 | automático (PR) |
+| 2026-11-09 | P-20261109-0154 | 4 | Karen Sandoval (PO / SM) | backend | — | docs/arc42-c | redacción del contenido de README.md y docs/README.md a partir de la revisión del código y la documentación existente; el contenido fue aplicado y subido manualmente por Karen Nathalia Sandoval. | backend#59 | VALIDADO | Backend · fila 21 | automático (PR) |
 
 ## 12. Protocolo HITL (puertas obligatorias)
 Te detienes en cada puerta y esperas la frase indicada de la persona responsable de la sesión (o del líder del sprint, **Karen Sandoval**, en P2). Sin esa frase no avanzas.
