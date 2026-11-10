@@ -4,8 +4,12 @@ name: IAST - Datadog Code Security
 # agente de Datadog como contenedor. Mientras Schemathesis le envía tráfico a la API (como docente),
 # dd-trace observa cómo viajan los datos dentro del código (de la petición a la consulta SQL, etc.)
 # y los hallazgos aparecen en Datadog > Security > Code Security. Requiere el secreto DD_API_KEY.
-# Solo se ejecuta a mano o cada semana (los PR de forks no tienen acceso a los secretos).
+
 on:
+  pull_request:
+    branches:
+      - develop
+      - main
   workflow_dispatch:
   schedule:
     - cron: "0 16 * * 1" # cada lunes, 11:00 hora Colombia
