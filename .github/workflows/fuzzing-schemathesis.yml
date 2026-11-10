@@ -1,0 +1,170 @@
+name: Fuzzing - Schemathesis (API)
+
+# Fuzzing de la API: se levanta el backend con una base de datos temporal y Schemathesis envía
+# entradas aleatorias e inválidas a cada endpoint descrito en docs/api/openapi.yaml, buscando
+# respuestas 500 (el servidor se rompe) y datos inválidos que el backend acepta como buenos.
+# Se corre una vez como docente y otra como estudiante, porque cada rol ve rutas distintas.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 15 * * 1" # cada lunes, 10:00 hora Colombia
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - 'backend/src/**'
+      - 'docs/api/openapi.yaml'
+      - '.github/workflows/fuzzing-schemathesis.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fuzzing-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fuzzing:
+    name: Fuzzing de la API (${{ matrix.rol }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rol: docente
+            email: ana.docente@unicauca.edu.co
+          - rol: estudiante
+            email: juan.estudiante@unicauca.edu.co
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: walking
+          POSTGRES_PASSWORD: walking
+          POSTGRES_DB: walking_dictionary
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U walking -d walking_dictionary"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_HOST: localhost
+      DB_PORT: '5432'
+      DB_USER: walking
+      DB_PASSWORD: walking
+      DB_NAME: walking_dictionary
+      PORT: '5000'
+      DISABLE_AUTH: 'false'
+      NODE_ENV: production
+      GOOGLE_CLIENT_ID: ci-sin-google.apps.googleusercontent.com
+      CORS_ORIGINS: http://localhost:3000
+      PGPASSWORD: walking
+      # El fuzzing envía miles de peticiones: se sube el límite para que los 429 no tapen los resultados.
+      RATE_LIMIT_AUTH_MAX: '100000'
+      RATE_LIMIT_REPORTES_MAX: '100000'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependencias del backend
+        working-directory: backend
+        run: npm ci
+
+      - name: Instalar Schemathesis
+        run: pip install "schemathesis==4.33.1"
+
+      - name: Crear base de pruebas con datos mínimos
+        run: |
+          psql -h localhost -U walking -d walking_dictionary -v ON_ERROR_STOP=1 -f init.sql
+          psql -h localhost -U walking -d walking_dictionary -v ON_ERROR_STOP=1 -f seed.sql
+
+      - name: Generar secreto JWT temporal
+        run: echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
+      - name: Iniciar backend
+        working-directory: backend
+        run: |
+          nohup npm start > backend.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:5000/health >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat backend.log
+          exit 1
+
+      - name: Generar token JWT de prueba (${{ matrix.rol }})
+        working-directory: backend
+        env:
+          USUARIO_EMAIL: ${{ matrix.email }}
+          USUARIO_ROL: ${{ matrix.rol }}
+        run: |
+          ID=$(psql -h localhost -U walking -d walking_dictionary -tA -c "SELECT id_usuario FROM usuario WHERE email = '${USUARIO_EMAIL}'")
+          if [ -z "$ID" ]; then
+            echo "No existe el usuario ${USUARIO_EMAIL} en la base de pruebas (revisar seed.sql)."
+            exit 1
+          fi
+          TOKEN=$(ID="$ID" node -e "const jwt=require('jsonwebtoken');process.stdout.write(jwt.sign({id_usuario:Number(process.env.ID),email:process.env.USUARIO_EMAIL,rol:process.env.USUARIO_ROL},process.env.JWT_SECRET,{algorithm:'HS256',expiresIn:'2h'}))")
+          echo "::add-mask::$TOKEN"
+          echo "FUZZ_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+          # Comprobación rápida con una ruta protegida (/cards/pending es solo de docente):
+          # con un token válido responde 200 (docente) o 403 (estudiante), y 401 solo si el token no sirve.
+          CODIGO=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOKEN" http://127.0.0.1:5000/api/v1/cards/pending)
+          echo "GET /api/v1/cards/pending con el token (${USUARIO_ROL}) respondió HTTP $CODIGO"
+          if [ "$CODIGO" = "401" ]; then
+            echo "El backend rechazó el token: el fuzzing no estaría autenticado."
+            exit 1
+          fi
+
+      - name: Fuzzing con Schemathesis (${{ matrix.rol }})
+        run: |
+          set +e
+          schemathesis --no-color run docs/api/openapi.yaml \
+            --url http://127.0.0.1:5000/api/v1 \
+            -H "Authorization: Bearer $FUZZ_TOKEN" \
+            --checks not_a_server_error,negative_data_rejection \
+            --phases examples,coverage,fuzzing \
+            --max-examples 30 \
+            --workers 2 \
+            --request-timeout 15 \
+            --report junit,html \
+            --report-dir schemathesis-report \
+            2>&1 | tee fuzz-log.txt
+          CODIGO=${PIPESTATUS[0]}
+          echo "Schemathesis terminó con código $CODIGO (0 = sin hallazgos, 1 = encontró fallos, 2 = la herramienta no pudo trabajar)"
+          # Los hallazgos no hacen fallar el job: el informe es el resultado. Solo falla si la herramienta no corrió.
+          if [ "$CODIGO" -ge 2 ]; then exit 1; fi
+          exit 0
+
+      - name: Resumen en el job
+        if: always()
+        run: |
+          echo "## Fuzzing Schemathesis - rol ${{ matrix.rol }}" >> "$GITHUB_STEP_SUMMARY"
+          if [ ! -f fuzz-log.txt ]; then
+            echo "No se generó el registro del fuzzing; revisar el paso de Schemathesis." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 60 fuzz-log.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fuzzing-reporte-${{ matrix.rol }}
+          path: |
+            schemathesis-report
+            fuzz-log.txt
+            backend/backend.log
+          if-no-files-found: warn
