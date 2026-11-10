@@ -94,6 +94,17 @@ export const MazoController = {
           code: 'INVALID_FIELD_TYPE',
         });
       }
+      if (
+        !Number.isSafeInteger(semana) ||
+        semana < 1 ||
+        semana > 2147483647
+      ) {
+        return res.status(400).json({
+          error: 'semana debe ser un entero positivo valido',
+          code: 'INVALID_FIELD_TYPE',
+        });
+      }
+
       // Longitud máxima según el DER: nombre_lectura varchar(200), autor varchar(150),
       // variante_regional_predeterminada varchar(100). "estado" no se valida aquí porque
       // el controlador lo fuerza a 'abierto' más abajo, no lo recibe del cliente.

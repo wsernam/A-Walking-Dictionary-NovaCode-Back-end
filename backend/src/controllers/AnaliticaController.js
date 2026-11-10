@@ -27,6 +27,15 @@ export const AnaliticaController = {
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
+      if (
+        req.query.sinAportes !== undefined &&
+        !['true', 'false'].includes(req.query.sinAportes)
+      ) {
+        return res.status(400).json({
+          error: 'sinAportes debe ser true o false',
+          code: 'INVALID_QUERY_PARAMETER',
+        });
+      }
       const mazo = await MazoRepository.obtenerPorId(id);
       if (!mazo) {
         return res.status(404).json({ error: 'Mazo no encontrado', code: 'DECK_NOT_FOUND' });

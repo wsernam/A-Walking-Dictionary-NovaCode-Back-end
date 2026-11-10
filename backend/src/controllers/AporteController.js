@@ -55,6 +55,21 @@ export const AporteController = {
         return res.status(400).json({ error: erroresLongitud.join(' '), code: 'FIELD_TOO_LONG' });
       }
 
+      for (const campo of ['tarjeta_id', 'inscripcion_id']) {
+        if (req.body[campo] !== undefined && req.body[campo] !== null) {
+          const valor = req.body[campo];
+          if (
+            !Number.isSafeInteger(valor) ||
+            valor < 1 ||
+            valor > 2147483647
+          ) {
+            return res.status(400).json({
+              error: `${campo} debe ser un entero positivo valido`,
+              code: 'INVALID_ID',
+            });
+          }
+        }
+      }
       const aporte = await AporteRepository.crear(req.body);
       res.status(201).json(aporte);
     } catch (error) {
@@ -164,6 +179,21 @@ export const AporteController = {
       const id = Number(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
+      }
+      for (const campo of ['tarjeta_id', 'inscripcion_id']) {
+        if (req.body[campo] !== undefined && req.body[campo] !== null) {
+          const valor = req.body[campo];
+          if (
+            !Number.isSafeInteger(valor) ||
+            valor < 1 ||
+            valor > 2147483647
+          ) {
+            return res.status(400).json({
+              error: `${campo} debe ser un entero positivo valido`,
+              code: 'INVALID_ID',
+            });
+          }
+        }
       }
       const aporte = await AporteRepository.actualizar(id, req.body);
       if (!aporte) {

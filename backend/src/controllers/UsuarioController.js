@@ -50,6 +50,19 @@ export const UsuarioController = {
    */
   async actualizarPerfil(req, res) {
   try {
+    if (
+      !req.body ||
+      typeof req.body !== 'object' ||
+      Array.isArray(req.body) ||
+      !['nivel_ingles', 'codigo_estudiantil', 'avatar', 'intereses']
+        .some((campo) => Object.hasOwn(req.body, campo))
+    ) {
+      return res.status(400).json({
+        error: 'Debe proporcionar al menos un campo editable del perfil',
+        code: 'REQUIRED_FIELDS_MISSING',
+      });
+    }
+
     const { nivel_ingles, codigo_estudiantil, avatar, intereses } = req.body;
 
     // El usuario se obtiene del JWT generado mediante Google OAuth.
