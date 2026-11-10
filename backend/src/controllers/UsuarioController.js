@@ -23,7 +23,7 @@ export const UsuarioController = {
   async obtenerPerfil(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       if (req.usuario.rol !== 'docente' && req.usuario.id_usuario !== id) {
@@ -81,7 +81,7 @@ export const UsuarioController = {
   async obtenerContextoAcademico(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       // Auditoría OWASP H-03: el estudiante solo ve su propio contexto; la docente, el de cualquiera.

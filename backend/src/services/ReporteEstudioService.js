@@ -30,7 +30,7 @@ const PALABRAS_DIFICILES_POR_ESTUDIANTE = 10;
 function leerStudentId(studentId) {
   if (studentId === undefined || studentId === null || studentId === '') return null;
   const id = Number(studentId);
-  if (!Number.isInteger(id) || id <= 0) {
+  if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
     throw errorApi(400, 'INVALID_ID', 'student_id inválido');
   }
   return id;

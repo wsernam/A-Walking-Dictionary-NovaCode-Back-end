@@ -42,7 +42,7 @@ export const QuizController = {
   async exportarPdf(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const pdfBytes = await ExportarPDFService.generarPdfQuiz(id);
@@ -114,7 +114,7 @@ export const QuizController = {
   async obtenerPorId(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const quiz = await QuizRepository.obtenerPorId(id);
@@ -142,7 +142,7 @@ export const QuizController = {
   async obtenerPreguntas(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const resultado = await QuizService.obtenerPreguntasParaEstudiante(id, req.usuario.id_usuario);
@@ -181,7 +181,7 @@ export const QuizController = {
   async obtenerResultado(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const resultado = await QuizService.obtenerResultadoEstudiante(id, req.usuario.id_usuario);
@@ -218,7 +218,7 @@ export const QuizController = {
   async actualizar(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const quiz = await QuizRepository.actualizar(id, req.body);
@@ -241,7 +241,7 @@ export const QuizController = {
   async eliminar(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const eliminado = await QuizRepository.eliminar(id);

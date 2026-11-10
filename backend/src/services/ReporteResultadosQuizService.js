@@ -28,7 +28,7 @@ const aNumero = (valor) => (valor === null || valor === undefined ? null : Numbe
  */
 function leerIdQuiz(valor) {
   const id = Number(valor);
-  if (!Number.isInteger(id) || id <= 0) {
+  if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
     throw errorApi(400, 'INVALID_ID', 'id inválido');
   }
   return id;

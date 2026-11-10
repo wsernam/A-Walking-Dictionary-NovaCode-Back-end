@@ -24,7 +24,7 @@ export const AnaliticaController = {
   async resumenPorMazo(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const mazo = await MazoRepository.obtenerPorId(id);

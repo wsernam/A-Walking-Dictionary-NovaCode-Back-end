@@ -36,7 +36,7 @@ const TIPOS_COAUTORIA = ['coautoria', 'acepcion_nueva'];
  */
 function leerIdEstudiante(valor) {
   const id = Number(valor);
-  if (valor === undefined || valor === null || valor === '' || !Number.isInteger(id) || id <= 0) {
+  if (valor === undefined || valor === null || valor === '' || !Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
     throw errorApi(400, 'INVALID_ID', 'id de estudiante inválido');
   }
   return id;
