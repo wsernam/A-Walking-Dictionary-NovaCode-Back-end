@@ -1,0 +1,173 @@
+name: IAST - Datadog Code Security
+
+# IAST: se levanta el backend con la librería dd-trace de Datadog dentro del proceso de Node y el
+# agente de Datadog como contenedor. Mientras Schemathesis le envía tráfico a la API (como docente),
+# dd-trace observa cómo viajan los datos dentro del código (de la petición a la consulta SQL, etc.)
+# y los hallazgos aparecen en Datadog > Security > Code Security. Requiere el secreto DD_API_KEY.
+# Solo se ejecuta a mano o cada semana (los PR de forks no tienen acceso a los secretos).
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 16 * * 1" # cada lunes, 11:00 hora Colombia
+
+permissions:
+  contents: read
+
+concurrency:
+  group: iast-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  iast:
+    name: IAST con Datadog (tráfico de la API)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: walking
+          POSTGRES_PASSWORD: walking
+          POSTGRES_DB: walking_dictionary
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U walking -d walking_dictionary"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_HOST: localhost
+      DB_PORT: '5432'
+      DB_USER: walking
+      DB_PASSWORD: walking
+      DB_NAME: walking_dictionary
+      PORT: '5000'
+      DISABLE_AUTH: 'false'
+      NODE_ENV: production
+      GOOGLE_CLIENT_ID: ci-sin-google.apps.googleusercontent.com
+      CORS_ORIGINS: http://localhost:3000
+      PGPASSWORD: walking
+      RATE_LIMIT_AUTH_MAX: '100000'
+      RATE_LIMIT_REPORTES_MAX: '100000'
+      # Configuración de Datadog (la clave viene de un secreto, nunca del código)
+      DD_API_KEY: ${{ secrets.DD_API_KEY }}
+      DD_SITE: datadoghq.com
+      DD_SERVICE: a-walking-dictionary-backend
+      DD_ENV: ci
+      DD_IAST_ENABLED: 'true'
+      DD_AGENT_HOST: 127.0.0.1
+
+    steps:
+      - name: Verificar que existe el secreto de Datadog
+        run: |
+          if [ -z "$DD_API_KEY" ]; then
+            echo "Falta el secreto DD_API_KEY (Settings > Secrets and variables > Actions)."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependencias del backend
+        working-directory: backend
+        run: npm ci
+
+      # --no-save: dd-trace solo se usa en esta prueba y NO se agrega al package.json de producción.
+      - name: Instalar dd-trace (sin modificar package.json)
+        working-directory: backend
+        run: npm install --no-save dd-trace
+
+      - name: Iniciar el agente de Datadog
+        run: |
+          docker run -d --name dd-agent --network host \
+            -e DD_API_KEY="$DD_API_KEY" -e DD_SITE="$DD_SITE" \
+            -e DD_APM_ENABLED=true -e DD_HOSTNAME=github-actions-iast \
+            gcr.io/datadoghq/agent:7
+          sleep 20
+          docker logs dd-agent 2>&1 | tail -n 15
+
+      - name: Instalar Schemathesis
+        run: pip install "schemathesis==4.33.1"
+
+      - name: Crear base de pruebas con datos mínimos
+        run: |
+          psql -h localhost -U walking -d walking_dictionary -v ON_ERROR_STOP=1 -f init.sql
+          psql -h localhost -U walking -d walking_dictionary -v ON_ERROR_STOP=1 -f seed.sql
+
+      - name: Generar secreto JWT temporal
+        run: echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
+      - name: Iniciar backend con dd-trace (IAST activado)
+        working-directory: backend
+        run: |
+          nohup node --import dd-trace/initialize.mjs server.js > backend.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:5000/health >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:5000/health >/dev/null || { cat backend.log; exit 1; }
+          echo "--- Primeras líneas del log del backend ---"
+          head -n 30 backend.log
+
+      - name: Generar token JWT de prueba (docente)
+        working-directory: backend
+        env:
+          USUARIO_EMAIL: ana.docente@unicauca.edu.co
+          USUARIO_ROL: docente
+        run: |
+          ID=$(psql -h localhost -U walking -d walking_dictionary -tA -c "SELECT id_usuario FROM usuario WHERE email = '${USUARIO_EMAIL}'")
+          if [ -z "$ID" ]; then echo "No existe el usuario ${USUARIO_EMAIL} (revisar seed.sql)."; exit 1; fi
+          TOKEN=$(ID="$ID" node -e "const jwt=require('jsonwebtoken');process.stdout.write(jwt.sign({id_usuario:Number(process.env.ID),email:process.env.USUARIO_EMAIL,rol:process.env.USUARIO_ROL},process.env.JWT_SECRET,{algorithm:'HS256',expiresIn:'1h'}))")
+          echo "::add-mask::$TOKEN"
+          echo "FUZZ_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+          CODIGO=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOKEN" http://127.0.0.1:5000/api/v1/cards/pending)
+          echo "GET /api/v1/cards/pending respondió HTTP $CODIGO"
+          if [ "$CODIGO" = "401" ]; then echo "El backend rechazó el token."; exit 1; fi
+
+      # Este paso solo genera tráfico: lo importante lo reporta dd-trace a Datadog.
+      - name: Generar tráfico contra la API
+        run: |
+          set +e
+          schemathesis --no-color run docs/api/openapi.yaml \
+            --url http://127.0.0.1:5000/api/v1 \
+            -H "Authorization: Bearer $FUZZ_TOKEN" \
+            --checks not_a_server_error \
+            --phases examples,fuzzing \
+            --max-examples 15 \
+            --workers 2 \
+            --request-timeout 15 \
+            2>&1 | tee trafico-log.txt
+          exit 0
+
+      - name: Dar tiempo al agente para enviar los hallazgos
+        run: sleep 60
+
+      - name: Resumen en el job
+        if: always()
+        run: |
+          {
+            echo "## IAST - Datadog Code Security"
+            echo "Los hallazgos se revisan en https://app.datadoghq.com (Security > Code Security > servicio a-walking-dictionary-backend, entorno ci)."
+            echo '```'
+            tail -n 20 trafico-log.txt 2>/dev/null
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: iast-logs
+          path: |
+            trafico-log.txt
+            backend/backend.log
+          if-no-files-found: warn
