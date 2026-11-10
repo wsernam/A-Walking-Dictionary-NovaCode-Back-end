@@ -83,6 +83,17 @@ export const MazoController = {
         });
       }
 
+      if (
+        typeof nombre_lectura !== 'string' ||
+        typeof autor !== 'string' ||
+        typeof fecha_apertura !== 'string' ||
+        typeof fecha_cierre !== 'string'
+      ) {
+        return res.status(400).json({
+          error: 'Los campos de texto y fecha deben tener el tipo esperado',
+          code: 'INVALID_FIELD_TYPE',
+        });
+      }
       // Longitud máxima según el DER: nombre_lectura varchar(200), autor varchar(150),
       // variante_regional_predeterminada varchar(100). "estado" no se valida aquí porque
       // el controlador lo fuerza a 'abierto' más abajo, no lo recibe del cliente.
@@ -127,7 +138,7 @@ export const MazoController = {
   async obtenerPorId(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const mazo = await MazoRepository.obtenerPorId(id);
@@ -181,7 +192,7 @@ export const MazoController = {
   async actualizar(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
 
@@ -259,7 +270,7 @@ export const MazoController = {
   async actualizarEstado(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const { estado } = req.body;
@@ -300,7 +311,7 @@ export const MazoController = {
   async actualizarVarianteRegional(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const { variante_regional } = req.body;
@@ -332,7 +343,7 @@ export const MazoController = {
   async exportarPdf(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const pdfBytes = await ExportarPDFService.generarPdfMazo(id);
@@ -357,7 +368,7 @@ export const MazoController = {
   async eliminar(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const mazoActual = await MazoRepository.obtenerPorId(id);
