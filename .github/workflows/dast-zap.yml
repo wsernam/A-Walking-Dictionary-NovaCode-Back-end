@@ -1,0 +1,144 @@
+name: DAST - OWASP ZAP
+
+# Prueba dinámica de seguridad (DAST): enciende la API con una base de datos desechable
+# (init.sql + seed.sql) y OWASP ZAP la ataca desde afuera, como lo haría un atacante,
+# usando docs/api/openapi.yaml como mapa de los endpoints.
+# Por ahora SOLO REPORTA: no hace fallar el workflow. El reporte queda como artefacto.
+# Detalle y cómo leer el reporte: docs/seguridad/README.md
+on:
+  push:
+    branches: [develop]
+  schedule:
+    - cron: "0 14 * * 1" # cada lunes, 9:00 hora Colombia
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dast-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  zap:
+    name: Escaneo de la API con ZAP
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    services:
+      postgres:
+        image: postgres:16-alpine # misma imagen que el docker-compose.yml de infra
+        env:
+          POSTGRES_USER: walking
+          POSTGRES_PASSWORD: walking
+          POSTGRES_DB: walking_dictionary
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U walking -d walking_dictionary"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: walking
+      DB_PASSWORD: walking
+      DB_NAME: walking_dictionary
+      PGPASSWORD: walking
+      PORT: 5000
+      DISABLE_AUTH: 'false'
+      NODE_ENV: production
+      GOOGLE_CLIENT_ID: ci-sin-google.apps.googleusercontent.com
+      CORS_ORIGINS: http://localhost:3000
+      # ZAP manda miles de peticiones; con el límite normal (20 intentos fallidos en /auth,
+      # OWASP H-07) quedaría bloqueado y no probaría esos endpoints. Solo aplica a esta base desechable.
+      RATE_LIMIT_AUTH_MAX: '100000'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20 # misma versión que los Dockerfiles (node:20-alpine)
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias
+        working-directory: backend
+        run: npm ci
+
+      - name: Crear la base de datos de prueba
+        run: |
+          psql -h localhost -U walking -d walking_dictionary -v ON_ERROR_STOP=1 -q -f init.sql
+          psql -h localhost -U walking -d walking_dictionary -v ON_ERROR_STOP=1 -q -f seed.sql
+
+      - name: Generar JWT_SECRET
+        run: echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
+      - name: Arrancar el backend
+        working-directory: backend
+        run: |
+          nohup npm start > backend.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:5000/health && exit 0
+            sleep 1
+          done
+          cat backend.log
+          exit 1
+
+      # Token de la docente de seed.sql (ana.docente, id 1) para que ZAP pruebe también las rutas
+      # protegidas. Se firma con el JWT_SECRET de esta ejecución y se oculta en el log.
+      - name: Crear token de prueba
+        working-directory: backend
+        run: |
+          TOKEN=$(node -e "console.log(require('jsonwebtoken').sign({ id_usuario: 1, email: 'ana.docente@unicauca.edu.co', rol: 'docente' }, process.env.JWT_SECRET, { algorithm: 'HS256', expiresIn: '2h' }))")
+          echo "::add-mask::$TOKEN"
+          echo "ZAP_AUTH_HEADER_VALUE=Bearer $TOKEN" >> "$GITHUB_ENV"
+
+      - name: Escanear con ZAP
+        run: |
+          mkdir -p zap
+          cp docs/api/openapi.yaml .zap/rules.tsv zap/
+          chmod 777 zap
+          docker run --rm --network host \
+            -v "$PWD/zap:/zap/wrk/:rw" \
+            -e ZAP_AUTH_HEADER_VALUE \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-api-scan.py -t /zap/wrk/openapi.yaml -f openapi \
+              -O http://localhost:5000 \
+              -c rules.tsv \
+              -r reporte-zap.html -J reporte-zap.json -I
+
+      - name: Resumen en el job
+        if: always()
+        run: |
+          echo "## DAST con OWASP ZAP" >> "$GITHUB_STEP_SUMMARY"
+          if [ ! -f zap/reporte-zap.json ]; then
+            echo "No se generó el reporte." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          node -e '
+            const r = require("./zap/reporte-zap.json");
+            const alertas = r.site.flatMap((s) => s.alerts);
+            const nivel = { 3: "Alto", 2: "Medio", 1: "Bajo", 0: "Informativo" };
+            const filas = alertas
+              .sort((a, b) => b.riskcode - a.riskcode)
+              .map((a) => `| ${nivel[a.riskcode]} | ${a.name} | ${a.count} |`);
+            console.log(`Alertas: ${alertas.length}. Reporte completo en el artefacto **reporte-zap**.\n`);
+            console.log("| Riesgo | Alerta | Instancias |\n| --- | --- | --- |");
+            console.log(filas.join("\n") || "| — | Sin alertas | 0 |");
+          ' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publicar reporte
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-zap
+          path: zap/reporte-zap.*
+          retention-days: 30
+
+      - name: Log del backend
+        if: failure()
+        run: cat backend/backend.log
