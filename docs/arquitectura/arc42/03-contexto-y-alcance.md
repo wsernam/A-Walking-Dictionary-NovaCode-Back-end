@@ -8,14 +8,13 @@ flowchart LR
   E["Estudiante"]
   I["Invitado"]
   G["Google<br/>(identidad OAuth)"]
-  F["Free Dictionary API<br/>(apoyo opcional)"]
   S["A Walking Dictionary"]
 
   D -->|"mazos, revisión, quices, reportes"| S
   E -->|"aportes, estudio, quices, perfil"| S
   I -->|"consulta de solo lectura"| S
   S -->|"verificación del idToken"| G
-  S -.->|"sugerencias, solo con confirmación"| F
+  
 ```
 
 | Actor / sistema externo | Entrada hacia el sistema | Salida del sistema |
@@ -24,7 +23,7 @@ flowchart LR
 | Estudiante | Registra palabras, estudia con SM-2, responde quices, edita su perfil, se inscribe con un código | Notas y resultados, tarjetas aprobadas, sugerencias de palabras relacionadas |
 | Invitado | Consulta el diccionario | Solo lectura, sin edición (CA-5.4.3) |
 | Google | Entrega el `idToken` del usuario | Confirma identidad y correo verificado |
-| Free Dictionary API | — | Respaldo opcional cuando WordNet no tiene la palabra; nunca se guarda sin confirmación (DP-05, DP-08). **Pendiente de verificar si está implementada** |
+| Free Dictionary API | — | Prevista en DP-08 como apoyo opcional, **no implementada** hoy |
 
 ## 3.2 Contexto técnico
 

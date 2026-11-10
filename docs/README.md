@@ -17,9 +17,9 @@ Cumplimiento completo de la guía de seguridad y documentación (qué es, para q
 | Marco / estándar | Ubicación | Estado |
 | --- | --- | --- |
 | OpenAPI | [`docs/api/openapi.yaml`](api/openapi.yaml) (cómo verlo y validarlo: [`api/README.md`](api/README.md)) | Completo (con supuestos pendientes marcados con `x-pendiente`) |
-| Arc42 | `docs/arquitectura/arc42/` | Parcial: ver «Contexto y decisiones» (`docs/ai/CONTEXTO_PROYECTO.md`, `docs/ai/DECISIONES.md`) |
+| Arc42 | `docs/arquitectura/arc42/` | Completo (12 secciones) |
 | Documentación de usuario (IEEE 1063 / ISO/IEC/IEEE 26514) | Front-end: `docs/usuario/` | Pendiente |
-| Documentación del código (JSDoc) | Comentarios en `backend/src/` | Parcial: ver pendientes en el plan de documentación |
+| Documentación del código (JSDoc) | Comentarios en `backend/src/`; página generada con `npm run docs:code` ([`codigo/README.md`](codigo/README.md)) | Completo |
 | Pruebas de seguridad (SAST, SCA, IAST, DAST) | [`seguridad/README.md`](seguridad/README.md) | Completo (DAST con OWASP ZAP; IAST no aplicado, justificado) |
 
 ## API y contratos con el front
@@ -68,6 +68,12 @@ Colecciones Postman: en la raíz del repositorio (`*.postman_collection*`).
 | `ai/Bitacora_de_prompts.xlsx` | Bitácora de prompts |
 
 Otros archivos de la raíz relevantes: [`../CLAUDE.md`](../CLAUDE.md) (contexto y decisiones del equipo), `../init.sql` (esquema oficial) y `../seed.sql` (datos de prueba).
+
+## Arquitectura
+
+| Documento | Contenido |
+| --- | --- |
+| [`arquitectura/arc42/README.md`](arquitectura/arc42/README.md) | Documentación de arquitectura en 12 secciones (arc42): contexto, bloques, ejecución, despliegue, decisiones, calidad y riesgos |
 
 ## Gobernanza del proyecto
 
