@@ -188,7 +188,7 @@ export const InscripcionController = {
     try {
       const id_curso = Number(req.params.id);
 
-      if (Number.isNaN(id_curso)) {
+      if (!Number.isSafeInteger(id_curso) || id_curso < 1 || id_curso > 2147483647) {
         return res.status(400).json({
           error: 'id de curso inválido',
           code: 'INVALID_ID',
@@ -227,6 +227,13 @@ export const InscripcionController = {
           });
         }
 
+        if (typeof codigo_acceso !== 'string') {
+          return res.status(400).json({
+            error: 'codigo_acceso debe ser una cadena de texto',
+            code: 'INVALID_FIELD_TYPE',
+          });
+        }
+
         const estudiante_id = req.usuario.id_usuario;
 
         const inscripcion =
@@ -254,7 +261,7 @@ export const InscripcionController = {
     try {
       const id_curso = Number(req.params.id);
 
-      if (Number.isNaN(id_curso)) {
+      if (!Number.isSafeInteger(id_curso) || id_curso < 1 || id_curso > 2147483647) {
         return res.status(400).json({
           error: 'id de curso inválido',
           code: 'INVALID_ID',
@@ -295,7 +302,7 @@ export const InscripcionController = {
     try {
       const id_curso = Number(req.params.id);
 
-      if (Number.isNaN(id_curso)) {
+      if (!Number.isSafeInteger(id_curso) || id_curso < 1 || id_curso > 2147483647) {
         return res.status(400).json({
           error: 'id de curso inválido',
           code: 'INVALID_ID',

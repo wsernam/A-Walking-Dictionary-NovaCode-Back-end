@@ -139,3 +139,77 @@ describe('InscripcionController — CRUD genérico [SIN RUTA MONTADA]', () => {
     expect((await llamar(InscripcionController, metodo, { params: { id: 'abc' } })).status).toBe(400);
   });
 });
+
+// Regresiones detectadas mediante fuzzing con Schemathesis.
+describe('InscripcionController — regresiones Schemathesis', () => {
+  it.each([
+    ['0.5'],
+    ['0'],
+    ['-1'],
+    ['2147483648'],
+    ['abc'],
+  ])('rechaza el id de curso inválido %s en los tres endpoints', async (id) => {
+    const generar = await llamar(
+      InscripcionController,
+      'generarCodigoAcceso',
+      { params: { id } }
+    );
+
+    const asignar = await llamar(
+      InscripcionController,
+      'asignarPorCorreo',
+      {
+        params: { id },
+        body: { email: 'estudiante@unicauca.edu.co' },
+      }
+    );
+
+    const listar = await llamar(
+      InscripcionController,
+      'listarEstudiantesPorCurso',
+      { params: { id } }
+    );
+
+    expect(generar).toMatchObject({
+      status: 400,
+      body: { code: 'INVALID_ID' },
+    });
+
+    expect(asignar).toMatchObject({
+      status: 400,
+      body: { code: 'INVALID_ID' },
+    });
+
+    expect(listar).toMatchObject({
+      status: 400,
+      body: { code: 'INVALID_ID' },
+    });
+
+    expect(InscripcionService.generarCodigoAcceso).not.toHaveBeenCalled();
+    expect(InscripcionService.asignarPorCorreo).not.toHaveBeenCalled();
+    expect(InscripcionRepository.listarEstudiantesPorCurso).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [{}],
+    [[]],
+    [123],
+    [true],
+  ])('rechaza codigo_acceso con tipo inválido: %j', async (codigo_acceso) => {
+    const respuesta = await llamar(
+      InscripcionController,
+      'inscribirsePorCodigo',
+      {
+        body: { codigo_acceso },
+        usuario: estudiante,
+      }
+    );
+
+    expect(respuesta).toMatchObject({
+      status: 400,
+      body: { code: 'INVALID_FIELD_TYPE' },
+    });
+
+    expect(InscripcionService.inscribirsePorCodigo).not.toHaveBeenCalled();
+  });
+});
