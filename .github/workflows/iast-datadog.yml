@@ -114,14 +114,32 @@ jobs:
       - name: Iniciar backend con dd-trace (IAST activado)
         working-directory: backend
         run: |
+          echo "--- Procesos que utilizan el puerto 5000 ---"
+          sudo ss -ltnp '( sport = :5000 )' || true
+
+          echo "--- Iniciando backend con Datadog IAST ---"
           nohup node --import dd-trace/initialize.mjs server.js > backend.log 2>&1 &
-          for i in $(seq 1 60); do
-            if curl -fsS http://127.0.0.1:5000/health >/dev/null; then break; fi
-            sleep 1
-          done
-          curl -fsS http://127.0.0.1:5000/health >/dev/null || { cat backend.log; exit 1; }
-          echo "--- Primeras líneas del log del backend ---"
-          head -n 30 backend.log
+          BACKEND_PID=$!
+          echo "BACKEND_PID=$BACKEND_PID" >> "$GITHUB_ENV"
+
+          sleep 5
+
+          echo "--- Estado del proceso ---"
+          if ! kill -0 "$BACKEND_PID" 2>/dev/null; then
+            echo "El backend terminó inesperadamente."
+            cat backend.log
+            exit 1
+          fi
+
+          echo "--- Puertos en escucha ---"
+          sudo ss -ltnp '( sport = :5000 )' || true
+
+          echo "--- Respuesta de la API ---"
+          curl -sS -o /dev/null -w 'HTTP %{http_code}\n' \
+            http://127.0.0.1:5000/api/v1/cards/pending || true
+
+          echo "--- Log del backend ---"
+          head -n 50 backend.log
 
       - name: Generar token JWT de prueba (docente)
         working-directory: backend
