@@ -93,10 +93,15 @@ jobs:
 
       - name: Iniciar el agente de Datadog
         run: |
-          docker run -d --name dd-agent --network host \
-            -e DD_API_KEY="$DD_API_KEY" -e DD_SITE="$DD_SITE" \
-            -e DD_APM_ENABLED=true -e DD_HOSTNAME=github-actions-iast \
+          docker run -d --name dd-agent \
+            -p 127.0.0.1:8126:8126 \
+            -e DD_API_KEY="$DD_API_KEY" \
+            -e DD_SITE="$DD_SITE" \
+            -e DD_APM_ENABLED=true \
+            -e DD_APM_NON_LOCAL_TRAFFIC=true \
+            -e DD_HOSTNAME=github-actions-iast \
             gcr.io/datadoghq/agent:7
+
           sleep 20
           docker logs dd-agent 2>&1 | tail -n 15
 
