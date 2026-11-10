@@ -43,6 +43,18 @@ describe.each([
 });
 
 describe('UsuarioController.actualizarPerfil — CA-5.2.1, CA-5.2.2', () => {
+  it('rechaza PATCH sin campos editables con 400', async () => {
+    const { status, body } = await llamar(
+      UsuarioController,
+      'actualizarPerfil',
+      { usuario: estudiante, body: {} }
+    );
+
+    expect(status).toBe(400);
+    expect(body.code).toBe('REQUIRED_FIELDS_MISSING');
+    expect(PerfilService.actualizarPerfil).not.toHaveBeenCalled();
+  });
+
   it('CA-5.2.1: actualiza el perfil del usuario del token, nunca el de un id enviado en el body', async () => {
     const { status } = await llamar(UsuarioController, 'actualizarPerfil', {
       body: { nivel_ingles: 'B2', intereses: ['Poesía'], estudiante_id: 8, rol: 'docente' },
@@ -59,8 +71,16 @@ describe('UsuarioController.actualizarPerfil — CA-5.2.1, CA-5.2.2', () => {
   });
 
   it('CA-5.2.1: conserva el 400 de validación del servicio; error inesperado 500', async () => {
-    PerfilService.actualizarPerfil.mockRejectedValueOnce(errorConStatus(400)).mockRejectedValueOnce(new Error('x'));
-    expect((await llamar(UsuarioController, 'actualizarPerfil', { usuario: estudiante })).status).toBe(400);
-    expect((await llamar(UsuarioController, 'actualizarPerfil', { usuario: estudiante })).status).toBe(500);
+    PerfilService.actualizarPerfil
+      .mockRejectedValueOnce(errorConStatus(400))
+      .mockRejectedValueOnce(new Error('x'));
+
+    const peticion = {
+      usuario: estudiante,
+      body: { nivel_ingles: 'B2' },
+    };
+
+    expect((await llamar(UsuarioController, 'actualizarPerfil', peticion)).status).toBe(400);
+    expect((await llamar(UsuarioController, 'actualizarPerfil', peticion)).status).toBe(500);
   });
 });

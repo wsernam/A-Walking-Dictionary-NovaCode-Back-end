@@ -56,7 +56,7 @@ export const TarjetaController = {
       // a) el mazo debe existir y estar "abierto" (CA-1.2.3). El id del mazo viene de la URL
       // (ruta anidada /decks/:id/cards), no del body.
       const mazoId = Number(req.params.id);
-      if (Number.isNaN(mazoId)) {
+      if (!Number.isSafeInteger(mazoId) || mazoId < 1 || mazoId > 2147483647) {
         return res.status(400).json({ error: 'El id del mazo en la URL no es válido', code: 'INVALID_ID' });
       }
       const mazo = await MazoRepository.obtenerPorId(mazoId);
@@ -127,6 +127,12 @@ export const TarjetaController = {
       const fechaAporte = new Date();
 
       // c) buscar duplicado en el mazo (HU-1.3)
+      if (typeof palabra !== 'string') {
+        return res.status(400).json({
+          error: 'palabra debe ser una cadena de texto',
+          code: 'INVALID_FIELD_TYPE',
+        });
+      }
       const tarjetaExistente = await DeduplicacionService.buscarDuplicado(mazoId, palabra);
 
       if (!tarjetaExistente) {
@@ -195,13 +201,19 @@ export const TarjetaController = {
       const { mazo_id, palabra, definicion, ejemplo } = req.body;
 
       const mazoId = Number(mazo_id);
-      if (Number.isNaN(mazoId)) {
+      if (!Number.isSafeInteger(mazoId) || mazoId < 1 || mazoId > 2147483647) {
         return res.status(400).json({ error: 'mazo_id inválido', code: 'INVALID_ID' });
       }
       if (!palabra) {
         return res.status(400).json({ error: 'El campo palabra es obligatorio', code: 'REQUIRED_FIELDS_MISSING' });
       }
 
+      if (typeof palabra !== 'string') {
+        return res.status(400).json({
+          error: 'palabra debe ser una cadena de texto',
+          code: 'INVALID_FIELD_TYPE',
+        });
+      }
       const tarjetaExistente = await DeduplicacionService.buscarDuplicado(mazoId, palabra);
 
       if (!tarjetaExistente) {
@@ -229,7 +241,7 @@ export const TarjetaController = {
   async obtenerPorId(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const tarjeta = await TarjetaService.obtenerDetalleTarjeta(id);
@@ -269,7 +281,7 @@ export const TarjetaController = {
   async actualizar(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const tarjeta = await TarjetaRepository.actualizar(id, req.body);
@@ -297,7 +309,7 @@ export const TarjetaController = {
   async editarRevision(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const tarjeta = await CuraduriaService.editarTarjeta(id, req.body);
@@ -323,7 +335,7 @@ export const TarjetaController = {
   async aprobar(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const tarjeta = await CuraduriaService.aprobarTarjeta(id);
@@ -377,7 +389,7 @@ export const TarjetaController = {
   async actualizarContexto(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const resultado = await ContextoService.actualizarContexto(id, req.body);
@@ -396,7 +408,7 @@ export const TarjetaController = {
   async eliminar(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const eliminado = await TarjetaRepository.eliminar(id);

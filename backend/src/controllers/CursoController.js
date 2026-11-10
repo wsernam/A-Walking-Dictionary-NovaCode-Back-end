@@ -90,19 +90,32 @@ export const CursoController = {
    * @param {import('express').Response} res - 200 con el curso, 400 si el id no es numérico,
    * 404 si no existe, 500 ante error inesperado.
    */
+
   async obtenerPorId(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
-        return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
+
+      // Validar que el identificador sea un entero positivo
+      // dentro del rango de PostgreSQL INTEGER.
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
+        return res.status(400).json({
+          error: 'id inválido',
+          code: 'INVALID_ID',
+        });
       }
+
       const curso = await CursoRepository.obtenerPorId(id);
+
       if (!curso) {
-        return res.status(404).json({ error: 'Curso no encontrado', code: 'COURSE_NOT_FOUND' });
+        return res.status(404).json({
+          error: 'Curso no encontrado',
+          code: 'COURSE_NOT_FOUND',
+        });
       }
-      res.status(200).json(ocultarCodigo(curso, req));
+
+      return res.status(200).json(ocultarCodigo(curso, req));
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   },
 

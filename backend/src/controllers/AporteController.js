@@ -27,6 +27,12 @@ export const AporteController = {
         });
       }
 
+      if (typeof traduccion_aportada !== 'string' || typeof tipo_aporte !== 'string') {
+        return res.status(400).json({
+          error: 'traduccion_aportada y tipo_aporte deben ser cadenas de texto',
+          code: 'INVALID_FIELD_TYPE',
+        });
+      }
       // Longitud máxima según el DER: traduccion_aportada varchar(255), tipo_aporte varchar(40),
       // ejemplo_aportado varchar(150) (nullable).
       const erroresLongitud = [];
@@ -49,6 +55,21 @@ export const AporteController = {
         return res.status(400).json({ error: erroresLongitud.join(' '), code: 'FIELD_TOO_LONG' });
       }
 
+      for (const campo of ['tarjeta_id', 'inscripcion_id']) {
+        if (req.body[campo] !== undefined && req.body[campo] !== null) {
+          const valor = req.body[campo];
+          if (
+            !Number.isSafeInteger(valor) ||
+            valor < 1 ||
+            valor > 2147483647
+          ) {
+            return res.status(400).json({
+              error: `${campo} debe ser un entero positivo valido`,
+              code: 'INVALID_ID',
+            });
+          }
+        }
+      }
       const aporte = await AporteRepository.crear(req.body);
       res.status(201).json(aporte);
     } catch (error) {
@@ -59,7 +80,7 @@ export const AporteController = {
   async obtenerPorId(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const aporte = await AporteRepository.obtenerPorId(id);
@@ -114,7 +135,7 @@ export const AporteController = {
   async aprobar(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
 
@@ -156,8 +177,23 @@ export const AporteController = {
   async actualizar(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
+      }
+      for (const campo of ['tarjeta_id', 'inscripcion_id']) {
+        if (req.body[campo] !== undefined && req.body[campo] !== null) {
+          const valor = req.body[campo];
+          if (
+            !Number.isSafeInteger(valor) ||
+            valor < 1 ||
+            valor > 2147483647
+          ) {
+            return res.status(400).json({
+              error: `${campo} debe ser un entero positivo valido`,
+              code: 'INVALID_ID',
+            });
+          }
+        }
       }
       const aporte = await AporteRepository.actualizar(id, req.body);
       if (!aporte) {
@@ -172,7 +208,7 @@ export const AporteController = {
   async eliminar(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       const eliminado = await AporteRepository.eliminar(id);

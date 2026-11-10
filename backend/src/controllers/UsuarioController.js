@@ -23,7 +23,7 @@ export const UsuarioController = {
   async obtenerPerfil(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       if (req.usuario.rol !== 'docente' && req.usuario.id_usuario !== id) {
@@ -50,6 +50,19 @@ export const UsuarioController = {
    */
   async actualizarPerfil(req, res) {
   try {
+    if (
+      !req.body ||
+      typeof req.body !== 'object' ||
+      Array.isArray(req.body) ||
+      !['nivel_ingles', 'codigo_estudiantil', 'avatar', 'intereses']
+        .some((campo) => Object.hasOwn(req.body, campo))
+    ) {
+      return res.status(400).json({
+        error: 'Debe proporcionar al menos un campo editable del perfil',
+        code: 'REQUIRED_FIELDS_MISSING',
+      });
+    }
+
     const { nivel_ingles, codigo_estudiantil, avatar, intereses } = req.body;
 
     // El usuario se obtiene del JWT generado mediante Google OAuth.
@@ -81,7 +94,7 @@ export const UsuarioController = {
   async obtenerContextoAcademico(req, res) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
+      if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
       // Auditoría OWASP H-03: el estudiante solo ve su propio contexto; la docente, el de cualquiera.
