@@ -45,7 +45,8 @@ router.put('/:id', authenticate, requireRole('docente'), MazoController.actualiz
  * @brief CA-1.1.3: cambia el estado del mazo (ej. a "cerrado"). PATCH /api/v1/decks/:id/estado
  *
  * Cerrar el mazo inhabilita la recepción de nuevos aportes para ese mazo; esa verificación
- * vive en TarjetaController.crear, no en esta ruta. Acción de docente (CA-5.4.2).
+ * vive en TarjetaController.crear, no en esta ruta. Acción de docente (CA-5.4.2): cualquier
+ * docente puede abrir o cerrar cualquier mazo, no solo el que lo creó.
  */
 router.patch('/:id/estado', authenticate, requireRole('docente'), MazoController.actualizarEstado);
 
