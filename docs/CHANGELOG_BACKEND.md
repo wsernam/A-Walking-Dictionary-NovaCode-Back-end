@@ -3,6 +3,17 @@
 ## Fecha
 2026-11-04 (última actualización — ver historial de sesiones más abajo)
 
+## Cambios aplicados en esta sesión (2026-11-11) — Cualquier docente abre o cierra mazos [IA-ASSISTED]
+
+[Asistido por IA: Claude (Claude Sonnet 5.5); validación pendiente de revisión humana.]
+Pedido de Manuela Meneses. Afecta CA-1.1.3.
+
+- `PATCH /api/v1/decks/:id/estado`: se quita el 403 `DECK_NOT_OWNER`; cualquier docente puede abrir
+  o cerrar cualquier mazo. Un estudiante sigue recibiendo 403 por `requireRole('docente')`.
+- Sin cambios: editar (`PUT /decks/:id`), cambiar la variante regional y eliminar siguen exigiendo
+  ser el docente dueño. Sin cambios en el front, en `init.sql` ni en migraciones.
+- Pruebas: `tests/controllers/MazoController.test.js` y `pruebas-funcionales/he01-mazos-vocabulario.test.js`.
+
 ## Cambios aplicados en esta sesión (2026-11-06) — Docente inicial en el registro [IA-ASSISTED]
 
 [Asistido por IA: Claude Code (Claude Opus 5.5); validación pendiente de revisión humana.]

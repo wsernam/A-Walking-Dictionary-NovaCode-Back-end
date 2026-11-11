@@ -255,8 +255,9 @@ paths:
       operationId: cambiarEstadoMazo
       summary: Abre o cierra un mazo
       description: |
-        Solo la docente dueña del mazo. Un mazo `cerrado` no acepta nuevos aportes (CA-1.1.3;
-        la verificación está en POST /decks/{id}/cards).
+        Cualquier docente puede abrir o cerrar cualquier mazo, sin importar quién lo creó (decisión del
+        equipo, 2026-11-11); un estudiante recibe 403. Un mazo `cerrado` no acepta nuevos aportes
+        (CA-1.1.3; la verificación está en POST /decks/{id}/cards).
       x-hu: HU-1.1
       x-ca: [CA-1.1.3]
       security: [{ bearerAuth: [] }]
