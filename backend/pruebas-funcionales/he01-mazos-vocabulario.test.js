@@ -56,9 +56,20 @@ describe('HU-1.1 — Crear mazos precargados por semana', () => {
     expect(aporte.status).toBe(409);
   });
 
-  it('CA-1.1.3 Solo la docente dueña del mazo puede cerrarlo (403 para otra docente)', async () => {
+  it('CA-1.1.3 Otra docente (no dueña del mazo) también puede cerrarlo y abrirlo', async () => {
     const mazo = await crearMazo();
-    const { status } = await api('PATCH', `/decks/${mazo.id_mazo}/estado`, { como: 'william', body: { estado: 'cerrado' } });
+    const cierre = await api('PATCH', `/decks/${mazo.id_mazo}/estado`, { como: 'william', body: { estado: 'cerrado' } });
+    expect(cierre.status).toBe(200);
+    expect(cierre.body.estado).toBe('cerrado');
+
+    const apertura = await api('PATCH', `/decks/${mazo.id_mazo}/estado`, { como: 'william', body: { estado: 'abierto' } });
+    expect(apertura.status).toBe(200);
+    expect(apertura.body.estado).toBe('abierto');
+  });
+
+  it('CA-1.1.3 Un estudiante no puede abrir ni cerrar mazos (403)', async () => {
+    const mazo = await crearMazo();
+    const { status } = await api('PATCH', `/decks/${mazo.id_mazo}/estado`, { como: 'juan', body: { estado: 'cerrado' } });
     expect(status).toBe(403);
   });
 });

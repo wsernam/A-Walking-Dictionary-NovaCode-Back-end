@@ -188,6 +188,18 @@ describe('MazoController.actualizarEstado — CA-1.1.3 (abrir o cerrar el mazo)'
     expect(body.estado).toBe('cerrado');
   });
 
+  it('CA-1.1.3: otro docente (no dueño) también puede cerrar y abrir el mazo', async () => {
+    const cierre = await llamar('actualizarEstado', { id: '3', usuario: otroDocente, body: { estado: 'cerrado' } });
+    expect(cierre.status).toBe(200);
+    expect(cierre.body.estado).toBe('cerrado');
+    expect(MazoRepository.actualizar).toHaveBeenCalledWith(3, expect.objectContaining({ estado: 'cerrado' }));
+
+    MazoRepository.obtenerPorId.mockResolvedValueOnce({ ...mazoGuardado, estado: 'cerrado' });
+    const apertura = await llamar('actualizarEstado', { id: '3', usuario: otroDocente, body: { estado: 'abierto' } });
+    expect(apertura.status).toBe(200);
+    expect(apertura.body.estado).toBe('abierto');
+  });
+
   it.each([
     ['falta el estado', {}],
     ['el estado no es abierto ni cerrado', { estado: 'archivado' }],
@@ -195,8 +207,7 @@ describe('MazoController.actualizarEstado — CA-1.1.3 (abrir o cerrar el mazo)'
     expect((await llamar('actualizarEstado', { id: '3', body })).status).toBe(400);
   });
 
-  it('CA-1.1.3: otro docente recibe 403; un mazo inexistente 404; id inválido 400; error 500', async () => {
-    expect((await llamar('actualizarEstado', { id: '3', usuario: otroDocente, body: { estado: 'cerrado' } })).status).toBe(403);
+  it('CA-1.1.3: un mazo inexistente responde 404; id inválido 400; error 500', async () => {
     MazoRepository.obtenerPorId.mockResolvedValueOnce(null);
     expect((await llamar('actualizarEstado', { id: '3', body: { estado: 'cerrado' } })).status).toBe(404);
     expect((await llamar('actualizarEstado', { id: 'abc', body: { estado: 'cerrado' } })).status).toBe(400);
