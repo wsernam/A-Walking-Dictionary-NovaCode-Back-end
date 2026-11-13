@@ -9,6 +9,7 @@ import { Router } from 'express';
 import { QuizController } from '../controllers/QuizController.js';
 import { ResultadoQuizController } from '../controllers/ResultadoQuizController.js';
 import { authenticate, requireRole } from '../middleware/autenticacionMiddleware.js';
+import { RevisionResultadosQuizController }  from '../controllers/RevisionResultadosQuizController.js';
 
 const router = Router();
 
@@ -40,6 +41,38 @@ router.get('/', authenticate, QuizController.listar);
  * de GET /:id para que Express no tome "mine" como un id.
  */
 router.get('/mine', authenticate, requireRole('estudiante'), QuizController.listarMios);
+
+/**
+ * @brief HU-022 (CA-22.1, CA-22.2, CA-22.4):
+ * consulta los resultados y estadísticas de un quiz
+ * perteneciente a un curso del docente autenticado.
+ *
+ * GET /api/v1/quizzes/:id/teacher-results
+ */
+router.get(
+  '/:id/teacher-results',
+  authenticate,
+  requireRole('docente'),
+  RevisionResultadosQuizController.consultarResumen
+);
+
+
+/**
+ * @brief HU-022 (CA-22.3):
+ * permite a la docente consultar las respuestas
+ * individuales de un resultado registrado.
+ *
+ * GET /api/v1/quizzes/:id/teacher-results/:resultadoId
+ *
+ * Acceso exclusivo para docentes autenticados.
+ */
+router.get(
+  '/:id/teacher-results/:resultadoId',
+  authenticate,
+  requireRole('docente'),
+  RevisionResultadosQuizController.consultarRespuestas
+);
+
 
 /**
  * @brief Busca un quiz por su id_quiz, con estado_efectivo calculado (CA-3.1.3).
