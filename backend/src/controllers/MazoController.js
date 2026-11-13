@@ -270,13 +270,15 @@ export const MazoController = {
    * @brief Cambia únicamente el campo "estado" de un mazo (ej. de "abierto" a "cerrado").
    *
    * CA-1.1.3: cerrar el mazo inhabilita la recepción de nuevos aportes; esa verificación vive
-   * en TarjetaController.crear, no aquí. Solo el docente dueño del mazo puede cambiarlo.
+   * en TarjetaController.crear, no aquí. Cualquier docente autenticado puede abrir o cerrar
+   * cualquier mazo, sin importar quién lo creó (decisión del equipo, 2026-11-11); el rol
+   * "docente" lo exige la ruta con requireRole.
    *
    * @param {import('express').Request} req - req.params.id es el id_mazo; req.body.estado es
    * el nuevo valor del estado ("abierto" o "cerrado").
    * @param {import('express').Response} res - 200 con el mazo actualizado, 400 si el id no es
-   * numérico, falta "estado" o no es un valor válido, 403 si no es el dueño, 404 si el mazo no
-   * existe, 500 ante error inesperado.
+   * numérico, falta "estado" o no es un valor válido, 404 si el mazo no existe, 500 ante error
+   * inesperado.
    */
   async actualizarEstado(req, res) {
     try {
@@ -297,9 +299,6 @@ export const MazoController = {
       const mazoActual = await MazoRepository.obtenerPorId(id);
       if (!mazoActual) {
         return res.status(404).json({ error: 'Mazo no encontrado', code: 'DECK_NOT_FOUND' });
-      }
-      if (!esDuenoDelMazo(req, mazoActual)) {
-        return res.status(403).json({ error: 'Solo el docente dueño puede abrir o cerrar este mazo', code: 'DECK_NOT_OWNER' });
       }
       const mazoActualizado = await MazoRepository.actualizar(id, { ...mazoActual, estado });
       res.status(200).json(mazoActualizado);

@@ -81,7 +81,7 @@ Si un error no tiene código específico, la API le pone uno según su status (`
 | code | Status | Cuándo | Texto sugerido |
 |---|---|---|---|
 | `DECK_NOT_FOUND` | 404 | El mazo no existe | Deck not found. |
-| `DECK_NOT_OWNER` | 403 | Una docente que no es la dueña intenta editar, cerrar o borrar el mazo | Only the deck owner can do this. |
+| `DECK_NOT_OWNER` | 403 | Una docente que no es la dueña intenta editar, cambiar la variante regional o borrar el mazo (abrir o cerrar ya no exige ser la dueña) | Only the deck owner can do this. |
 | `DECK_CLOSED` | 409 | Se intenta aportar a un mazo cerrado | This deck no longer accepts new words. |
 | `DECK_NOT_ENROLLED` | 403 | El estudiante no está inscrito en el curso del mazo | You are not enrolled in this deck's course. |
 | `CARD_NOT_FOUND` | 404 | La tarjeta no existe | Card not found. |

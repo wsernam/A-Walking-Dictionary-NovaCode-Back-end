@@ -2,7 +2,7 @@
 
 Este archivo se carga automáticamente por Claude Code al inicio de cada sesión. Contiene el contexto estable del proyecto para no tener que reexplicarlo cada vez.
 
-Última sincronización con `Backlog_HU.xlsx` y con el DER (`Diagrama_entidad_relacion`): 2026-10-04.
+Última sincronización con `Backlog_HU.xlsx` y con el DER (`Diagrama_entidad_relacion`): 2026-11-11 (estados de HU); DER: 2026-10-04.
 
 ## Sobre el proyecto
 
@@ -49,14 +49,14 @@ Todas las épicas tienen prioridad **Alta** y riesgo **Alto**. Sprint, valor y e
 | HU-2.1 | Revisar y aprobar tarjetas | Completado |
 | HU-2.2 | Asignar etiquetas de contexto cultural | Completado |
 | HU-2.3 | Visualizar resumen de participación | Completado |
-| HU-3.1 | Generar quices acumulativos | En progreso |
-| HU-3.2 | Responder quiz y recibir nota | En progreso |
-| HU-3.3 | Exportar mazos y quices a PDF | En progreso |
-| HU-4.1 | Estudiar con repetición espaciada | Pendiente |
-| HU-4.2 | Sugerir familias de palabras | Pendiente |
+| HU-3.1 | Generar quices acumulativos | Completado |
+| HU-3.2 | Responder quiz y recibir nota | Completado |
+| HU-3.3 | Exportar mazos y quices a PDF | Completado |
+| HU-4.1 | Estudiar con repetición espaciada | Completado |
+| HU-4.2 | Sugerir familias de palabras | Completado |
 | HU-5.1 | Registrar estudiante autónomamente | Completado |
 | HU-5.2 | Configurar perfil académico | Completado |
-| HU-5.3 | Inscribir o asignar a cursos | En progreso |
+| HU-5.3 | Inscribir o asignar a cursos | Completado |
 | HU-5.4 | Iniciar sesión y control de roles | Completado |
 
 Nota: en la hoja "Criterios de aceptación" del Excel TODOS los CA siguen en estado "Pendiente", incluso los de HU marcadas como Completado. Ver discrepancia D-01.
@@ -135,7 +135,7 @@ Detalle de implementación real de HE-02: ver sección "Implementación técnica
 
 ### HE-03 — Evaluación Automatizada y Exportación
 
-**HU-3.1 — Generar quices acumulativos · Estado: En progreso**
+**HU-3.1 — Generar quices acumulativos · Estado: Completado**
 
 Como docente del curso, quiero generar un quiz automático acumulativo a partir de todas las tarjetas aprobadas hasta la fecha, para evaluar el aprendizaje continuo.
 
@@ -147,7 +147,7 @@ Como docente del curso, quiero generar un quiz automático acumulativo a partir 
 - CA-3.1.2 (Generación aleatoria de preguntas): preguntas de opción múltiple o asociación término-definición; distractores aleatorios entre el resto de términos aprobados, sin repetir opciones.
 - CA-3.1.3 (Configuración de parámetros): fecha de apertura, cierre y tiempo límite en minutos → quiz queda en estado "programado", se publica automáticamente en la fecha indicada.
 
-**HU-3.2 — Responder quiz y recibir nota · Estado: En progreso**
+**HU-3.2 — Responder quiz y recibir nota · Estado: Completado**
 
 Como estudiante, quiero responder el quiz asignado desde la aplicación y recibir mi calificación inmediata, para conocer mi nivel de dominio.
 
@@ -158,12 +158,12 @@ Como estudiante, quiero responder el quiz asignado desde la aplicación y recibi
 - CA-3.2.2 (Calificación e historial inmediato): al presionar "Finalizar examen", se calcula el puntaje, se muestra desglose de aciertos/errores y se registra en el historial.
 - CA-3.2.3 (Restricción de reintento no autorizado): si ya finalizó y envió, un nuevo intento de acceso al enlace es denegado y se muestra el resumen del resultado previo. (El DER respalda esto con el índice único `resultado_quiz (quiz_id, estudiante_id)`.)
 
-**HU-3.3 — Exportar mazos y quices a PDF · Estado: En progreso**
+**HU-3.3 — Exportar mazos y quices a PDF · Estado: Completado**
 
 Como docente del curso, quiero exportar los mazos de vocabulario y las pruebas a archivos PDF, para fotocopiar el material ante imprevistos en aula sin conectividad.
 
 - Endpoint: GET /api/v1/decks/{id}/export-pdf (Node.js, usando pdf-lib)
-- Endpoint adicional (aprobado por el equipo 2026-10-07, D-06): GET /api/v1/quizzes/{id}/export-pdf — cubre CA-3.3.2. Pendiente de agregarlo también en Backlog_HU.xlsx.
+- Endpoint adicional (aprobado por el equipo 2026-10-07, D-06): GET /api/v1/quizzes/{id}/export-pdf — cubre CA-3.3.2. Ya reflejado en Backlog_HU.xlsx (2026-11-11).
 - Acceso: solo rol Docente en ambos endpoints (decisión D-07, 2026-10-07).
 - Frontend: botón de descarga en React
 - CA-3.3.1 (Generación de PDF de mazo semanal): la docente o estudiante, desde un mazo completado, selecciona "Exportar a PDF" → PDF maquetado con lista ordenada de términos, traducciones, definiciones y contexto.
@@ -173,7 +173,7 @@ Como docente del curso, quiero exportar los mazos de vocabulario y las pruebas a
 
 ### HE-04 — Repaso Adaptativo y Enriquecimiento Léxico
 
-**HU-4.1 — Estudiar con repetición espaciada · Estado: Pendiente**
+**HU-4.1 — Estudiar con repetición espaciada · Estado: Completado**
 
 Como estudiante, quiero estudiar los mazos compartidos mediante una sesión con repetición espaciada, para afianzar el vocabulario acumulado.
 
@@ -185,7 +185,7 @@ Como estudiante, quiero estudiar los mazos compartidos mediante una sesión con 
 - CA-4.1.2 (Cálculo de intervalos SM-2): al confirmar valoración ("Repetir"/"Difícil"/"Buena"/"Fácil"), el algoritmo SM-2 recalcula el factor de facilidad y programa la próxima fecha de repaso individual.
 - CA-4.1.3 (Reintroducción de fallos y resumen final): reintroduce la tarjeta fallada al final del bloque, o muestra métricas de la sesión al terminar.
 
-**HU-4.2 — Sugerir familias de palabras · Estado: Pendiente**
+**HU-4.2 — Sugerir familias de palabras · Estado: Completado**
 
 Como estudiante, quiero recibir sugerencias de palabras relacionadas por campo semántico al consultar una tarjeta, para ampliar mi léxico.
 
@@ -218,7 +218,7 @@ Como estudiante registrado, quiero configurar mi perfil académico (nivel MCER, 
 - CA-5.2.1 (Configuración de perfil académico y avatar): nivel MCER (A1-C2), código estudiantil, avatar → actualiza tabla usuarios y refresca interfaz.
 - CA-5.2.2 (Registro de preferencias de aprendizaje): guarda áreas a reforzar → almacenadas para orientar el seguimiento docente.
 
-**HU-5.3 — Inscribir o asignar a cursos · Estado: En progreso**
+**HU-5.3 — Inscribir o asignar a cursos · Estado: Completado**
 
 Como docente o estudiante, quiero gestionar la inscripción a un curso mediante código de acceso o asignación directa, para vincular al estudiante con su grupo.
 
@@ -321,7 +321,7 @@ HU en progreso (3.1, 3.2, 3.3, 5.3): documentar aquí el avance real al terminar
 
 Registro de decisiones humanas que Claude debe respetar en todas las sesiones. Formato: fecha — decisión — quién la tomó — HU/CA afectados.
 
-- 2026-10-07 — D-06: se aprueba el endpoint adicional `GET /api/v1/quizzes/:id/export-pdf` para cubrir CA-3.3.2 (el backlog solo lista el de mazos); falta reflejarlo en Backlog_HU.xlsx — wsernam — HU-3.3 (CA-3.3.2)
+- 2026-10-07 — D-06: se aprueba el endpoint adicional `GET /api/v1/quizzes/:id/export-pdf` para cubrir CA-3.3.2 (el backlog solo lista el de mazos); ya reflejado en Backlog_HU.xlsx (2026-11-11) — wsernam — HU-3.3 (CA-3.3.2)
 - 2026-10-07 — D-07: solo la docente exporta PDF (`authenticate` + `requireRole('docente')` en `/decks/:id/export-pdf` y `/quizzes/:id/export-pdf`). A tener en cuenta: CA-3.3.1 dice "docente o estudiante"; reconsiderar el acceso del estudiante al PDF del mazo más adelante — wsernam — HU-3.3 (CA-3.3.1, CA-3.3.2)
 - 2026-10-07 — En `POST /api/v1/quizzes/:id/submit` el `estudiante_id` se toma del JWT (`req.usuario.id_usuario`), no del body; ruta protegida con `authenticate` + `requireRole('estudiante')` — wsernam — HU-3.2 (CA-3.2.2, CA-3.2.3), CA-5.4.2
 - 2026-10-07 — Responder o pedir preguntas de un quiz exige estar inscrito en el curso del quiz (`InscripcionRepository.obtenerPorCursoYEstudiante`), 403 si no — wsernam — HU-3.2
@@ -333,15 +333,15 @@ Registro de decisiones humanas que Claude debe respetar en todas las sesiones. F
 - 2026-10-10 — Pruebas unitarias del backend con Vitest 3.2.7 (no 5.0.0 como el frontend) para que sea compatible con Node 20 de los Dockerfiles; repositorios simulados con `vi.mock`, sin BD. Los supuestos pendientes P2-P7 se prueban tal como están en el código y se marcan `[SUPUESTO PENDIENTE Pn]` en el nombre de la prueba: P2 calificación 0-5, P3 margen de 30 s tras cierre/tiempo límite, P4 mapeo SM-2 (Repetir=1, Difícil=3, Buena=4, Fácil=5; "Repetir" baja el factor), P5 `semana_corte` = semana más alta y `mazo_ids` explícitos, P6 estado del quiz derivado por fecha, P7 coautoría exige definición idéntica (con mayúsculas). Se incluye CA-5.4.3 (`autenticacionOpcional`). `coverage/` se ignora en `eslint.config.js` y `.gitignore`. Rama `feature/pruebas-unitarias` — wsernam — CA-1.3.1-1.3.3, CA-3.1.1-3.1.3, CA-3.2.1-3.2.3, CA-4.1.2, CA-5.4.1-5.4.3
 - 2026-10-10 — Pruebas unitarias, ronda 2 (misma rama `feature/pruebas-unitarias`): se prueban AutenticacionService, RegistroService, PerfilService, CuraduriaService, ContextoService, InscripcionService, ExportarPDFService y registroSeguridadMiddleware. NO se prueban DiccionarioService (HU-1.4 no está en el backlog) ni EstudioService/WordnetService (HU-4.1 y HU-4.2 figuran "Pendiente"). El registro se prueba con Google, sin contraseña (CA-5.1.1/5.1.2 sin la parte de bcrypt); el dominio `@unicauca.edu.co` se marca `[SUPUESTO PENDIENTE D-11]`. CA-2.1.3 queda sin cubrir porque el rechazo no existe en el código (se corrigió la sección HE-02 de este archivo). Los posibles errores de `src/` se documentan con pruebas marcadas `[POSIBLE ERROR]`, sin corregir `src/` — wsernam — CA-2.1.1-2.1.2, CA-2.2.1-2.2.2, CA-3.3.1-3.3.3, CA-5.1.1-5.1.2, CA-5.2.1-5.2.2, CA-5.3.1-5.3.2, CA-5.4.1
 - 2026-10-10 — Análisis de calidad (Sprint 1, sección 4.2): SonarQube Cloud (org `wsernam`, proyecto `wsernam_A-Walking-Dictionary-NovaCode-Back-end`) corre en `backend-tests.yml` después de `npm run test:coverage`; config en `sonar-project.properties` (raíz del repo). Se agrega CodeQL (`codeql.yml`). Se excluyen SOLO de la cobertura `routes/`, `models/`, `config/` (declarativos) y `repositories/` (SQL, a probar con BD real); se siguen analizando para bugs/smells/vulnerabilidades — aceptado por wsernam por recomendación de Claude. El token de SonarCloud va solo en el secret `SONAR_TOKEN` de GitHub. Se agregarán pruebas de controladores para subir la cobertura. Rama `feature/pruebas-unitarias` — wsernam — sin HU (calidad transversal)
-- 2026-10-11 — Se aprueban los endpoints adicionales `GET /api/v1/quizzes/mine` (estudiante, inscripción activa, con `resultado`) y `GET /api/v1/quizzes/:id/result` (estudiante inscrito, sin depender del estado del quiz; 404 si no ha enviado) pedidos en `docs/contrato-quiz-estudiante.md` del front. Además `POST/PUT/DELETE /quizzes` exigen docente y `GET /quizzes` y `GET /quizzes/:id` exigen token. Falta reflejarlo en Backlog_HU.xlsx — wsernam — HU-3.2 (CA-3.2.3), CA-5.4.2
+- 2026-10-11 — Se aprueban los endpoints adicionales `GET /api/v1/quizzes/mine` (estudiante, inscripción activa, con `resultado`) y `GET /api/v1/quizzes/:id/result` (estudiante inscrito, sin depender del estado del quiz; 404 si no ha enviado) pedidos en `docs/contrato-quiz-estudiante.md` del front. Además `POST/PUT/DELETE /quizzes` exigen docente y `GET /quizzes` y `GET /quizzes/:id` exigen token. Ya reflejado en Backlog_HU.xlsx (2026-11-11) — wsernam — HU-3.2 (CA-3.2.3), CA-5.4.2
 - 2026-10-11 — Pruebas de controladores y cobertura (rama `feature/pruebas-unitarias`): se excluyen además de la cobertura 5 controladores que solo usan rutas NO montadas en app.js (PreguntaQuiz, EtiquetaContexto, RespuestaQuiz, ProgresoEstudio, QuizMazo); misma lista en `sonar-project.properties` y `vitest.config.js`. El código de HU pendientes o fuera del backlog (WordNet, Estudio, Diccionario) NO se excluye: cuenta como no cubierto y, si la cobertura no llegara al 70 %, se reporta el número real. Los métodos de controladores alcanzables que ninguna ruta montada usa se prueban marcados `[SIN RUTA MONTADA]`. Resultado: 367 pruebas, cobertura 75.75 % — wsernam — CA-1.1.x, CA-1.2.x, CA-1.3.x, CA-2.1.x, CA-2.2.x, CA-2.3.x, CA-3.1.x, CA-3.2.x, CA-3.3.x, CA-5.1.x, CA-5.2.x, CA-5.3.x, CA-5.4.1
 - 2026-10-17 — Suite de pruebas funcionales (tarea asignada a William en la reunión del equipo): las de la API viven en el repo del back (`backend/pruebas-funcionales/`, `npm run test:funcional`, workflow propio `funcionales.yml`) y las E2E de Playwright en el repo del front con su propio workflow `e2e.yml`, que descarga el back (ambos repos son públicos). No se ponen en el repo de infra porque no tiene CI. Login simulado firmando el JWT con `JWT_SECRET`; la suite reinicia la BD local/CI con `init.sql` + `seed.sql`. Resultado: 82 pruebas + 4 `todo`. Observaciones: `quiz.fecha_apertura/fecha_cierre` son `TIMESTAMP` sin zona (desfase de 5 h si el backend no corre en UTC) — CORREGIDO 2026-10-18 en `src/config/db.js` sin migración (pg lee/escribe TIMESTAMP en UTC; PR #27, aprobado por wsernam); los puntajes de `resultado_quiz` llegan como string — sin corregir, lo decide el equipo. Rama `feature/pruebas-funcionales` — wsernam — CA-1.1.x a CA-5.4.x (sin HU-4.x)
 - 2026-10-21 — Auditoría OWASP H-11: `InscripcionService.generarCodigo` usa `randomInt` de `node:crypto` en vez de `Math.random` para el código de acceso al curso (mismo alfabeto y longitud de 8). El barajado de opciones de QuizService se cambió después a node:crypto (PR #33, 2026-10-22, rama fix/owasp-h11-barajado-crypto). Rama `fix/owasp-h11-codigo-crypto` — wsernam — CA-5.3.1
 - 2026-10-22 — Códigos de error de la API (propuesta del equipo tras la migración del front a inglés, PR #48 del front): toda respuesta de error es `{ error, code }`; `error` (español) y el status HTTP NO cambian, `code` es un código fijo en inglés que el front traduce con `en.json`. Códigos específicos en controladores, servicios (`errorApi(status, code, mensaje)` de `src/utils/codigosError.js`) y middleware de autenticación (`AUTH_TOKEN_MISSING`, `AUTH_TOKEN_INVALID`, `AUTH_FORBIDDEN`, `AUTH_USER_NOT_REGISTERED`); los errores sin código propio reciben uno genérico por status en el interceptor de `app.js` (`BAD_REQUEST`, `NOT_FOUND`, `INTERNAL_ERROR`, …). Se agregó `AUTH_ACCOUNT_INACTIVE` (cuenta desactivada, no estaba en la propuesta). Lista completa en `docs/codigos-error.md`. Los 5 controladores sin ruta montada no se tocaron. Todo 5xx sale con `INTERNAL_ERROR` y solo se reenvían códigos con forma de los nuestros (`esCodigoPropio`): los errores de PostgreSQL traen su SQLSTATE en `error.code` (ej. "42703") y no deben llegar al cliente. `WordnetService` ahora responde 400 (`REQUIRED_FIELDS_MISSING` / `FIELD_TOO_LONG`) en vez de 500 ante una palabra vacía o de más de 150 caracteres; no tiene pruebas unitarias porque `node-wordnet` carga `es6-shim`, que reemplaza la Promise global y rompe Vitest. Tarea asignada a William y Thalía; William la hizo completa. Rama `feature/codigos-error` — wsernam — sin HU (transversal; afecta CA-5.4.1/5.4.2 en los códigos de auth)
 
-- 2026-10-30 — HU-019 (reporte del modo de estudio en PDF): endpoint `GET /api/v1/reports/study-mode/export-pdf` con `student_id` opcional (aprobado por el equipo; falta reflejarlo en Backlog_HU.xlsx). Ruta con `authenticate` sin `requireRole`: la regla vive en `ReporteEstudioService` (CA-19.3): el estudiante solo ve su propio repaso (403 `REPORT_FORBIDDEN` si pide otro `student_id`), la docente ve a los estudiantes de sus cursos (`curso.docente_id`) y un `student_id` fuera de sus cursos responde 404 `REPORT_STUDENT_NOT_FOUND` (supuesto pendiente de validar). S1: la distribución de valoraciones cuenta la última valoración de cada tarjeta, porque `progreso_estudio` no guarda historial (limitación documentada en el propio PDF). S4: repaso vencido = `fecha_proximo_repaso < NOW() AT TIME ZONE 'UTC'`. S7/S8: 10 palabras de menor `factor_facilidad` por estudiante. Se exportan con `export` los helpers de maquetado de `ExportarPDFService.js` para reutilizarlos. Archivos nuevos: `ReporteEstudioRepository.js`, `ReporteEstudioService.js`, `ReporteEstudioPDFService.js`, `ReporteEstudioController.js`, `reporteRoutes.js` y sus pruebas. Rama `feature/hu-19-reporte-modo-estudio` — Karen Sandoval — HU-019 (CA-19.1, CA-19.2, CA-19.3)
+- 2026-10-30 — HU-019 (reporte del modo de estudio en PDF): endpoint `GET /api/v1/reports/study-mode/export-pdf` con `student_id` opcional (aprobado por el equipo; ya reflejado en Backlog_HU.xlsx (2026-11-11)). Ruta con `authenticate` sin `requireRole`: la regla vive en `ReporteEstudioService` (CA-19.3): el estudiante solo ve su propio repaso (403 `REPORT_FORBIDDEN` si pide otro `student_id`), la docente ve a los estudiantes de sus cursos (`curso.docente_id`) y un `student_id` fuera de sus cursos responde 404 `REPORT_STUDENT_NOT_FOUND` (supuesto pendiente de validar). S1: la distribución de valoraciones cuenta la última valoración de cada tarjeta, porque `progreso_estudio` no guarda historial (limitación documentada en el propio PDF). S4: repaso vencido = `fecha_proximo_repaso < NOW() AT TIME ZONE 'UTC'`. S7/S8: 10 palabras de menor `factor_facilidad` por estudiante. Se exportan con `export` los helpers de maquetado de `ExportarPDFService.js` para reutilizarlos. Archivos nuevos: `ReporteEstudioRepository.js`, `ReporteEstudioService.js`, `ReporteEstudioPDFService.js`, `ReporteEstudioController.js`, `reporteRoutes.js` y sus pruebas. Rama `feature/hu-19-reporte-modo-estudio` — Karen Sandoval — HU-019 (CA-19.1, CA-19.2, CA-19.3)
 
-- 2026-11-04 — HU-021 (reporte de resultados por quiz en PDF, `GET /api/v1/reports/quizzes/:id/results/export-pdf`): S1 el quiz debe ser de un curso de la docente (403 `AUTH_FORBIDDEN` si no); S2 cuentan los inscritos `activa` más los no activos que tengan resultado; S3 la calificación se muestra tal cual (0-5) convertida con `Number()`; S4 se muestran las 5 preguntas con mayor % de error, desempate por `pregunta_quiz.orden`; S5 una pregunta sin fila en `respuesta_quiz` no cuenta como error; S6 el % que presentó se calcula sobre todas las filas listadas. Falta reflejar el endpoint en Backlog_HU.xlsx — <quién confirmó>  — Karen Sandoval— HU-021 (CA-21.1, CA-21.2, CA-21.3)
+- 2026-11-04 — HU-021 (reporte de resultados por quiz en PDF, `GET /api/v1/reports/quizzes/:id/results/export-pdf`): S1 el quiz debe ser de un curso de la docente (403 `AUTH_FORBIDDEN` si no); S2 cuentan los inscritos `activa` más los no activos que tengan resultado; S3 la calificación se muestra tal cual (0-5) convertida con `Number()`; S4 se muestran las 5 preguntas con mayor % de error, desempate por `pregunta_quiz.orden`; S5 una pregunta sin fila en `respuesta_quiz` no cuenta como error; S6 el % que presentó se calcula sobre todas las filas listadas. Endpoint ya reflejado en Backlog_HU.xlsx (2026-11-11) — <quién confirmó>  — Karen Sandoval— HU-021 (CA-21.1, CA-21.2, CA-21.3)
 
 - 2026-11-06 — Docente inicial (**PENDIENTE DE APROBACIÓN P2 de Karen Sandoval**; si se rechaza, borrar esta entrada): en `POST /api/v1/auth/register`, si la tabla `usuario` no tiene ningún docente, la cuenta registrada se crea con rol `docente` (opción A: «el primero que se registre»); si ya hay uno, `estudiante` como dice CA-12.1. Motivo: el lanzamiento arranca con la BD vacía, sin `seed.sql`, y nadie podía llegar a docente para crear el curso. La regla vive en `UsuarioRepository.crearDesdeGoogleConRolInicial` (transacción + `pg_advisory_xact_lock`, sin cambios de esquema). Riesgo aceptado por wsernam: quien se registre primero en un despliegue nuevo queda como docente; se descartó la opción B (solo un correo autorizado por variable de entorno). Rama `feature/docente-inicial` — wsernam — HU-012 (CA-12.1), HU-015
 - 2026-11-03 — HU-018 (reporte de progreso individual en PDF): endpoint `GET /api/v1/reports/students/:id/progress/export-pdf`, el que ya trae el backlog (y el que llama `reportesApi.js` del front). Misma regla de acceso que HU-019 (`authenticate` sin `requireRole`; la regla vive en `ReporteProgresoService`, CA-18.3): el estudiante solo ve su propio reporte (403 `REPORT_FORBIDDEN` si el `:id` es de otro, sin consultar la BD), la docente ve a los estudiantes inscritos en sus cursos y un `:id` fuera de sus cursos responde 404 `REPORT_STUDENT_NOT_FOUND` (supuesto pendiente de validar); `:id` inválido responde 400 `INVALID_ID`. No hay códigos de error nuevos. Supuestos pendientes de validar: «palabras aportadas» = aportes `tipo_aporte = 'creada'` contados por el estado de su tarjeta (`rechazada` saldrá en 0 mientras el rechazo no exista, ver HE-02); «coautorías» = `tipo_aporte IN ('coautoria','acepcion_nueva')` (mismo criterio que `AnaliticaRepository`); nota promedio = promedio simple de `resultado_quiz.calificacion` (escala 0-5); «tarjetas repasadas» = filas de `progreso_estudio` del estudiante (igual que HU-019). Sin quices o sin repasos el PDF muestra «Sin actividad registrada» (CA-18.2). Los helpers de texto del PDF (`limpiar`, `recortar`, `formatearFecha`) pasaron de `ReporteEstudioPDFService.js` a `src/utils/formatoPdf.js` para compartirlos. Archivos nuevos: `ReporteProgresoRepository.js`, `ReporteProgresoService.js`, `ReporteProgresoPDFService.js`, `ReporteProgresoController.js`, `utils/formatoPdf.js` y sus pruebas. Rama `feature/hu-18-reporte-progreso-individual` — HU-018 (CA-18.1, CA-18.2, CA-18.3)
@@ -349,3 +349,5 @@ Registro de decisiones humanas que Claude debe respetar en todas las sesiones. F
 - 2026-11-06 — HU-019, alcance de la docente (reemplaza el supuesto S5 de la decisión del 2026-10-30): el reporte del modo de estudio incluye a todos los estudiantes con inscripción activa, sin filtrar por `curso.docente_id`. Motivo: en el despliegue hay un solo curso, asignado al docente con id 1, y las demás cuentas docentes recibían un reporte vacío; la HU dice "la docente sobre todos los estudiantes" y el MVP es un solo curso cerrado. Se mantiene: el estudiante solo ve su propio repaso (403 `REPORT_FORBIDDEN` si pide otro `student_id`) y un `student_id` sin inscripción activa responde 404 `REPORT_STUDENT_NOT_FOUND`. Se corrige además la nota de distribución que se encimaba con el aviso de lista vacía. Rama `fix/hu-19-alcance-docente-reporte` — decisión de Karen Sandoval, pendiente de que el equipo la confirme (falta verificar si el docente 1 es del seed) — HU-019 (CA-19.1, CA-19.3)
 
 - 2026-11-07 — Documentación de arquitectura Arc42 en `docs/arquitectura/arc42/` (12 secciones, diagramas Mermaid); el orden de las metas de calidad (sección 1.2) es propuesta pendiente de validar; la Free Dictionary API de DP-08 se documenta como no implementada; discrepancias detectadas T11 (DP-17 vs `curso_id` en HU-020) y T12 (estado de HU-4.1/4.2) quedan registradas en la sección 11 sin resolver — Karen Sandoval — sin HU (documentación transversal)
+- 2026-11-11 — Abrir o cerrar un mazo (`PATCH /api/v1/decks/:id/estado`) ya no exige ser el docente que lo creó: cualquier docente autenticado puede hacerlo; el estudiante sigue recibiendo 403 por `requireRole('docente')`. Editar (`PUT`), cambiar la variante regional y eliminar mantienen la regla del dueño (`DECK_NOT_OWNER`). Cambios en `MazoController.actualizarEstado`, sus pruebas unitarias y funcionales, `openapi.yaml` y `codigos-error.md`. Sin cambios en el front ni en el esquema — Manuela Meneses — HU-1.1 (CA-1.1.3)
+- 2026-11-11 — El equipo confirma que todas las HU del backlog están completas: HU-3.1, 3.2, 3.3, 4.1, 4.2 y 5.3 pasan a "Completado" en la tabla de estado y en sus encabezados, y se retiran las notas de "falta reflejar en Backlog_HU.xlsx" (el backlog ya quedó completo). Los CA de la hoja "Criterios de aceptación" y la discrepancia D-01 no se tocaron — Manuela Meneses — todas las HU (HE-01 a HE-05)
