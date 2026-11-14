@@ -59,10 +59,10 @@ const studentController = src('controllers/EstudioController.js');
 const userController = src('controllers/UsuarioController.js');
 const authService = src('services/AutenticacionService.js');
 
-check('H-01', 'CRUD genérico de usuarios deshabilitado', !/router\.(post|get|put|delete)\(\s*['"]\/['"]/.test(users) && /router\.get\(['"]\/:id['"],\s*authenticate/.test(users), 'Usuarios solo expone rutas explícitas autenticadas');
+check('H-01', 'CRUD genérico de usuarios deshabilitado', !/router\.(post|get|put|delete)\(\s*['"]\/['"]/.test(users) && /router\.get\(\s*['"]\/:id['"],\s*(?:limiteAcademico,\s*)?authenticate\s*,/.test(users), 'Usuarios solo expone rutas explícitas autenticadas');
 check('H-01b', 'Perfil: propiedad de recurso', /req\.usuario\.id_usuario\s*!==\s*id/.test(userController), 'Comprobar que el estudiante no vea perfiles ajenos');
 check('H-02', 'Generación de código solo para docentes', /router\.post\(['"]\/:id\/access-code['"],\s*authenticate,\s*requireRole\(['"]docente['"]\)/.test(courses), 'Endpoint requiere JWT y rol docente');
-check('H-03', 'Estudio y contexto requieren autenticación', (study.match(/authenticate,\s*requireRole\(['"]estudiante['"]\)/g) || []).length >= 2 && /router\.get\(['"]\/:id\/context['"],\s*authenticate/.test(students), 'Rutas de estudio y contexto protegidas');
+check('H-03', 'Estudio y contexto requieren autenticación', (study.match(/authenticate,\s*requireRole\(['"]estudiante['"]\)/g) || []).length >= 2 && /router\.get\(\s*['"]\/:id\/context['"],\s*(?:limiteAcademico,\s*)?authenticate\s*,/.test(students), 'Rutas de estudio y contexto protegidas');
 check('H-03b', 'Inscripción validada contra JWT', /InscripcionRepository\.obtenerPorId/.test(studentController) && /inscripcion\.estudiante_id/.test(studentController) && /req\.usuario\.id_usuario/.test(studentController), 'El controlador verifica propiedad de la inscripción');
 check('H-04', 'Bypass de autenticación deshabilitado en producción', /process\.env\.NODE_ENV\s*!==\s*['"]production['"]/.test(auth), 'DISABLE_AUTH no funciona con NODE_ENV=production');
 check('H-06', 'TLS verifica el certificado de PostgreSQL', !/rejectUnauthorized\s*:\s*false/.test(db) && /rejectUnauthorized\s*:\s*true|\bca\s*:/.test(db), 'No debe desactivarse la validación del certificado');

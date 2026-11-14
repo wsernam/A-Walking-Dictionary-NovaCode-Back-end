@@ -79,7 +79,7 @@ describe('HU-023 — Cambiar rol y activar o desactivar cuenta', () => {
   it('CA-23.2 Un usuario inexistente responde 404', async () => {
     const { status, body } = await api('PATCH', '/admin/users/99999/role', { ...comoAdmin, body: { rol: 'docente' } });
     expect(status).toBe(404);
-    expect(body.code).toBe('USER_NOT_FOUND');
+    expect(body.code).toBe('ADMIN_USER_NOT_FOUND');
   });
 
   it('CA-23.2 Un docente con cursos asignados no puede perder su rol (409)', async () => {

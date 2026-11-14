@@ -5,15 +5,20 @@
 
 import { Router } from 'express';
 import { UsuarioController } from '../controllers/UsuarioController.js';
-import { authenticate } from '../middleware/autenticacionMiddleware.js';
+import { authenticate, requireRole } from '../middleware/autenticacionMiddleware.js';
+import {
+  crearLimiteAcademico,
+} from '../middleware/limiteAcademicoMiddleware.js';
 
 const router = Router();
+
+const limiteAcademico = crearLimiteAcademico();
 
 /**
  * @brief Contexto académico (curso asignado, semestre activo). GET /api/v1/students/:id/context
  * @note Auditoría OWASP H-03 (A01): exige JWT. El estudiante solo consulta su propio contexto y
  * la docente el de cualquiera (misma regla que GET /users/:id, ver UsuarioController).
  */
-router.get('/:id/context', authenticate, UsuarioController.obtenerContextoAcademico);
+router.get('/:id/context', limiteAcademico, authenticate, requireRole('docente', 'estudiante'), UsuarioController.obtenerContextoAcademico);
 
 export default router;

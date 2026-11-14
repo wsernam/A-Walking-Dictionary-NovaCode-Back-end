@@ -42,10 +42,10 @@ describe('AdminUsuarioController — HU-023', () => {
     expect(AdminUsuarioService.cambiarEstado).toHaveBeenCalledWith(administrador, 5, false);
   });
 
-  it.each(['cambiarRol', 'cambiarEstado'])('%s: id inválido responde 400 INVALID_ID sin llamar al servicio', async (metodo) => {
+  it.each(['cambiarRol', 'cambiarEstado'])('%s: id inválido responde 400 ADMIN_INVALID_ID sin llamar al servicio', async (metodo) => {
     const { status, body } = await llamar(AdminUsuarioController, metodo, { usuario: administrador, params: { id: 'abc' }, body: {} });
     expect(status).toBe(400);
-    expect(body.code).toBe('INVALID_ID');
+    expect(body.code).toBe('ADMIN_INVALID_ID');
     expect(AdminUsuarioService[metodo]).not.toHaveBeenCalled();
   });
 

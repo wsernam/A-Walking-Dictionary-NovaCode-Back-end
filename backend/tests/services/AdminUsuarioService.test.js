@@ -86,7 +86,7 @@ describe('AdminUsuarioService.cambiarRol — CA-23.2', () => {
 
   it('usuario inexistente responde 404', async () => {
     UsuarioRepository.obtenerParaAdmin.mockResolvedValue(null);
-    await expect(AdminUsuarioService.cambiarRol(admin, 99, 'docente')).rejects.toMatchObject({ status: 404, code: 'USER_NOT_FOUND' });
+    await expect(AdminUsuarioService.cambiarRol(admin, 99, 'docente')).rejects.toMatchObject({ status: 404, code: 'ADMIN_USER_NOT_FOUND' });
   });
 
   it('no quita el rol al último administrador activo (409)', async () => {
@@ -155,5 +155,121 @@ describe('AdminUsuarioService.cambiarEstado — CA-23.2', () => {
     expect(UsuarioRepository.cambiarEstado).toHaveBeenCalledWith(5, false, 'db');
     // La desactivación solo modifica usuario.activo: los cursos y el historial no se tocan.
     expect(CursoRepository.contarPorDocente).not.toHaveBeenCalled();
+  });
+});
+
+describe('CA-23.4 — Rechazos sin operaciones de escritura', () => {
+  const casos = [
+    {
+      nombre: 'cambiar el propio rol',
+      metodo: 'cambiarRol',
+      id: 1,
+      valor: 'docente',
+      status: 409,
+      code: 'ADMIN_SELF_CHANGE',
+    },
+    {
+      nombre: 'cambiar el propio estado',
+      metodo: 'cambiarEstado',
+      id: 1,
+      valor: false,
+      status: 409,
+      code: 'ADMIN_SELF_CHANGE',
+    },
+    {
+      nombre: 'quitar el rol al último administrador activo',
+      metodo: 'cambiarRol',
+      id: 5,
+      valor: 'estudiante',
+      objetivo: { rol: 'administrador', activo: true },
+      administradores: 1,
+      status: 409,
+      code: 'ADMIN_LAST_ADMIN',
+    },
+    {
+      nombre: 'desactivar al último administrador activo',
+      metodo: 'cambiarEstado',
+      id: 5,
+      valor: false,
+      objetivo: { rol: 'administrador', activo: true },
+      administradores: 1,
+      status: 409,
+      code: 'ADMIN_LAST_ADMIN',
+    },
+    {
+      nombre: 'degradar a un docente con cursos',
+      metodo: 'cambiarRol',
+      id: 5,
+      valor: 'estudiante',
+      objetivo: { rol: 'docente' },
+      cursos: 2,
+      status: 409,
+      code: 'ADMIN_TEACHER_HAS_COURSES',
+    },
+    {
+      nombre: 'asignar el rol invitado',
+      metodo: 'cambiarRol',
+      id: 5,
+      valor: 'invitado',
+      status: 400,
+      code: 'ADMIN_INVALID_ROLE',
+    },
+    {
+      nombre: 'asignar un rol desconocido',
+      metodo: 'cambiarRol',
+      id: 5,
+      valor: 'superadmin',
+      status: 400,
+      code: 'ADMIN_INVALID_ROLE',
+    },
+    {
+      nombre: 'cambiar el rol de un usuario inexistente',
+      metodo: 'cambiarRol',
+      id: 99,
+      valor: 'docente',
+      inexistente: true,
+      status: 404,
+      code: 'ADMIN_USER_NOT_FOUND',
+    },
+    {
+      nombre: 'cambiar el estado de un usuario inexistente',
+      metodo: 'cambiarEstado',
+      id: 99,
+      valor: false,
+      inexistente: true,
+      status: 404,
+      code: 'ADMIN_USER_NOT_FOUND',
+    },
+    {
+      nombre: 'enviar un estado que no es booleano',
+      metodo: 'cambiarEstado',
+      id: 5,
+      valor: 'false',
+      status: 400,
+      code: 'ADMIN_INVALID_STATUS',
+    },
+  ];
+
+  it.each(casos)('$nombre', async (caso) => {
+    UsuarioRepository.obtenerParaAdmin.mockResolvedValue(
+      caso.inexistente ? null : usuario(caso.objetivo)
+    );
+
+    UsuarioRepository.contarAdministradoresActivos.mockResolvedValue(
+      caso.administradores ?? 2
+    );
+
+    CursoRepository.contarPorDocente.mockResolvedValue(caso.cursos ?? 0);
+
+    await expect(
+      AdminUsuarioService[caso.metodo](admin, caso.id, caso.valor)
+    ).rejects.toMatchObject({
+      status: caso.status,
+      code: caso.code,
+    });
+
+    expect(UsuarioRepository.cambiarRol).not.toHaveBeenCalled();
+    expect(UsuarioRepository.cambiarEstado).not.toHaveBeenCalled();
+    expect(console.info).not.toHaveBeenCalled();
   });
 });
