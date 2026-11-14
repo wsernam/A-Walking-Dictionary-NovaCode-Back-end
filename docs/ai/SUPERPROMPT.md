@@ -6,7 +6,7 @@
 ## 0. Cabecera
 - Plantilla: 3.0 (facdbd59)
 - Sprint en curso: 4 · Reportes en PDF (HE-07) · líder del sprint (aprueba contratos): **Karen Sandoval**
-- Fuentes al construirlo: backend@abd871c, frontend@57e57e3 · backlog: 21 HU · bitácora: 57 sesiones
+- Fuentes al construirlo: backend@9d5ba7e, frontend@4cf59a3 · backlog: 21 HU · bitácora: 61 sesiones
 - Se reconstruye con: `python tools/hitl/hitl.py build` (o lo hace el flujo de GitHub Actions y abre un PR para revisión humana)
 
 ## 1. Cómo usar este documento
@@ -349,7 +349,7 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 **Antes de proponer nada, lee los markdowns que apliquen a la tarea** (README y carpeta `docs/` o `doc/` de cada repo). Los marcados como CONTRATO son vinculantes: si tu cambio los contradice, aplica la puerta P2.
 
 - `backend:.github/pull_request_template.md` — (sin título) (497 caracteres; último cambio: 3c9f121 2026-10-22)
-- `backend:CHANGELOG.md` — Changelog (4.399 caracteres; último cambio: 571fe03 2026-11-09)
+- `backend:CHANGELOG.md` — Changelog (4.661 caracteres; último cambio: e543d38 2026-11-13)
 - `backend:CLAUDE.md` — CLAUDE.md — Contexto del proyecto (43.026 caracteres; último cambio: 4e7bb29 2026-11-11)
 - `backend:CONTRIBUTING.md` — Guía de contribución — A Walking Dictionary (Back-end) (5.073 caracteres; último cambio: bfe993e 2026-11-06)
 - `backend:README.md` — A Walking Dictionary (7.617 caracteres; último cambio: 352bfe6 2026-11-07)
@@ -386,8 +386,9 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 - `backend:docs/arquitectura/arc42/12-glosario.md` — 12. Glosario (2.965 caracteres; último cambio: 8db00ff 2026-11-07)
 - `backend:docs/arquitectura/arc42/README.md` — Documentación de arquitectura (Arc42) — A Walking Dictionary (1.520 caracteres; último cambio: 8db00ff 2026-11-07)
 - `backend:docs/codigo/README.md` — Documentación del código (generada con JSDoc) (1.927 caracteres; último cambio: 352bfe6 2026-11-07)
-- **[CONTRATO]** `backend:docs/codigos-error.md` — Códigos de error de la API (9.342 caracteres; último cambio: ee062b5 2026-11-11)
+- **[CONTRATO]** `backend:docs/codigos-error.md` — Códigos de error de la API (9.504 caracteres; último cambio: e543d38 2026-11-13)
 - `backend:docs/cumplimiento-guia-seguridad-documentacion.md` — Cumplimiento de la guía «Ingeniería de Software: Seguridad y Documentación» (14.297 caracteres; último cambio: 251cb85 2026-11-08)
+- `backend:docs/procedimiento-primer-administrador.md` — Procedimiento seguro para asignar el primer administrador (HU-023) (2.876 caracteres; último cambio: 4e3b6bf 2026-11-14)
 - `backend:docs/seguridad/README.md` — Pruebas de seguridad del código y de la API (6.250 caracteres; último cambio: 251cb85 2026-11-08)
 - `frontend:.github/pull_request_template.md` — (sin título) (495 caracteres; último cambio: ca73e2e 2026-10-23)
 - `frontend:CHANGELOG.md` — Changelog (2.719 caracteres; último cambio: e678d54 2026-11-07)
@@ -684,12 +685,30 @@ detallados faltaban datos del PDF, así que se ajustó:
 
 
 ## 9. Estado e historial de los repositorios
-- `backend`: rama `develop`, HEAD `abd871c`
-- `frontend`: rama `develop`, HEAD `57e57e3`
+- `backend`: rama `develop`, HEAD `9d5ba7e`
+- `frontend`: rama `develop`, HEAD `4cf59a3`
 
 ### Historial de commits
-**backend** — últimos 60 de 264 commits (incluye merges de PR):
+**backend** — últimos 60 de 282 commits (incluye merges de PR):
+  - 9d5ba7e 2026-11-14 Manuela Erazo: Merge pull request #72 from wsernam/feature/backend/hu-023-endpoints-admin
+  - 15f00d6 2026-11-14 Karen Sandoval: Merge remote-tracking branch 'origin/develop' into feature/backend/hu-023-endpoints-admin
+  - fba3965 2026-11-14 Karen Sandoval: fix(admin): HU-023 corregir avisos de Sonar (log injection y String.raw)
+  - 6b18d9b 2026-11-14 Karen Sandoval: Merge pull request #70 from wsernam/feature/backend/aportes-repetidos
+  - a0b9946 2026-11-14 Manuela Erazo: Merge pull request #71 from wsernam/feature/backend/hu-023-primer-administrador
+  - a736952 2026-11-14 Karen Sandoval: feat(admin): HU-023 endpoints de administracion de usuarios y roles con pruebas unitarias
+  - 4e3b6bf 2026-11-14 Karen Sandoval: feat(admin): HU-023 script SQL y procedimiento seguro del primer administrador
+  - e543d38 2026-11-13 Manuela Erazo: docs: actualizar errores, contrato API y registro de cambios
+  - 3cb2792 2026-11-13 Manuela Erazo: test: cubrir aportes repetidos y acceso docente compartido a reportes
+  - 20e98bf 2026-11-13 Manuela Erazo: fix: ajustar rotulos de repetidas y permitir reportes HU-018 y HU-020 a cualquier docente
+  - 2eaa41d 2026-11-13 Manuela Erazo: feat: rechazar con 409 la palabra que el mismo estudiante ya envió
+  - 4babacd 2026-11-13 Manuela Erazo: feat: agregar consulta de aporte previo del estudiante sobre una tarjeta
+  - ee11cb0 2026-11-13 Manuela Erazo: Merge pull request #68 from wsernam/feat/hu-022-panel-revision-resultados-quices
+  - 9d1dd55 2026-11-13 thaliabernalepe: test(quices): agregar pruebas de servicio y controlador HU-022
+  - 9ef9024 2026-11-13 thaliabernalepe: fix(security): agregar rate limiting a consultas docentes de quices
+  - b02c164 2026-11-13 Karen Sandoval: Merge pull request #61 from wsernam/bot/superprompt
+  - 349baa3 2026-11-13 knnsand: docs(ai): reconstruir SUPERPROMPT y registrar PR con IA
   - abd871c 2026-11-13 Karen Sandoval: Merge pull request #67 from wsernam/feature/backend/abrir-cerrar-mazo-cualquier-docente
+  - 9f0380d 2026-11-13 thaliabernalepe: feat(quices): implementar consulta docente de resultados y respuestas
   - 4e7bb29 2026-11-11 Manuela Erazo: docs: marcar todas las HU como completadas en CLAUDE.md
   - ee062b5 2026-11-11 Manuela Erazo: docs: documentar apertura y cierre de mazos por cualquier docente
   - 672b174 2026-11-11 Manuela Erazo: test: ajustar pruebas de abrir y cerrar mazo sin regla de dueño
@@ -731,28 +750,28 @@ detallados faltaban datos del PDF, así que se ajustó:
   - e0361d5 2026-11-07 knnsand: docs(ai): reconstruir SUPERPROMPT y registrar PR con IA
   - 476b924 2026-11-06 Karen Sandoval: Merge pull request #52 from wsernam/docs/openapi
   - 19916e8 2026-11-06 Karen Sandoval: Merge pull request #50 from wsernam/bot/superprompt
-  - 1ec8ec6 2026-11-06 wsernam: Merge branch 'develop' into docs/openapi
-  - 8b638e5 2026-11-07 knnsand: docs(ai): reconstruir SUPERPROMPT y registrar PR con IA
-  - 72d7236 2026-11-06 Karen Sandoval: Merge pull request #49 from wsernam/feature/HU-020-reporte-estudiantes-curso-pdf
-  - 39c76fe 2026-11-06 Manuela Erazo: Merge branch 'develop' into feature/HU-020-reporte-estudiantes-curso-pdf
-  - b972508 2026-11-06 wsernam: docs: guía de la especificación OpenAPI e índice, changelog y decisiones
-  - 7f69f15 2026-11-06 wsernam: docs(openapi): endpoints de aportes, quizzes, enrichment, dictionary y reports
-  - d9606f4 2026-11-06 wsernam: docs(openapi): endpoints de courses, analytics, study, users y students
-  - 7e7d59d 2026-11-06 wsernam: docs(openapi): endpoints de cards
-  - 87c3f04 2026-11-06 wsernam: docs(openapi): endpoints de decks
-  - 3623f59 2026-11-06 wsernam: docs(openapi): endpoints de auth
-  - 4a3804d 2026-11-06 wsernam: docs(openapi): esqueleto y componentes reutilizables
-  - 5d72147 2026-11-06 Karen Sandoval: Merge pull request #51 from wsernam/fix/hu-19-alcance-docente-reporte
-  - 39c5f68 2026-11-06 wsernam: feat(auth): el primer usuario registrado sin docentes en la BD queda como docente
-  - 8ecd4bf 2026-11-06 Karen Sandoval: docs(reportes): registrar el alcance de la docente en el reporte del modo de estudio
-  - 3682ed3 2026-11-06 Karen Sandoval: fix(reportes): bajar el cursor tras el aviso de lista vacía para que no se encime la nota
-  - d217b29 2026-11-06 Karen Sandoval: fix(reportes): la docente ve a todos los estudiantes con inscripción activa en el reporte del modo de estudio
-  - 955e10f 2026-11-06 Manuela Erazo: merge: actualizar feature/HU-020 con develop (gobernanza y Doxygen)
-  - b3c213f 2026-11-06 Manuela Erazo: Merge pull request #48 from wsernam/docs/doxygen-backend
-**frontend** — últimos 60 de 267 commits (incluye merges de PR):
+**frontend** — últimos 60 de 285 commits (incluye merges de PR):
+  - 4cf59a3 2026-11-13 wsernam: Merge pull request #76 from knnsand/feat/hu-022-panel-revision-resultados-quices
+  - b7336fa 2026-11-13 wsernam: fix: corregir lint, prueba de ListaQuices y texto de reviewNotice
+  - 7616164 2026-11-13 wsernam: merge: actualizar con develop y resolver conflicto en en.json
+  - 8686549 2026-11-13 thaliabernalepe: feat(quices): implementar panel docente de revision de resultados
+  - 2888130 2026-11-13 thaliabernalepe: Merge pull request #75 from knnsand/feat/frontend/mejoras-interfaz
+  - 2492849 2026-11-13 Karen Sandoval: Merge branch 'develop' into feat/frontend/mejoras-interfaz
   - 57e57e3 2026-11-13 thaliabernalepe: Merge pull request #74 from knnsand/fix/frontend/desactivar-coautorias
+  - 7300aac 2026-11-12 Manuela Erazo: fix(test): eliminar importaciones no utilizadas
+  - 52a58da 2026-11-12 Manuela Erazo: test(frontend): aumentar cobertura de login cursos y tutoriales
+  - 96808cf 2026-11-12 Manuela Erazo: test(e2e): adaptar pruebas de roles e inscripcion a nueva interfaz
+  - 27c3066 2026-11-12 Manuela Erazo: fix(frontend): corregir creacion de mazos y pruebas sin coautorias
   - 752bbe6 2026-11-11 Manuela Erazo: fix(frontend): corregir creacion de mazos y validacion de duplicados
   - c00b143 2026-11-11 Manuela Erazo: fix: corregir ruta de traduccion de palabra duplicada
+  - ddd7426 2026-11-11 Manuela Erazo: i18n: actualizar traducciones al ingles
+  - 370b9e9 2026-11-11 Manuela Erazo: refactor: actualizar vista de detalle de curso
+  - 7786dc6 2026-11-11 Manuela Erazo: feat: mejorar interfaz de cursos y estudiantes
+  - 06c3c6a 2026-11-11 Manuela Erazo: refactor: actualizar interfaz de inicio de sesion
+  - 82cde48 2026-11-11 Manuela Erazo: refactor: actualizar interfaz de acerca de
+  - 366b94d 2026-11-11 Manuela Erazo: style: agrupar seccion acerca de en sidebar
+  - c926c79 2026-11-11 Manuela Erazo: test: actualizar pruebas de navegacion del estudiante
+  - 03b017e 2026-11-11 Manuela Erazo: fix: redirigir inicio de estudiante a sus mazos
   - fa8c8c8 2026-11-11 Manuela Erazo: test: adaptar pruebas de revision docente sin coautorias
   - ddeb1bf 2026-11-11 Manuela Erazo: fix: desactivar coautorias en revision docente
   - 7649b2f 2026-11-11 Manuela Erazo: test: adaptar API de tarjetas a coautorias desactivadas
@@ -792,27 +811,9 @@ detallados faltaban datos del PDF, así que se ajustó:
   - 5b3cb47 2026-10-28 thaliabernalepe: feat: Implementacion HU-018- Reporte de progreso individual en PDF con mocks
   - 4878e94 2026-10-23 Manuela Erazo: Merge pull request #58 from knnsand/chore/ci-frontend
   - ca73e2e 2026-10-23 Karen Sandoval: Plantilla PR
-  - 623a1ac 2026-10-23 Karen Sandoval: Merge pull request #57 from knnsand/feature/frontend/sonar-fixes
-  - f5685e7 2026-10-22 Manuela Erazo: test: aumentar cobertura del frontend
-  - ac8c5f3 2026-10-22 Manuela Erazo: fix(frontend): corrige issues de SonarCloud (CSRF, promesas flotantes, accesibilidad)
-  - 250a205 2026-10-22 Karen Sandoval: Merge pull request #56 from knnsand/feature/frontend/sonarqube
-  - f8b50a5 2026-10-22 Manuela Erazo: ci(frontend): integrar SonarQube Cloud
-  - 2359ff1 2026-10-22 Karen Sandoval: Merge pull request #54 from knnsand/feature/frontend/cobertura-pruebas
-  - 897c9d8 2026-10-22 Manuela Erazo: test: agregar cobertura con vitest y pruebas de cliente-api, auth y vistas
-  - e713b4c 2026-10-22 Manuela Erazo: test: agregar cobertura con vitest y pruebas de cliente-api
-  - c65241a 2026-10-22 thaliabernalepe: Merge pull request #53 from knnsand/feature-HU-016-Diccionario-Global-de-vocabulario-aprobado
-  - 5dc5fed 2026-10-22 thaliabernalepe: implementacion de estilos del modo oscuro en el Diccionario Global HU-016
-  - e5b210c 2026-10-22 Karen Sandoval: Merge pull request #50 from knnsand/feature/frontend/i18n-hu009-hu011
-  - 1a5a71b 2026-10-22 Karen Sandoval: Merge pull request #52 from knnsand/feature-HU-016-Diccionario-Global-de-vocabulario-aprobado
-  - fa64318 2026-10-22 thaliabernalepe: Implementacion HU- 016- Diccionario Global de vocabulario aprobado
-  - 0ada992 2026-10-21 wsernam: Merge pull request #51 from knnsand/test/e2e-ingles
-  - 0c2407c 2026-10-21 wsernam: test(e2e): buscar los textos de la interfaz en inglés (i18n)
-  - cbccd5a 2026-10-21 Manuela Erazo: feat: migrar a inglés BotonExportarPdf, ListaQuices y SugerenciasPalabras (HU-009, HU-011)
-  - 51c1421 2026-10-21 Manuela Erazo: Merge pull request #49 from knnsand/chore/ci-frontend
-  - fb5eaf2 2026-10-21 Karen Sandoval: ci: agregar analisis estatico con CodeQL
 
 ## 10. Historial de prompts y validaciones (bitácora)
-57 sesiones registradas (una sesión copiada en varias hojas cuenta una vez), en orden cronológico (2026-08-18 a 2026-11-13). Estados: ADAPTADO 11, CORREGIDO 1, VALIDACIÓN 1, VALIDADO 44.
+61 sesiones registradas (una sesión copiada en varias hojas cuenta una vez), en orden cronológico (2026-08-18 a 2026-11-14). Estados: ADAPTADO 11, CORREGIDO 1, VALIDACIÓN 1, VALIDADO 48.
 Úsalo para no repetir trabajo, respetar lo ya adaptado o corregido y copiar el estilo de registro.
 
 - 2026-08-18 · Presentaciones - Documentos · ChatGPT · Karen Sandoval: «Compara tecnologías de frontend, para un proyecto de diccionario colaborativo de vocabulario (mazos semanales, aportes de estudiantes, validación docente, repetición espaciada). Evalúa React, Vue y Angular.» → Tres tablas comparativas (Tabla 1A, 1B, 1C) con cifras de adopción citadas a una encuesta de Stack Overflow proporcionada por integrante del proyecto | VALIDADO: Se contrastaron las características y cifras presentadas con fuentes externas y se verificó que la comparación fuera coherente con las necesidades del proyecto. Los resultados sirvieron como recurso para seleccionar la tecnología frontend.
@@ -872,6 +873,10 @@ detallados faltaban datos del PDF, así que se ajustó:
 - 2026-11-09 · Backend · Claude (asistente conversacional), Claude Sonnet 5.5 · Karen Sandoval: «chore: SCA con npm audit y Dependabot» → - `.github/workflows/sca.yml`: job `npm audit` (solo dependencias de producción) que falla con vulnerabilidades high o critical, publica la tabla de severidades en el resumen del job y guarda el repo… | VALIDADO: `npm audit --omit=dev --audit-level=high` local sin vulnerabilidades; Vitest 515 pruebas en verde y ESLint sin hallazgos; sintaxis de ambos YAML validada; ejecución en GitHub Actions en los checks de este PR. (Revisión: Manuela Meneses, 2026-11-07)
 - 2026-11-10 · Backend · Claude (asistente conversacional), Claude Sonnet 5.5 · Karen Sandoval: «ci: agregar fuzzing de la API con Schemathesis» → - `.github/workflows/fuzzing-schemathesis.yml`: levanta PostgreSQL y el backend, carga init.sql y seed.sql, genera un JWT de prueba y ejecuta Schemathesis 4.33.1 sobre la especificación OpenAPI. Se e… | VALIDADO: sintaxis del workflow; Schemathesis 4.33.1 carga la especificación (55 operaciones) y acepta todas las opciones del comando; los pasos de preparación (init.sql, seed.sql, backend y token JWT por rol) se verificaron contra PostgreSQL 16 y el backend …
 - 2026-11-13 · Backend · Claude (asistente conversacional de Anthropic), modelo Sonnet 5.5. · Karen Sandoval: «Permitir que cualquier docente abra o cierre un mazo» → - `MazoController.actualizarEstado`: se quita la validación de dueño y su 403; el JSDoc queda actualizado. - `mazoRoutes.js`: se actualiza el comentario de la ruta. Sigue exigiendo `authenticate` y `… | VALIDADO: pruebas unitarias (37 archivos, 582 pruebas en verde), eslint sin errores y revisión manual del diff. Las pruebas funcionales de la API se corrieron en local contra PostgreSQL. (Revisión: Manuela Meneses, 2026-11-11.)
+- 2026-11-14 · Backend · ChatGPT — OpenAI, GPT-6. · Manuela Meneses: «feat(quices): implementar consulta docente de resultados y respuestas» → feat(quices): implementar consulta docente de resultados y respuestas | VALIDADO: Pruebas funcionales manuales realizadas con Postman. Se verificaron consultas de resultados, respuestas individuales, quices sin entregas y restricciones de acceso. La ejecución satisfactoria de la suite completa de pruebas automatizadas del backend…
+- 2026-11-14 · Backend · Claude Haiku 5.5 · Manuela Meneses: «feat(admin): HU-023 script SQL y procedimiento seguro del primer admi…» → - `backend/scripts/crear-primer-administrador.sql`: bloque `DO` atómico que falla con un mensaje claro, sin cambiar nada, si (1) ya existe un administrador activo, (2) el correo no tiene cuenta (la p… | VALIDADO: script ejecutado en local contra la base de la suite: asignó el administrador y el segundo intento fue rechazado. Los rechazos por cuenta inexistente y por docente con cursos están en el script (Revisión: Karen Nathalia Sandoval 14-11-2026)
+- 2026-11-14 · Backend · ChatGPT/Codex; GPT-6.1 Sol. · Karen Sandoval: «Aportes repetidos cuentan en participación» → - Agrega la consulta del aporte previo de un estudiante sobre una tarjeta. - Rechaza con HTTP 409 los aportes propios repetidos. - Identifica como palabras repetidas los aportes de otros estudiantes … | VALIDADO: 628 pruebas aprobadas en 39 archivos; cobertura de líneas de 85,70 %. Pendientes de registrar ESLint, pruebas funcionales y comprobación manual de los PDF. (Revisión: Manuela Meneses 13/11/2026.)
+- 2026-11-14 · Backend · Claude Haiku 5.5 · Manuela Meneses: «feat(admin): HU-023 endpoints de administracion de usuarios y roles» → - `GET /api/v1/admin/users` (CA-23.1): búsqueda por nombre o correo, filtros por rol y estado, paginado (`page`, `limit` máx. 100). Devuelve nombre, correo, rol, estado y fecha de registro, nunca `pa… | VALIDADO: `npm run lint` sin errores; 615 pruebas unitarias pasan con 85,68 % de cobertura; suite funcional completa en local (98 pasan) con los endpoints corriendo; prueba manual de CA-23.1, CA-23.2 y cada salvaguarda con la base local, incluida la línea de …
 
 ## 11. Trazabilidad registrada
 | Fecha | Prompt-ID | Sprint | Autor (rol) | Repo | HU | Rama | Commits | PR | Estado | Hoja · fila bitácora | Plantilla |
@@ -901,6 +906,10 @@ detallados faltaban datos del PDF, así que se ajustó:
 | 2026-11-09 | P-20261109-1723 | 4 | Manuela Meneses (Backend) | backend | — | feature/backend/sca-dependencias | workflow de SCA (npm audit y revisión de dependencias) y configuración de Dependabot propuestos por la IA en una conversación, y adaptados, validados y ejecutados por Manuela Meneses. Commits: [7db4d39](https://github.com/wsernam/A-Walking-Dictionary-NovaCode-Back-end/commit/7db4d39) | backend#55 | VALIDADO | Backend · fila 22 | automático (PR) |
 | 2026-11-10 | P-20261110-0239 | 4 | Manuela Meneses (Backend) | backend | — | feature/backend/fuzzing-schemathesis | workflow de fuzzing propuesto por la IA en una conversación, y adaptado, validado y ejecutado por Manuela Meneses. Commits: [HASH](https://github.com/wsernam/A-Walking-Dictionary-NovaCode-Back-end/commit/HASH) | backend#62 | VALIDADO | Backend · fila 23 | automático (PR) |
 | 2026-11-13 | P-20261113-1233-HU-001 | 4 | Manuela Meneses (Backend) | backend | HU-001 | feature/backend/abrir-cerrar-mazo-cualquier-docente | los 3 commits de la rama (código, pruebas y documentación). Cada commit lleva la línea `Co-Authored-By`. | backend#67 | VALIDADO | Backend · fila 24 | automático (PR) |
+| 2026-11-14 | P-20261114-0336-HU-022 | 4 | Thalia Bernal (DevOps / QA-Seguridad) | backend | HU-022 | feat/hu-022-panel-revision-resultados-quices | feat(quices): implementar consulta docente de resultados y respuestas. Asistencia en la implementación y revisión de endpoints, consultas SQL, estadísticas, validación de acceso por rol docente y organización de las capas del backend. | backend#68 | VALIDADO | Backend · fila 25 | automático (PR) |
+| 2026-11-14 | P-20261114-0536-HU-023 | 4 | Karen Sandoval (PO / SM) | backend | HU-023 | feature/backend/hu-023-primer-administrador | <hash del commit>, script SQL y documento del procedimiento, propuestos por la IA en la conversación y revisados, adaptados y ejecutados por Karen Nathalia Sandoval. | backend#71 | VALIDADO | Backend · fila 26 | automático (PR) |
+| 2026-11-14 | P-20261114-0542-HU-002 | 4 | Manuela Meneses (Backend) | backend | HU-002 | feature/backend/aportes-repetidos | asistencia en consultas de aportes, validaciones de duplicados, rótulos y permisos de reportes, pruebas y documentación. Agregar los SHA de los commits asistidos. | backend#70 | VALIDADO | Backend · fila 27 | automático (PR) |
+| 2026-11-14 | P-20261114-0551-HU-023 | 4 | Karen Sandoval (PO / SM) | backend | HU-023 | feature/backend/hu-023-endpoints-admin | <hash del commit>, repositorios, servicio, controlador, rutas, montaje en `app.js`, variable en `.env.example` y pruebas unitarias, propuestos por la IA en la conversación y revisados, adaptados y ejecutados por Karen Nathalia Sandoval. | backend#72 | VALIDADO | Backend · fila 28 | automático (PR) |
 
 ## 12. Protocolo HITL (puertas obligatorias)
 Te detienes en cada puerta y esperas la frase indicada de la persona responsable de la sesión (o del líder del sprint, **Karen Sandoval**, en P2). Sin esa frase no avanzas.
