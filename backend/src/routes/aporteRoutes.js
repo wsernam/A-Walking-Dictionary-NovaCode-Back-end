@@ -10,13 +10,20 @@
 import { Router } from 'express';
 import { AporteController } from '../controllers/AporteController.js';
 import { authenticate, requireRole } from '../middleware/autenticacionMiddleware.js';
-import {
-  crearLimiteAcademico,
-} from '../middleware/limiteAcademicoMiddleware.js';
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
 
-const limiteAcademico = crearLimiteAcademico();
+const limiteAcademico = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: {
+    error: 'Demasiadas solicitudes. Intenta de nuevo en unos minutos.',
+    code: 'RATE_LIMITED',
+  },
+});
 
 /**
  * @brief Lista los aportes pendientes de revisión (curaduría de coautorías).
@@ -27,13 +34,13 @@ router.get('/pending', authenticate, requireRole('docente'), AporteController.li
 
 /** @brief Crea un aporte (CRUD genérico). POST /api/v1/aportes. Sólo docente o estudiante. */
 // TODO: agregar validacionMiddleware aquí cuando esté implementado
-router.post('/', authenticate, requireRole('docente', 'estudiante'), AporteController.crear);
+router.post('/', limiteAcademico, authenticate, requireRole('docente', 'estudiante'), AporteController.crear);
 
 /** @brief Lista todos los aportes. GET /api/v1/aportes.Sólo docente o estudiante. */
-router.get('/', authenticate, requireRole('docente', 'estudiante'), AporteController.listar);
+router.get('/', limiteAcademico, authenticate, requireRole('docente', 'estudiante'), AporteController.listar);
 
 /** @brief Consulta un aporte por su id_aporte. GET /api/v1/aportes/:id. Sólo docente o estudiante. */
-router.get('/:id', authenticate, requireRole('docente', 'estudiante'), AporteController.obtenerPorId);
+router.get('/:id', limiteAcademico, authenticate, requireRole('docente', 'estudiante'), AporteController.obtenerPorId);
 
 /** @brief Actualiza un aporte (CRUD genérico). PUT /api/v1/aportes/:id. Solo docente. */
 // TODO: agregar validacionMiddleware aquí cuando esté implementado
