@@ -10,8 +10,24 @@ import { QuizController } from '../controllers/QuizController.js';
 import { ResultadoQuizController } from '../controllers/ResultadoQuizController.js';
 import { authenticate, requireRole } from '../middleware/autenticacionMiddleware.js';
 import { RevisionResultadosQuizController }  from '../controllers/RevisionResultadosQuizController.js';
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
+
+
+/**
+ * @brief HU-022: limita las solicitudes al panel docente
+ * para evitar consultas excesivas de resultados académicos.
+ */
+const limiteResultadosDocente = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: {
+    error: 'Demasiadas solicitudes. Intenta nuevamente más tarde.',
+  },
+});
 
 /**
  * @brief HU-3.1 (CA-3.1.1, CA-3.1.2, CA-3.1.3): genera un quiz acumulativo a partir de las
@@ -51,6 +67,7 @@ router.get('/mine', authenticate, requireRole('estudiante'), QuizController.list
  */
 router.get(
   '/:id/teacher-results',
+  limiteResultadosDocente,
   authenticate,
   requireRole('docente'),
   RevisionResultadosQuizController.consultarResumen
@@ -68,6 +85,7 @@ router.get(
  */
 router.get(
   '/:id/teacher-results/:resultadoId',
+  limiteResultadosDocente,
   authenticate,
   requireRole('docente'),
   RevisionResultadosQuizController.consultarRespuestas
