@@ -9,8 +9,25 @@ import { Router } from 'express';
 import { QuizController } from '../controllers/QuizController.js';
 import { ResultadoQuizController } from '../controllers/ResultadoQuizController.js';
 import { authenticate, requireRole } from '../middleware/autenticacionMiddleware.js';
+import { RevisionResultadosQuizController }  from '../controllers/RevisionResultadosQuizController.js';
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
+
+
+/**
+ * @brief HU-022: limita las solicitudes al panel docente
+ * para evitar consultas excesivas de resultados académicos.
+ */
+const limiteResultadosDocente = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: {
+    error: 'Demasiadas solicitudes. Intenta nuevamente más tarde.',
+  },
+});
 
 /**
  * @brief HU-3.1 (CA-3.1.1, CA-3.1.2, CA-3.1.3): genera un quiz acumulativo a partir de las
@@ -40,6 +57,40 @@ router.get('/', authenticate, QuizController.listar);
  * de GET /:id para que Express no tome "mine" como un id.
  */
 router.get('/mine', authenticate, requireRole('estudiante'), QuizController.listarMios);
+
+/**
+ * @brief HU-022 (CA-22.1, CA-22.2, CA-22.4):
+ * consulta los resultados y estadísticas de un quiz
+ * perteneciente a un curso del docente autenticado.
+ *
+ * GET /api/v1/quizzes/:id/teacher-results
+ */
+router.get(
+  '/:id/teacher-results',
+  limiteResultadosDocente,
+  authenticate,
+  requireRole('docente'),
+  RevisionResultadosQuizController.consultarResumen
+);
+
+
+/**
+ * @brief HU-022 (CA-22.3):
+ * permite a la docente consultar las respuestas
+ * individuales de un resultado registrado.
+ *
+ * GET /api/v1/quizzes/:id/teacher-results/:resultadoId
+ *
+ * Acceso exclusivo para docentes autenticados.
+ */
+router.get(
+  '/:id/teacher-results/:resultadoId',
+  limiteResultadosDocente,
+  authenticate,
+  requireRole('docente'),
+  RevisionResultadosQuizController.consultarRespuestas
+);
+
 
 /**
  * @brief Busca un quiz por su id_quiz, con estado_efectivo calculado (CA-3.1.3).
