@@ -99,7 +99,7 @@ export const AdminUsuarioService = {
 
     const resultado = await UsuarioRepository.enTransaccionAdministracion(async (db) => {
       const objetivo = await UsuarioRepository.obtenerParaAdmin(id, db);
-      if (!objetivo) throw errorApi(404, 'USER_NOT_FOUND', 'Usuario no encontrado');
+      if (!objetivo) throw errorApi(404, 'ADMIN_USER_NOT_FOUND', 'Usuario no encontrado');
       if (objetivo.rol === rol) return { usuario: objetivo, cambio: false };
 
       if (objetivo.rol === 'administrador' && objetivo.activo
@@ -136,7 +136,7 @@ export const AdminUsuarioService = {
 
     const resultado = await UsuarioRepository.enTransaccionAdministracion(async (db) => {
       const objetivo = await UsuarioRepository.obtenerParaAdmin(id, db);
-      if (!objetivo) throw errorApi(404, 'USER_NOT_FOUND', 'Usuario no encontrado');
+      if (!objetivo) throw errorApi(404, 'ADMIN_USER_NOT_FOUND', 'Usuario no encontrado');
       if (objetivo.activo === activo) return { usuario: objetivo, cambio: false };
 
       if (!activo && objetivo.rol === 'administrador'

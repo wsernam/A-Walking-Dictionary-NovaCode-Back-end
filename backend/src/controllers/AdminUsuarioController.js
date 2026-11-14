@@ -18,7 +18,7 @@ function responderError(res, error) {
   res.status(error.status || 500).json({ error: error.message, code: error.code });
 }
 
-const idInvalido = (res) => res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
+const idInvalido = (res) => res.status(400).json({ error: 'id inválido', code: 'ADMIN_INVALID_ID' });
 
 export const AdminUsuarioController = {
   /** @brief CA-23.1: GET /api/v1/admin/users?search=&rol=&activo=&page=&limit= */
