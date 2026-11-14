@@ -82,4 +82,10 @@ export const CursoRepository = {
     const { rowCount } = await pool.query('DELETE FROM curso WHERE id_curso = $1', [id_curso]);
     return rowCount > 0;
   },
+
+  /** @brief HU-023: cuántos cursos tiene asignados un docente (curso.docente_id). */
+  async contarPorDocente(docente_id, db = pool) {
+    const { rows } = await db.query('SELECT COUNT(*)::int AS total FROM curso WHERE docente_id = $1', [docente_id]);
+    return rows[0].total;
+  },
 };

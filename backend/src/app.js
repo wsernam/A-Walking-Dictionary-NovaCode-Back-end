@@ -89,6 +89,7 @@ import usuarioRoutes from './routes/usuarioRoutes.js';
 import estudianteRoutes from './routes/estudianteRoutes.js';
 import aporteRoutes from './routes/aporteRoutes.js';
 import quizRoutes from './routes/quizRoutes.js';
+import adminUsuarioRoutes from './routes/adminUsuarioRoutes.js';
 import { registroSeguridad } from './middleware/registroSeguridadMiddleware.js';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -177,6 +178,7 @@ app.use('/api/v1/quizzes', quizRoutes);
 app.use('/api/v1/enrichment', rutasEnriquecimiento);
 app.use('/api/v1/dictionary', diccionarioRoutes);
 app.use('/api/v1/reports', reporteRoutes);
+app.use('/api/v1/admin', adminUsuarioRoutes);
 
 
 export default app;
