@@ -2,6 +2,18 @@
 
 ## Fecha
 2026-11-04 (última actualización — ver historial de sesiones más abajo)
+## Cambios aplicados en esta sesión (2026-11-14) — HU-023 administrar usuarios y roles [IA-ASSISTED]
+
+[Asistido por IA: Claude; ]
+Autoría: <Karen Nathalia Sandoval>. Afecta CA-23.1 y CA-23.2.
+
+- Nuevos endpoints (solo rol `administrador`, con límite de peticiones por IP): `GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/:id/role` y `PATCH /api/v1/admin/users/:id/status`.
+- Rol `administrador` guardado en minúsculas en `usuario.rol` (varchar sin `CHECK`): sin cambios de esquema ni migraciones. `invitado` no se puede asignar (400).
+- Salvaguardas (409): cambiar la propia cuenta, quitar el rol o desactivar al último administrador activo, y quitarle el rol docente a quien tiene cursos. Desactivar a un docente se permite y no modifica sus cursos ni el historial. Se evalúan dentro de una transacción con `pg_advisory_xact_lock`.
+- Auditoría por log: `[AUDITORIA] cambio_rol|cambio_estado admin=<id> objetivo=<id> ...`, solo ids.
+- Limitación conocida: el JWT ya emitido sigue siendo válido hasta que expire (8 h); el login sí rechaza cuentas desactivadas.
+- Primer administrador: `backend/scripts/crear-primer-administrador.sql` y `docs/procedimiento-primer-administrador.md`.
+- Archivos nuevos: `AdminUsuarioService.js`, `AdminUsuarioController.js`, `adminUsuarioRoutes.js`, sus pruebas unitarias y `pruebas-funcionales/he05-administracion-usuarios.test.js`. Modificados: `UsuarioRepository.js`, `CursoRepository.js`, `app.js`, `.env.example`, `docs/api/openapi.yaml`, `docs/codigos-error.md`.
 
 ## Cambios aplicados en esta sesión (2026-11-11) — Cualquier docente abre o cierra mazos [IA-ASSISTED]
 
