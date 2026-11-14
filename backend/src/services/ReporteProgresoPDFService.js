@@ -6,7 +6,7 @@
  * Reutiliza el maquetado de ExportarPDFService (mismos márgenes, colores, encabezado y pie).
  * Los datos y la regla de acceso (CA-18.3) vienen de ReporteProgresoService.
  *
- * Secciones: datos del estudiante, palabras aportadas (por estado, coautorías y listado),
+ * Secciones: datos del estudiante, palabras aportadas (por estado, palabras repetidas y listado),
  * quices (fecha, calificación y nota promedio) y avance de repaso. Una sección sin información
  * muestra "Sin actividad registrada" en vez de fallar (CA-18.2).
  *
@@ -74,7 +74,7 @@ function dibujarDatosEstudiante(m, fuentes, estudiante) {
   }
 }
 
-/** @brief CA-18.1: totales por estado y coautorías como etiquetas, y el listado de palabras. */
+/** @brief CA-18.1: totales por estado y palabras repetidas como etiquetas, y el listado de palabras. */
 function dibujarPalabras(m, fuentes, palabras) {
   dibujarSeccion(m, fuentes, 'Palabras aportadas');
   m.asegurarEspacio(40);
@@ -84,7 +84,7 @@ function dibujarPalabras(m, fuentes, palabras) {
     [`Pendientes: ${palabras.por_estado.pendiente_revision}`, COLORES.azulSuave, COLORES.azul],
     [`Aprobadas: ${palabras.por_estado.revisado_docente}`, COLORES.azulSuave, COLORES.azul],
     [`Rechazadas: ${palabras.por_estado.rechazada}`, COLORES.rojoSuave, COLORES.rojo],
-    [`Coautorías: ${palabras.coautorias}`, COLORES.fondo, COLORES.texto],
+    [`Palabras repetidas: ${palabras.coautorias}`, COLORES.fondo, COLORES.texto],
   ];
   let x = MARGEN;
   for (const [texto, fondo, color] of etiquetas) {

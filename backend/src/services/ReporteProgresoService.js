@@ -4,9 +4,9 @@
  *
  * Endpoint relacionado: GET /api/v1/reports/students/:id/progress/export-pdf.
  * Reglas de acceso (CA-18.3; mismo criterio que HU-019, S5 y S6 aceptados por el equipo):
- *   - docente: puede pedir a cualquier estudiante inscrito en SUS cursos (curso.docente_id = su
- *     id_usuario). Si el estudiante no existe o no pertenece a sus cursos se responde 404
- *     (supuesto pendiente de validar, igual que en HU-019).
+ *   - docente: puede pedir el reporte de cualquier estudiante con inscripción activa,
+ *     independientemente del propietario del curso, siguiendo el criterio de HU-019.
+ *     Si el estudiante no existe o no tiene inscripción activa se responde 404.
  *   - estudiante: solo su propio reporte. Con el id de otro usuario se responde 403 y no se
  *     consulta la BD ni se genera nada.
  *   - cualquier otro rol (Invitado, etc.): 403.
@@ -15,14 +15,14 @@
  *   - "Palabras aportadas" son los aportes tipo_aporte = 'creada'; se cuentan por el estado de su
  *     tarjeta (pendiente_revision, revisado_docente, rechazada). Hoy el rechazo no existe en el
  *     código (ver CLAUDE.md, HE-02), así que "rechazada" saldrá en 0 hasta que se implemente.
- *   - "Coautorías" son los aportes tipo_aporte IN ('coautoria', 'acepcion_nueva'), el mismo
+ *   - "Palabras repetidas" (campo `coautorias`; con las coautorías desactivadas ya no son
+ *     coautorías) son los aportes tipo_aporte IN ('coautoria', 'acepcion_nueva'), el mismo
  *     criterio de AnaliticaRepository (HU-2.3).
  *   - La nota promedio es el promedio simple de resultado_quiz.calificacion (escala 0-5,
  *     QuizService) de los quices enviados.
  */
 
 import { ReporteProgresoRepository } from '../repositories/ReporteProgresoRepository.js';
-import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
 import { errorApi } from '../utils/codigosError.js';
 
 /** @brief Estados de tarjeta que el reporte desglosa (CA-18.1). */
@@ -64,8 +64,7 @@ export const ReporteProgresoService = {
 
     let docenteId;
     if (usuario.rol === 'docente') {
-      // Con DISABLE_AUTH (solo desarrollo local) no hay usuario real: se omite el alcance por docente.
-      docenteId = authDeshabilitado() ? null : idUsuario;
+      docenteId = null;
     } else if (usuario.rol === 'estudiante') {
       if (estudianteId !== idUsuario) {
         throw errorApi(403, 'REPORT_FORBIDDEN', 'No tiene permisos para ver el reporte de otro estudiante');

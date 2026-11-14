@@ -17,7 +17,8 @@
  * contrato del front):
  *   - "Palabras añadidas" son los aportes tipo_aporte = 'creada' del estudiante en el curso.
  *   - "Palabras aprobadas" son, de esas, las que tienen tarjeta.estado = 'revisado_docente'.
- *   - "Coautorías" son los aportes tipo_aporte IN ('coautoria', 'acepcion_nueva'), el mismo
+ *   - "Repetidas" (campo `coautorias`; con las coautorías desactivadas ya no son coautorías)
+ *     son los aportes tipo_aporte IN ('coautoria', 'acepcion_nueva'), el mismo
  *     criterio de HU-018 y de AnaliticaRepository (el contrato del front proponía solo
  *     'coautoria' y dejaba la duda abierta).
  *   - Los quices que no presentó el estudiante se marcan "No presentó" y NO cuentan como 0 en su
@@ -27,7 +28,6 @@
  */
 
 import { ReporteCursoRepository } from '../repositories/ReporteCursoRepository.js';
-import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
 import { errorApi } from '../utils/codigosError.js';
 
 /**
@@ -75,11 +75,7 @@ export const ReporteCursoService = {
     if (!curso) {
       throw errorApi(404, 'COURSE_NOT_FOUND', 'Curso no encontrado');
     }
-    // Con DISABLE_AUTH (solo desarrollo local) no hay usuario real: se omite el alcance por docente.
-    if (!authDeshabilitado() && Number(curso.docente_id) !== Number(usuario.id_usuario)) {
-      throw errorApi(403, 'REPORT_FORBIDDEN', MENSAJE_SIN_PERMISO);
-    }
-
+    
     const [filasEstudiantes, filasQuices, filasCalificaciones] = await Promise.all([
       ReporteCursoRepository.listarEstudiantes(id),
       ReporteCursoRepository.listarQuices(id),
