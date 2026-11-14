@@ -27,6 +27,12 @@ Si un error no tiene código específico, la API le pone uno según su status (`
 | `CONFLICT` | 409 | The request conflicts with the current state. |
 | `RATE_LIMITED` | 429 | Too many attempts. Try again in a few minutes. |
 | `INTERNAL_ERROR` | 500 | Something went wrong. Please try again. |
+| `ADMIN_INVALID_ROLE` | 400 |	The role is not valid. |
+| `ADMIN_INVALID_STATUS` | 400 | The status is not valid. |  
+| `ADMIN_INVALID_QUERY` | 400 | The search parameters are not valid. |
+| `ADMIN_SELF_CHANGE` | 409 | You can’t change your own account. |
+| `ADMIN_LAST_ADMIN` | 409 | At least one active administrator is required. |
+| `ADMIN_TEACHER_HAS_COURSES` | 409 | This teacher has assigned courses. |
 
 ## Validación (cualquier módulo)
 

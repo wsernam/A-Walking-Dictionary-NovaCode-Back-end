@@ -10,6 +10,7 @@ Notas:
 ## [Sin publicar]
 
 ### Agregado
+- 2026-11-14 · HU-023: administración de usuarios y roles desde la aplicación (solo administrador): `GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/:id/role` y `PATCH /api/v1/admin/users/:id/status`. Nuevo rol `administrador` sin cambios de esquema, salvaguardas (propia cuenta, último administrador activo, docente con cursos), auditoría por log y script SQL del primer administrador. (#71, #72, #73)
 - 2026-11-13 · Una palabra repetida por otro estudiante queda como aporte (columna de repetidas en participación); si el mismo estudiante la repite, `POST /decks/:id/cards` responde 409 `CARD_ALREADY_SUBMITTED` y `POST /cards/check-duplicate` trae `ya_enviada`.
 - 2026-11-08 · DAST con OWASP ZAP sobre la API (`dast-zap.yml`) y documento de pruebas de seguridad (`docs/seguridad/README.md`).
 - 2026-11-07 · Documentación del código generada con JSDoc a partir de los comentarios (`npm run docs:code`, `docs/codigo/README.md`).

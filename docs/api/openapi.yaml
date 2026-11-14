@@ -32,6 +32,7 @@ tags:
   - { name: enrichment, description: 'Familias de palabras con WordNet (HU-4.2)' }
   - { name: dictionary, description: 'Diccionario global' }
   - { name: reports, description: 'Reportes en PDF (HU-018, HU-019, HU-021)' }
+  - { name: admin, description: 'Administración de usuarios y roles (HU-023)' }
 paths:
   # ======================= auth =======================
   /auth/google:
@@ -114,6 +115,110 @@ paths:
         '409':
           description: El correo ya tiene cuenta (REGISTER_EMAIL_TAKEN).
           content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ======================= admin (HU-023) =======================
+  /admin/users:
+    get:
+      tags: [admin]
+      operationId: listarUsuariosAdmin
+      summary: Lista y busca usuarios (solo administrador)
+      description: |
+        Paginado, de más reciente a más antiguo por fecha de registro. Nunca devuelve `password_hash`.
+        `search` busca por nombre o correo; `rol` y `activo` filtran.
+      x-hu: HU-023
+      x-ca: [CA-23.1]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: search, in: query, required: false, schema: { type: string, maxLength: 100 } }
+        - { name: rol, in: query, required: false, schema: { type: string, enum: [estudiante, docente, administrador] } }
+        - { name: activo, in: query, required: false, schema: { type: string, enum: ['true', 'false'] } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200':
+          description: Página de usuarios.
+          content: { application/json: { schema: { $ref: '#/components/schemas/ListaUsuariosAdmin' } } }
+        '400':
+          description: Filtro o paginación inválidos (ADMIN_INVALID_ROLE, ADMIN_INVALID_STATUS, ADMIN_INVALID_QUERY).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /admin/users/{id}/role:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    patch:
+      tags: [admin]
+      operationId: cambiarRolUsuario
+      summary: Cambia el rol de una cuenta (solo administrador)
+      description: |
+        Roles asignables: estudiante, docente y administrador (`invitado` no existe en la BD).
+        409 si es la propia cuenta (ADMIN_SELF_CHANGE), si es el último administrador activo
+        (ADMIN_LAST_ADMIN) o si es un docente con cursos asignados (ADMIN_TEACHER_HAS_COURSES).
+        Pedir el rol que ya tiene responde 200 sin cambios. Deja una línea de auditoría en el log.
+      x-hu: HU-023
+      x-ca: [CA-23.2]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rol]
+              properties:
+                rol: { type: string, enum: [estudiante, docente, administrador] }
+      responses:
+        '200':
+          description: Cuenta con el rol nuevo.
+          content: { application/json: { schema: { $ref: '#/components/schemas/UsuarioAdmin' } } }
+        '400':
+          description: Id inválido (INVALID_ID) o rol fuera de los tres asignables (ADMIN_INVALID_ROLE).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /admin/users/{id}/status:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+    patch:
+      tags: [admin]
+      operationId: cambiarEstadoUsuario
+      summary: Activa o desactiva una cuenta (solo administrador)
+      description: |
+        Una cuenta desactivada no inicia sesión (AUTH_ACCOUNT_INACTIVE en el login). Desactivar a un
+        docente NO modifica sus cursos ni el historial. 409 si es la propia cuenta
+        (ADMIN_SELF_CHANGE) o el último administrador activo (ADMIN_LAST_ADMIN). Limitación conocida:
+        un JWT ya emitido sigue siendo válido hasta que expire (8 h). Deja una línea de auditoría en el log.
+      x-hu: HU-023
+      x-ca: [CA-23.2]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [activo]
+              properties:
+                activo: { type: boolean }
+      responses:
+        '200':
+          description: Cuenta con el estado nuevo.
+          content: { application/json: { schema: { $ref: '#/components/schemas/UsuarioAdmin' } } }
+        '400':
+          description: Id inválido (INVALID_ID) o `activo` no booleano (ADMIN_INVALID_STATUS).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/InternalError' }
   # ======================= decks =======================
@@ -1663,7 +1768,7 @@ components:
         id_usuario: { type: integer }
         nombre_completo: { type: string, maxLength: 150 }
         email: { type: string, format: email, maxLength: 150 }
-        rol: { type: string, maxLength: 30, example: estudiante, description: 'docente | estudiante' }
+        rol: { type: string, maxLength: 30, example: estudiante, description: 'docente | estudiante | administrador' }
     Perfil:
       type: object
       description: |
@@ -1991,6 +2096,26 @@ components:
           properties:
             tipo: { type: string, example: registrar_palabra }
             mensaje: { type: string }
+
+    # ---------- Administración de usuarios (HU-023) ----------
+    UsuarioAdmin:
+      type: object
+      description: Fila de `usuario` sin `password_hash`.
+      properties:
+        id_usuario: { type: integer }
+        nombre_completo: { type: string, maxLength: 150 }
+        email: { type: string, format: email, maxLength: 150 }
+        rol: { type: string, enum: [estudiante, docente, administrador] }
+        activo: { type: boolean }
+        fecha_registro: { type: string, format: date-time }
+    ListaUsuariosAdmin:
+      type: object
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/UsuarioAdmin' } }
+        page: { type: integer }
+        limit: { type: integer }
+        total: { type: integer }
+        total_pages: { type: integer }
   responses:
     BadRequest:
       description: Petición inválida (campos faltantes, formato o longitud).
@@ -2008,7 +2133,7 @@ components:
       description: La petición choca con el estado actual del recurso.
       content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
     TooManyRequests:
-      description: Límite de peticiones superado (code RATE_LIMITED). Aplica a /auth y /reports.
+      description: Límite de peticiones superado (code RATE_LIMITED). Aplica a /auth, /reports y /admin.
       content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
     InternalError:
       description: Error inesperado del servidor (code INTERNAL_ERROR).

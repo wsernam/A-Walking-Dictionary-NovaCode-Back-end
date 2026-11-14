@@ -1,6 +1,6 @@
 # Especificación de la API (OpenAPI)
 
-[`openapi.yaml`](openapi.yaml) describe la API REST del back-end en formato **OpenAPI 3.0.3**, el estándar para documentar APIs HTTP. Está escrito a mano y cubre las **55 operaciones** que hoy monta `backend/src/app.js`, todas bajo `/api/v1`.
+[`openapi.yaml`](openapi.yaml) describe la API REST del back-end en formato **OpenAPI 3.0.3**, el estándar para documentar APIs HTTP. Está escrito a mano y cubre las **58 operaciones** que hoy monta `backend/src/app.js`, todas bajo `/api/v1`.
 
 Para cada endpoint indica la ruta y el método, quién puede usarlo (público, cualquier usuario con sesión, docente o estudiante), qué recibe, qué responde y qué errores puede devolver (con los `code` de [`../codigos-error.md`](../codigos-error.md)).
 
@@ -24,7 +24,7 @@ Luego abre `/tmp/api.html` en el navegador. No guardes ese HTML en el repositori
 # Debe terminar sin errores (los dos avisos de servidor localhost y de licencia son esperados)
 npx @redocly/cli lint docs/api/openapi.yaml
 
-# Debe imprimir 55
+# Debe imprimir 58
 grep -cE '^    (get|post|put|patch|delete):' docs/api/openapi.yaml
 ```
 
