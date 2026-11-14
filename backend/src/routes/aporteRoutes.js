@@ -10,8 +10,13 @@
 import { Router } from 'express';
 import { AporteController } from '../controllers/AporteController.js';
 import { authenticate, requireRole } from '../middleware/autenticacionMiddleware.js';
+import {
+  crearLimiteAcademico,
+} from '../middleware/limiteAcademicoMiddleware.js';
 
 const router = Router();
+
+const limiteAcademico = crearLimiteAcademico();
 
 /**
  * @brief Lista los aportes pendientes de revisión (curaduría de coautorías).

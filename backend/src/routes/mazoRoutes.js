@@ -11,8 +11,13 @@ import { Router } from 'express';
 import { MazoController } from '../controllers/MazoController.js';
 import { TarjetaController } from '../controllers/TarjetaController.js';
 import { authenticate, autenticacionOpcional, requireRole } from '../middleware/autenticacionMiddleware.js';
+import {
+  crearLimiteAcademico,
+} from '../middleware/limiteAcademicoMiddleware.js';
 
 const router = Router();
+
+const limiteAcademico = crearLimiteAcademico();
 
 /**
  * @brief HU-1.1: crea un mazo nuevo (CA-1.1.1, CA-1.1.2). POST /api/v1/decks
@@ -70,7 +75,7 @@ router.patch(
  * Requiere sesión y rol docente o estudiante.
  * TarjetaController verifica la inscripción activa en el curso del mazo.
  */
-router.post('/:id/cards', authenticate, requireRole('docente', 'estudiante'), TarjetaController.crear);
+router.post('/:id/cards', limiteAcademico, authenticate, requireRole('docente', 'estudiante'), TarjetaController.crear);
 
 /**
  * @brief HU-3.3 (CA-3.3.1, CA-3.3.3): exporta el mazo a PDF. GET /api/v1/decks/:id/export-pdf
