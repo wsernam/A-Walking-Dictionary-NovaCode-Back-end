@@ -10,6 +10,17 @@ import { Usuario } from '../models/Usuario.js';
 // inicial. Es un número fijo cualquiera; solo tiene que ser el mismo en todas las llamadas.
 const LLAVE_CANDADO_DOCENTE_INICIAL = 51001;
 
+// Llave del candado que serializa los cambios de rol/estado de la administración (HU-023).
+const LLAVE_CANDADO_ADMINISTRACION = 51002;
+
+// HU-023 / CA-23.1: columnas explícitas; nunca se usa SELECT * para no exponer password_hash.
+const COLUMNAS_ADMIN = 'id_usuario, nombre_completo, email, rol, activo, fecha_registro';
+
+/** @brief Escapa % _ \ para que la búsqueda del administrador sea literal en ILIKE. */
+function escaparLike(texto) {
+  return texto.replace(/[\\%_]/g, '\\$&');
+}
+
 export const UsuarioRepository = {
   /**
    * @brief Registro con Google con rol inicial (decisión 2026-11-06, pendiente de aprobación P2):
@@ -112,5 +123,81 @@ export const UsuarioRepository = {
       [id_usuario, nivel_ingles, codigo_estudiantil, avatar, intereses]
     );
     return rows[0] ? new Usuario(rows[0]) : null;
+  },
+
+    /**
+   * @brief CA-23.1: lista paginada de usuarios con búsqueda por nombre o correo y filtros por
+   * rol y estado. Nunca devuelve password_hash.
+   * @param {{ busqueda?: string, rol?: string, activo?: boolean, limite: number, desplazamiento: number }} filtros
+   * @returns {Promise<{ usuarios: object[], total: number }>}
+   */
+  async listarParaAdmin({ busqueda, rol, activo, limite, desplazamiento }) {
+    const filtros = [busqueda ? `%${escaparLike(busqueda)}%` : null, rol ?? null, activo ?? null];
+    const donde = `WHERE ($1::text IS NULL OR nombre_completo ILIKE $1 OR email ILIKE $1)
+                     AND ($2::text IS NULL OR rol = $2)
+                     AND ($3::boolean IS NULL OR activo = $3)`;
+    const [lista, conteo] = await Promise.all([
+      pool.query(
+        `SELECT ${COLUMNAS_ADMIN} FROM usuario ${donde}
+         ORDER BY fecha_registro DESC, id_usuario DESC LIMIT $4 OFFSET $5`,
+        [...filtros, limite, desplazamiento]
+      ),
+      pool.query(`SELECT COUNT(*)::int AS total FROM usuario ${donde}`, filtros),
+    ]);
+    return { usuarios: lista.rows, total: conteo.rows[0].total };
+  },
+
+  /**
+   * @brief HU-023: ejecuta `operacion(cliente)` dentro de una transacción con candado, para que
+   * dos administradores no puedan degradarse a la vez y dejar la plataforma sin administrador.
+   * @param {(db: import('pg').PoolClient) => Promise<any>} operacion
+   * @returns {Promise<any>} Lo que devuelva `operacion`.
+   */
+  async enTransaccionAdministracion(operacion) {
+    const cliente = await pool.connect();
+    try {
+      await cliente.query('BEGIN');
+      await cliente.query('SELECT pg_advisory_xact_lock($1)', [LLAVE_CANDADO_ADMINISTRACION]);
+      const resultado = await operacion(cliente);
+      await cliente.query('COMMIT');
+      return resultado;
+    } catch (error) {
+      await cliente.query('ROLLBACK').catch(() => {});
+      throw error;
+    } finally {
+      cliente.release();
+    }
+  },
+
+  /** @brief HU-023: usuario sin password_hash, o null. `db` permite usar la transacción. */
+  async obtenerParaAdmin(id_usuario, db = pool) {
+    const { rows } = await db.query(`SELECT ${COLUMNAS_ADMIN} FROM usuario WHERE id_usuario = $1`, [id_usuario]);
+    return rows[0] ?? null;
+  },
+
+  /** @brief HU-023: cuántos administradores activos hay (salvaguarda del último administrador). */
+  async contarAdministradoresActivos(db = pool) {
+    const { rows } = await db.query(
+      "SELECT COUNT(*)::int AS total FROM usuario WHERE rol = 'administrador' AND activo"
+    );
+    return rows[0].total;
+  },
+
+  /** @brief CA-23.2: cambia el rol. Devuelve el usuario sin password_hash, o null si no existe. */
+  async cambiarRol(id_usuario, rol, db = pool) {
+    const { rows } = await db.query(
+      `UPDATE usuario SET rol = $2 WHERE id_usuario = $1 RETURNING ${COLUMNAS_ADMIN}`,
+      [id_usuario, rol]
+    );
+    return rows[0] ?? null;
+  },
+
+  /** @brief CA-23.2: activa o desactiva la cuenta. Devuelve el usuario sin password_hash, o null. */
+  async cambiarEstado(id_usuario, activo, db = pool) {
+    const { rows } = await db.query(
+      `UPDATE usuario SET activo = $2 WHERE id_usuario = $1 RETURNING ${COLUMNAS_ADMIN}`,
+      [id_usuario, activo]
+    );
+    return rows[0] ?? null;
   },
 };
