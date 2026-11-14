@@ -47,7 +47,8 @@ export const TarjetaController = {
    * @param {import('express').Response} res - 201 con { resultado, tarjeta, aporte } donde
    * resultado es 'creada' | 'coautoria' | 'acepcion_nueva'; 400 si faltan campos o el ejemplo
    * es muy largo; 403 si el usuario no está inscrito (activo) en el curso del mazo; 404 si el
-   * mazo no existe; 409 si el mazo está cerrado; 500 ante error inesperado.
+   * mazo no existe; 409 si el mazo está cerrado (DECK_CLOSED) o si el mismo estudiante ya
+   * envió esa palabra en el mazo (CARD_ALREADY_SUBMITTED); 500 ante error inesperado.
    */
   async crear(req, res) {
     try {
@@ -159,6 +160,15 @@ export const TarjetaController = {
         return res.status(201).json({ resultado: 'creada', tarjeta: tarjetaNueva, aporte });
       }
 
+      // e.0) si el mismo estudiante ya envió esta palabra en el mazo, no se cuenta de nuevo
+      // (ni como coautoría ni como acepción): se rechaza con 409 para que el front se lo advierta.
+      if (await AporteRepository.existeDeInscripcionEnTarjeta(tarjetaExistente.id_tarjeta, inscripcionId)) {
+        return res.status(409).json({
+          error: 'Ya enviaste esta palabra en este mazo.',
+          code: 'CARD_ALREADY_SUBMITTED',
+        });
+      }
+
       // e)/f) hay duplicado: resolver coautoría (CA-1.3.1) vs. acepción adicional (CA-1.3.2).
       // En ambos casos NO se crea una tarjeta nueva -el índice único (mazo_id, palabra) del DER
       // lo impide-; se registra un aporte adicional sobre la tarjeta existente, sin sobrescribirla.
@@ -192,9 +202,10 @@ export const TarjetaController = {
    *
    * @param {import('express').Request} req - req.body debe traer: mazo_id, palabra
    * (obligatorios), definicion y ejemplo (para poder distinguir coautoría de acepción nueva).
-   * @param {import('express').Response} res - 200 con { duplicado, resultado, tarjeta? } donde
-   * resultado es 'creada' | 'coautoria' | 'acepcion_nueva'; 400 si faltan mazo_id o palabra;
-   * 500 ante error inesperado.
+   * @param {import('express').Response} res - 200 con { duplicado, resultado, ya_enviada?, tarjeta? }
+   * donde resultado es 'creada' | 'coautoria' | 'acepcion_nueva' y ya_enviada (solo con duplicado)
+   * indica que el estudiante de la sesión ya envió esa palabra en el mazo; 400 si faltan mazo_id
+   * o palabra; 500 ante error inesperado.
    */
   async checkDuplicate(req, res) {
     try {
@@ -221,9 +232,27 @@ export const TarjetaController = {
       }
 
       const resolucion = DeduplicacionService.resolverAporte(tarjetaExistente, definicion, ejemplo ?? null);
+
+      // ya_enviada: el estudiante de la sesión ya tiene un aporte sobre esta palabra en el mazo
+      // (el front le avisa que no se cuenta otra vez). Sin sesión de estudiante inscrito, false.
+      let yaEnviada = false;
+      if (req.usuario?.id_usuario) {
+        const mazo = await MazoRepository.obtenerPorId(mazoId);
+        const inscripcion = mazo
+          ? await InscripcionRepository.obtenerPorCursoYEstudiante(mazo.curso_id, req.usuario.id_usuario)
+          : null;
+        if (inscripcion) {
+          yaEnviada = await AporteRepository.existeDeInscripcionEnTarjeta(
+            tarjetaExistente.id_tarjeta,
+            inscripcion.id_inscripcion
+          );
+        }
+      }
+
       return res.status(200).json({
         duplicado: true,
         resultado: resolucion.tipo, // 'coautoria' | 'acepcion_nueva'
+        ya_enviada: yaEnviada,
         tarjeta: tarjetaExistente,
       });
     } catch (error) {
