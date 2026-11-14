@@ -33,6 +33,7 @@ Notas:
 - 2026-09-13 a 2026-09-30 · Base del proyecto: quiz y exportación a PDF (09-13), login con Google/OAuth y control de roles (09-18), perfil académico (09-18), coautorías con columna `aporte.estado` (09-23) y registro de estudiantes (09-24).
 
 ### Cambiado
+- 2026-11-14 · Memoria HITL: alcance vigente de 23 HU, incorporando HU-022 y HU-023; DP-31 conserva DP-25 como antecedente histórico y actualiza el contexto sin inventar un nuevo total de criterios de aceptación.
 - 2026-10-11 · `POST`, `PUT` y `DELETE /quizzes` exigen rol docente; `GET /quizzes` y `GET /quizzes/:id` exigen token.
 - 2026-10-08 · HU-3.1 alineada con el contrato del front: mínimo 4 traducciones distintas, ventana de apertura-cierre, validación de curso y mazos, título de máximo 200 caracteres.
 
