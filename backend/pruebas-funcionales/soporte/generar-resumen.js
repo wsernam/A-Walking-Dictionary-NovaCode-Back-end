@@ -18,7 +18,7 @@ const args = Object.fromEntries(
 const SUITE = args.suite || 'Pruebas funcionales';
 
 const ESTADO = { PASA: 'pasa', FALLA: 'falla', CONOCIDO: 'error conocido', PENDIENTE: 'pendiente' };
-const RE_CA = /CA-\d+\.\d+\.\d+/g;
+const RE_CA = /CA-\d+\.\d+(?:\.\d+)?/g;
 const RE_HU = /HU-\d+\.\d+/;
 
 /** Vitest (reporter "json"): testResults[].assertionResults[]. */

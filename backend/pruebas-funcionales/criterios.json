@@ -35,5 +35,7 @@
   {"ca":"CA-5.3.2","hu":"HU-5.3","criterio":"Inscripción directa por la docente"},
   {"ca":"CA-5.4.1","hu":"HU-5.4","criterio":"Autenticación con JWT"},
   {"ca":"CA-5.4.2","hu":"HU-5.4","criterio":"Control de acceso por roles"},
-  {"ca":"CA-5.4.3","hu":"HU-5.4","criterio":"Acceso como invitado"}
+  {"ca":"CA-5.4.3","hu":"HU-5.4","criterio":"Acceso como invitado"},
+  {"ca":"CA-23.1","hu":"HU-023","criterio":"Listar y buscar usuarios"},
+  {"ca":"CA-23.2","hu":"HU-023","criterio":"Cambiar rol y activar o desactivar cuenta"}
 ]
