@@ -118,12 +118,12 @@ describe('ReporteCursoPDFService.generarPdf — HU-020 (CA-20.1, CA-20.2)', () =
     expect(textos).toContain('Reporte de estudiantes del curso · Generado el 2026-11-04 (UTC)');
   });
 
-  it('CA-20.1: la tabla tiene las columnas de nombre, código, nivel MCER, añadidas, aprobadas y coautorías', async () => {
+  it('CA-20.1: la tabla tiene las columnas de nombre, código, nivel MCER, añadidas, aprobadas y repetidas', async () => {
     ReporteCursoService.obtenerDatos.mockResolvedValue(datos());
 
     await ReporteCursoPDFService.generarPdf(docente, '1');
 
-    for (const titulo of ['Nombre', 'Código', 'Nivel MCER', 'Añadidas', 'Aprobadas', 'Coautorías']) {
+    for (const titulo of ['Nombre', 'Código', 'Nivel MCER', 'Añadidas', 'Aprobadas', 'Repetidas']) {
       expect(textos).toContain(titulo);
     }
   });

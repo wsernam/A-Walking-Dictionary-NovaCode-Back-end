@@ -118,7 +118,7 @@ describe('ReporteProgresoPDFService.generarPdf — HU-018 (CA-18.1, CA-18.2)', (
     expect(textos).toContain('Nivel B2');
   });
 
-  it('CA-18.1: muestra el total de palabras por estado y las coautorías', async () => {
+  it('CA-18.1: muestra el total de palabras por estado y las palabras repetidas', async () => {
     ReporteProgresoService.obtenerDatos.mockResolvedValue(datos());
 
     await ReporteProgresoPDFService.generarPdf(docente, '3');
@@ -127,7 +127,7 @@ describe('ReporteProgresoPDFService.generarPdf — HU-018 (CA-18.1, CA-18.2)', (
     expect(textos).toContain('Pendientes: 1');
     expect(textos).toContain('Aprobadas: 2');
     expect(textos).toContain('Rechazadas: 0');
-    expect(textos).toContain('Coautorías: 4');
+    expect(textos).toContain('Palabras repetidas: 4');
   });
 
   it('CA-18.1: lista las palabras con traducción, semana, estado y fecha', async () => {

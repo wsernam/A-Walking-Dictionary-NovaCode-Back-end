@@ -221,16 +221,20 @@ describe('ReporteCursoService.obtenerDatos — HU-020 (CA-20.1, CA-20.2, CA-20.3
     expect(ReporteCursoRepository.obtenerCurso).not.toHaveBeenCalled();
   });
 
-  it('CA-20.3: la docente que pide el curso de otra docente recibe 403 y no se consultan los estudiantes', async () => {
-    ReporteCursoRepository.obtenerCurso.mockResolvedValue({ id_curso: 2, nombre: 'Otro curso', docente_id: 99 });
-
-    await expect(ReporteCursoService.obtenerDatos(docente, '2')).rejects.toMatchObject({
-      status: 403,
-      code: 'REPORT_FORBIDDEN',
-      message: 'No tiene permisos para acceder a este recurso',
+  it('CA-20.3: cualquier docente puede consultar el reporte de un curso de otra docente', async () => {
+    ReporteCursoRepository.obtenerCurso.mockResolvedValue({
+      id_curso: 2,
+      nombre: 'Otro curso',
+      docente_id: 99,
     });
-    expect(ReporteCursoRepository.listarEstudiantes).not.toHaveBeenCalled();
-    expect(ReporteCursoRepository.listarCalificaciones).not.toHaveBeenCalled();
+
+    const datos = await ReporteCursoService.obtenerDatos(docente, '2');
+
+    expect(datos.curso).toEqual({id_curso: 2,nombre: 'Otro curso',});
+    expect(ReporteCursoRepository.obtenerCurso).toHaveBeenCalledWith(2);
+    expect(ReporteCursoRepository.listarEstudiantes).toHaveBeenCalledWith(2);
+    expect(ReporteCursoRepository.listarQuices).toHaveBeenCalledWith(2);
+    expect(ReporteCursoRepository.listarCalificaciones).toHaveBeenCalledWith(2);
   });
 
   it('un curso que no existe responde 404 (COURSE_NOT_FOUND)', async () => {
