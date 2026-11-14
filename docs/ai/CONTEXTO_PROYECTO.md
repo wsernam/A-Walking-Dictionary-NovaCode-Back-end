@@ -20,7 +20,8 @@ Aplicación web de tarjetas de vocabulario **colaborativa y curricular**:
 - **Repaso individual** con repetición espaciada **SM-2**, acumulando mazos anteriores.
 - **Quiz automático** aprox. cada dos semanas, con las tarjetas aprobadas, calificado individualmente. **Exportación a PDF** de mazos y quices (contingencia: fotocopiar sin conectividad; quiz con hoja de respuestas separada para la docente).
 - **Sugerencias por familia de palabras** a partir de WordNet (no necesariamente sinónimos).
-- **Seguimiento docente**: aportes por estudiante, quién hizo el quiz, estado del mazo.
+- **Seguimiento docente**: aportes por estudiante, quién hizo el quiz, estado del mazo; HU-022 incorpora revisión de resultados individuales, respuestas y estadísticas de quices.
+- **Administración de usuarios y roles (HU-023)**: consulta de cuentas, cambio de rol y activación/desactivación, restringidos al administrador (ver `docs/CONTRATO_FRONTEND_HU-023.md`).
 - **Exploratorio, no requisito del MVP**: pronunciación (Web Speech API / TTS), con criterio de corte a mitad del Sprint 2.
 
 Flujo semanal: la docente crea el mazo → los estudiantes leen y aportan palabras → repasan con SM-2 → la docente revisa y corrige → se genera el quiz (con PDF opcional) → la docente revisa el seguimiento → se repite acumulando mazos.
@@ -28,6 +29,7 @@ Flujo semanal: la docente crea el mazo → los estudiantes leen y aportan palabr
 ### 2.4 Roles de la aplicación
 - **Docente**: crea mazos, revisa/aprueba/edita tarjetas, asigna etiquetas de contexto, genera quices, ve notas y seguimiento.
 - **Estudiante** (inscrito en el curso): ve todos los mazos, aporta palabras, estudia con SM-2, presenta quices y recibe nota individual.
+- **Administrador** (HU-023): consulta y busca usuarios, cambia roles y activa/desactiva cuentas, con salvaguardas para la propia cuenta, el último administrador activo y los docentes con cursos asignados. El contrato del backend no implica que la pantalla del frontend ya esté integrada.
 - **Invitado**: demostración interactiva limitada, sin acceso al material completo del curso.
 - Se maneja **un solo curso** (los reportes no piden seleccionar curso).
 
@@ -82,7 +84,7 @@ Disponibilidad de la docente (reuniones los miércoles en la mañana, grupo de W
 
 ### 2.12 Gestión del proyecto
 - **Scrum** en 4 sprints: 1 Fundamentos y Arquitectura (27-ago a 9-sep); 2 Lógica de Negocio y Algoritmos (10 a 23-sep); 3 Integración, Cierre y Despliegue (24-sep a 21-oct); 4 Reportes en PDF, épica HE-07 completa, HU-018 a HU-021 (22-oct a 19-nov). Trello: listas Backlog y Sprint 0 a Sprint 4.
-- **Siete épicas** (HE-01 a HE-07): las cinco originales más HE-06 (consulta centralizada de vocabulario y mazos) y HE-07 (reportes); 21 HU y 61 criterios de aceptación con ID (DP-24 y DP-25). El detalle vigente está en la sección 6.
+- **Siete épicas** (HE-01 a HE-07): las cinco originales más HE-06 (consulta centralizada de vocabulario y mazos) y HE-07 (reportes); **23 HU (HU-001 a HU-023)**: a las 21 registradas históricamente en DP-25 se suman HU-022 (panel docente de revisión de resultados de quices) y HU-023 (administración de usuarios y roles), según DP-31. Los 61 criterios de DP-25 corresponden a la versión de 21 HU; el total actualizado debe verificarse contra el backlog vigente. El detalle del backlog se incluye en la sección 6.
 - **Rotación de roles obligatoria**: cada integrante debe pasar por al menos dos roles distintos; el liderazgo cambia cada sprint. **La rotación vigente es la de la sección 5 (se genera desde `docs/ai/roles.json`); no uses otra.**
 - Gitflow: ramas `feature/...` desde `develop`, PR hacia `develop` con al menos una revisión, `main` protegida, un repo por capa (frontend, backend, infra).
 - Épicas, historias y criterios de aceptación: los define el backlog (sección 6), con prioridad, estado y estimaciones. Cada HU se trabaja contra sus criterios Dado/Cuando/Entonces.
@@ -98,3 +100,4 @@ Disponibilidad de la docente (reuniones los miércoles en la mañana, grupo de W
 - Prompt-ID: `P-AAAAMMDD-HHMM[-HU-nnn]`; aparece como trailer `Prompt-ID:` en commits y como fila en `TRAZABILIDAD.md`.
 - Las HU se nombran de dos formas: Excel (`HU-009`) y `CLAUDE.md`/ramas del backend (`HU-3.3`).
 - Las secciones 7, 9, 10 y 11 de este prompt se generan en el momento de ejecutar `fill`: son el estado real del proyecto hoy.
+
