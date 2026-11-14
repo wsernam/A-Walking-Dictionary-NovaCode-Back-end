@@ -10,6 +10,7 @@ Notas:
 ## [Sin publicar]
 
 ### Agregado
+- 2026-11-13 · Una palabra repetida por otro estudiante queda como aporte (columna de repetidas en participación); si el mismo estudiante la repite, `POST /decks/:id/cards` responde 409 `CARD_ALREADY_SUBMITTED` y `POST /cards/check-duplicate` trae `ya_enviada`.
 - 2026-11-08 · DAST con OWASP ZAP sobre la API (`dast-zap.yml`) y documento de pruebas de seguridad (`docs/seguridad/README.md`).
 - 2026-11-07 · Documentación del código generada con JSDoc a partir de los comentarios (`npm run docs:code`, `docs/codigo/README.md`).
 - 2026-11-06 · Especificación OpenAPI 3.0.3 de la API (`docs/api/openapi.yaml`), con los 55 endpoints montados.

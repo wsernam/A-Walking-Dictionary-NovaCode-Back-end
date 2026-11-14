@@ -85,6 +85,7 @@ Si un error no tiene código específico, la API le pone uno según su status (`
 | `DECK_CLOSED` | 409 | Se intenta aportar a un mazo cerrado | This deck no longer accepts new words. |
 | `DECK_NOT_ENROLLED` | 403 | El estudiante no está inscrito en el curso del mazo | You are not enrolled in this deck's course. |
 | `CARD_NOT_FOUND` | 404 | La tarjeta no existe | Card not found. |
+| `CARD_ALREADY_SUBMITTED` | 409 | El mismo estudiante ya envió esa palabra en el mazo (no se cuenta dos veces) | You already submitted this word in this deck. |
 | `CARD_NOT_PENDING` | 409 | Se intenta aprobar o editar una tarjeta que ya no está pendiente | This card is no longer pending review. |
 | `CONTRIBUTION_NOT_FOUND` | 404 | El aporte no existe | Contribution not found. |
 | `CONTRIBUTION_NOT_APPROVABLE` | 403 | Un aporte de creación original se intenta aprobar por la ruta de aportes | This contribution must be approved from the card review. |
