@@ -34,7 +34,7 @@ const limiteAcademico = rateLimit({
  * @brief HU-5.2 / CA-5.2.1: actualiza el perfil académico (nivel MCER, código estudiantil, avatar).
  * PATCH /api/v1/users/profile. Solo estudiante.
  */
-router.patch('/profile',  authenticate,  requireRole('estudiante'),  UsuarioController.actualizarPerfil);
+router.patch('/profile', limiteAcademico, authenticate, requireRole('estudiante'), UsuarioController.actualizarPerfil);
 
 /**
  * @brief HU-5.2: consulta un perfil. GET /api/v1/users/:id, shape de perfil acordado con el
