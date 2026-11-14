@@ -43,9 +43,20 @@ function leerEstado(valor) {
   return valor === 'true';
 }
 
-/** @brief Auditoría por log (CA-23.2). Solo ids: no se registran correos ni datos personales. */
+/**
+ * Quita saltos de línea y tabulaciones para que ningún valor pueda falsificar líneas del log
+ * (CWE-117, Log Injection).
+ */
+const limpiarParaLog = (valor) => String(valor).replace(/[\r\n\t]/g, ' ');
+
+/**
+ * @brief Auditoría por log (CA-23.2). Solo ids y valores de rol/estado: no se registran correos
+ * ni datos personales.
+ */
 function registrarAuditoria(accion, admin, objetivo, detalle) {
-  console.info(`[AUDITORIA] ${accion} admin=${admin.id_usuario} objetivo=${objetivo} ${detalle}`);
+  console.info(
+    limpiarParaLog(`[AUDITORIA] ${accion} admin=${Number(admin.id_usuario)} objetivo=${Number(objetivo)} ${detalle}`)
+  );
 }
 
 export const AdminUsuarioService = {
@@ -104,7 +115,7 @@ export const AdminUsuarioService = {
     });
 
     if (resultado.cambio) {
-      registrarAuditoria('cambio_rol', admin, id, `rol_anterior=${resultado.anterior} rol_nuevo=${rol}`);
+      registrarAuditoria('cambio_rol', admin, id, `rol_anterior=${resultado.anterior} rol_nuevo=${resultado.usuario?.rol}`);
     }
     return resultado.usuario;
   },
@@ -138,7 +149,7 @@ export const AdminUsuarioService = {
     });
 
     if (resultado.cambio) {
-      registrarAuditoria('cambio_estado', admin, id, `activo_anterior=${resultado.anterior} activo_nuevo=${activo}`);
+      registrarAuditoria('cambio_estado', admin, id, `activo_anterior=${resultado.anterior} activo_nuevo=${resultado.usuario?.activo}`);
     }
     return resultado.usuario;
   },

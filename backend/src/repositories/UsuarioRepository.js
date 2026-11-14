@@ -18,7 +18,7 @@ const COLUMNAS_ADMIN = 'id_usuario, nombre_completo, email, rol, activo, fecha_r
 
 /** @brief Escapa % _ \ para que la búsqueda del administrador sea literal en ILIKE. */
 function escaparLike(texto) {
-  return texto.replace(/[\\%_]/g, '\\$&');
+  return texto.replace(/[\\%_]/g, String.raw`\$&`);
 }
 
 export const UsuarioRepository = {
