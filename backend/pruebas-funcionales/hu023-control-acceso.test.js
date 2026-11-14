@@ -95,3 +95,40 @@ describe('CA-23.3 — El administrador no hereda otros roles', () => {
     }
   );
 });
+
+describe('CA-23.3 — El administrador no accede a funciones académicas', () => {
+  const rutasAcademicas = [
+    ['GET', '/users/90', undefined],
+    ['GET', '/students/90/context', undefined],
+    ['POST', '/decks/6/cards', {}],
+    ['POST', '/aportes', {}],
+    ['GET', '/aportes', undefined],
+    ['GET', '/aportes/1', undefined],
+    ['PATCH', '/users/profile', {}],
+  ];
+
+  it.each(rutasAcademicas)(
+    '%s %s responde 403 para administrador',
+    async (metodo, ruta, datos) => {
+      const { status, body } = await api(metodo, ruta, {
+        body: datos,
+        tokenCrudo: token(ADMIN),
+      });
+
+      expect(status).toBe(403);
+      expect(body.code).toBe('AUTH_FORBIDDEN');
+    }
+  );
+
+  it.each([
+    '/reports/study-mode/export-pdf',
+    '/reports/students/90/progress/export-pdf',
+  ])('rechaza el reporte %s para administrador', async (ruta) => {
+    const { status, body } = await api('GET', ruta, {
+      tokenCrudo: token(ADMIN),
+    });
+
+    expect(status).toBe(403);
+    expect(body.code).toBe('REPORT_FORBIDDEN');
+  });
+});

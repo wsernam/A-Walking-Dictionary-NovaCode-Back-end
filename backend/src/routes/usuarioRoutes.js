@@ -29,6 +29,6 @@ router.patch(  '/profile',  authenticate,  requireRole('estudiante'),  UsuarioCo
  * frontend (ver PerfilService.js). El estudiante solo ve su propio perfil; la docente ve
  * cualquiera (control en el controlador).
  */
-router.get('/:id', authenticate, UsuarioController.obtenerPerfil);
+router.get('/:id', authenticate,  requireRole('docente', 'estudiante'), UsuarioController.obtenerPerfil);
 
 export default router;

@@ -20,15 +20,15 @@ const router = Router();
  */
 router.get('/pending', authenticate, requireRole('docente'), AporteController.listarPendientes);
 
-/** @brief Crea un aporte (CRUD genérico). POST /api/v1/aportes. Cualquier rol con sesión. */
+/** @brief Crea un aporte (CRUD genérico). POST /api/v1/aportes. Sólo docente o estudiante. */
 // TODO: agregar validacionMiddleware aquí cuando esté implementado
-router.post('/', authenticate, AporteController.crear);
+router.post('/', authenticate, requireRole('docente', 'estudiante'), AporteController.crear);
 
-/** @brief Lista todos los aportes. GET /api/v1/aportes. Cualquier rol con sesión. */
-router.get('/', authenticate, AporteController.listar);
+/** @brief Lista todos los aportes. GET /api/v1/aportes.Sólo docente o estudiante. */
+router.get('/', authenticate, requireRole('docente', 'estudiante'), AporteController.listar);
 
-/** @brief Consulta un aporte por su id_aporte. GET /api/v1/aportes/:id. Cualquier rol con sesión. */
-router.get('/:id', authenticate, AporteController.obtenerPorId);
+/** @brief Consulta un aporte por su id_aporte. GET /api/v1/aportes/:id. Sólo docente o estudiante. */
+router.get('/:id', authenticate, requireRole('docente', 'estudiante'), AporteController.obtenerPorId);
 
 /** @brief Actualiza un aporte (CRUD genérico). PUT /api/v1/aportes/:id. Solo docente. */
 // TODO: agregar validacionMiddleware aquí cuando esté implementado

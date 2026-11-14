@@ -7,6 +7,7 @@ import {
   expect,
   vi,
 } from 'vitest';
+import jwt from 'jsonwebtoken';
 
 // Solo sustituimos la conexión. El SQL de los repositorios es real.
 // No se carga .env ni se usan las credenciales del backend habitual.
@@ -54,6 +55,36 @@ async function comprobarRechazoSinCambios(operacion, status, code) {
   expect(await usuariosActuales()).toEqual(antes);
 }
 
+let servidorHttp;
+let urlHttp;
+
+const secretoHttp = 'hu023-secreto-exclusivo-de-pruebas-http';
+
+async function solicitarCambio(id, recurso, datos) {
+  const token = jwt.sign(
+    { id_usuario: 1, rol: 'administrador' },
+    secretoHttp,
+    { algorithm: 'HS256', expiresIn: '5m' }
+  );
+
+  const respuesta = await fetch(
+    `${urlHttp}/api/v1/admin/users/${id}/${recurso}`,
+    {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(datos),
+    }
+  );
+
+  return {
+    status: respuesta.status,
+    body: await respuesta.json(),
+  };
+}
+
 beforeAll(async () => {
   const { rows } = await pool.query('SELECT current_database() AS nombre');
 
@@ -82,6 +113,32 @@ beforeAll(async () => {
   `);
 });
 
+vi.stubEnv('JWT_SECRET', secretoHttp);
+vi.stubEnv('DISABLE_AUTH', 'false');
+vi.stubEnv('NODE_ENV', 'test');
+
+const promesaNativa = globalThis.Promise;
+
+let app;
+
+try {
+  ({ default: app } = await import('../src/app.js'));
+} finally {
+  // Una dependencia de la aplicación sustituye Promise.
+  // Vitest necesita la implementación nativa con finally().
+  globalThis.Promise = promesaNativa;
+}
+
+// Conserva la implementación nativa que necesita Vitest.
+globalThis.Promise = promesaNativa;
+
+servidorHttp = await new Promise((resolve, reject) => {
+  const servidor = app.listen(0, '127.0.0.1', () => resolve(servidor));
+  servidor.once('error', reject);
+});
+
+urlHttp = `http://127.0.0.1:${servidorHttp.address().port}`;
+
 beforeEach(async () => {
   vi.spyOn(console, 'info').mockImplementation(() => {});
 
@@ -103,9 +160,21 @@ beforeEach(async () => {
 
 afterAll(async () => {
   try {
-    await pool.query(`DROP SCHEMA IF EXISTS ${esquema} CASCADE`);
+    if (servidorHttp) {
+      await new Promise((resolve, reject) => {
+        servidorHttp.close((error) => {
+          if (error) reject(error);
+          else resolve();
+        });
+      });
+    }
   } finally {
-    await pool.end();
+    try {
+      await pool.query(`DROP SCHEMA IF EXISTS ${esquema} CASCADE`);
+    } finally {
+      await pool.end();
+      vi.unstubAllEnvs();
+    }
   }
 });
 
@@ -221,4 +290,32 @@ describe('CA-23.4 — Salvaguardas con PostgreSQL real', () => {
         .toMatchObject({ rol: 'administrador', activo: true });
     }
   );
+});
+
+describe('CA-23.4 — Códigos administrativos por HTTP', () => {
+  it.each([
+    ['role', { rol: 'docente' }],
+    ['status', { activo: false }],
+  ])('%s: identificador inválido devuelve 400', async (recurso, datos) => {
+    const antes = await usuariosActuales();
+
+    const respuesta = await solicitarCambio('abc', recurso, datos);
+
+    expect(respuesta.status).toBe(400);
+    expect(respuesta.body.code).toBe('ADMIN_INVALID_ID');
+    expect(await usuariosActuales()).toEqual(antes);
+  });
+
+  it.each([
+    ['role', { rol: 'docente' }],
+    ['status', { activo: false }],
+  ])('%s: usuario inexistente devuelve 404', async (recurso, datos) => {
+    const antes = await usuariosActuales();
+
+    const respuesta = await solicitarCambio(99999, recurso, datos);
+
+    expect(respuesta.status).toBe(404);
+    expect(respuesta.body.code).toBe('ADMIN_USER_NOT_FOUND');
+    expect(await usuariosActuales()).toEqual(antes);
+  });
 });
