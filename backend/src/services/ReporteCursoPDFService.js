@@ -48,7 +48,7 @@ const COLUMNAS_ESTUDIANTES = [
   { titulo: 'Nivel MCER', x: MARGEN + 245, ancho: 48 },
   { titulo: 'Añadidas', x: MARGEN + 300, ancho: 50 },
   { titulo: 'Aprobadas', x: MARGEN + 357, ancho: 55 },
-  { titulo: 'Coautorías', x: MARGEN + 419, ancho: 60 },
+  { titulo: 'Repetidas', x: MARGEN + 419, ancho: 60 },
 ];
 
 /** @brief Posición de las columnas de la tabla de notas: estudiante, quices (Q1...) y promedio. */
@@ -78,7 +78,7 @@ function dibujarEstudiantes(m, fuentes, estudiantes, totales) {
   }
   dibujarNota(
     m, fuentes,
-    'Añadidas: palabras creadas por el estudiante. Aprobadas: las que la docente aprobó. Coautorías: aportes a palabras ya registradas.'
+    'Añadidas: palabras nuevas del estudiante. Aprobadas: las que la docente aprobó. Repetidas: palabras que ya estaban en el mazo.'
   );
   m.bajar(6);
   dibujarTabla(m, fuentes, COLUMNAS_ESTUDIANTES, estudiantes.map((e) => [

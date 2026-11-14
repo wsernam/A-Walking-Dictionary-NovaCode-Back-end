@@ -34,6 +34,21 @@ export const AporteRepository = {
   },
 
   /**
+   * @brief Indica si una inscripción ya tiene algún aporte (de cualquier tipo) sobre una tarjeta.
+   * Sirve para no contar dos veces la misma palabra enviada por el mismo estudiante en un mazo.
+   * @param {number} tarjeta_id - Id de la tarjeta (la palabra ya existente en el mazo).
+   * @param {number} inscripcion_id - Id de la inscripción del estudiante.
+   * @return {Promise<boolean>} true si ya hay un aporte de esa inscripción sobre esa tarjeta.
+   */
+  async existeDeInscripcionEnTarjeta(tarjeta_id, inscripcion_id) {
+    const { rowCount } = await pool.query(
+      'SELECT 1 FROM aporte WHERE tarjeta_id = $1 AND inscripcion_id = $2 LIMIT 1',
+      [tarjeta_id, inscripcion_id]
+    );
+    return rowCount > 0;
+  },
+
+  /**
    * @brief Busca un aporte por su id_aporte.
    * @param {number} id_aporte - Id del aporte a buscar.
    * @return {Promise<Aporte|null>} El aporte encontrado, o null si no existe.

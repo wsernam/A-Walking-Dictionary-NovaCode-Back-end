@@ -343,6 +343,10 @@ paths:
         Requiere sesión (cualquier rol). El usuario del token debe tener inscripción activa en el curso del
         mazo (403 DECK_NOT_ENROLLED) y el mazo debe estar `abierto` (409 DECK_CLOSED, CA-1.2.3). La tarjeta
         nueva queda en `pendiente_revision` con un aporte tipo `creada` (CA-1.2.1).
+
+        Si el mismo estudiante ya tiene un aporte sobre esa palabra en el mazo, no se guarda otro: responde
+        409 CARD_ALREADY_SUBMITTED. El duplicado de otro estudiante sí queda registrado como aporte y se
+        cuenta en la columna de repetidas (`coautorias`) del resumen de participación, no en las palabras aportadas.
       x-hu: HU-1.2
       x-ca: [CA-1.2.1, CA-1.2.2, CA-1.2.3, CA-1.3.1, CA-1.3.2, CA-1.3.3, CA-1.3.4]
       x-pendiente: 'D-08: las acepciones se guardan como aporte (coautoria / acepcion_nueva), no como tarjeta'
@@ -368,7 +372,7 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409':
-          description: El mazo está cerrado (DECK_CLOSED).
+          description: El mazo está cerrado (DECK_CLOSED) o el estudiante ya envió esa palabra en el mazo (CARD_ALREADY_SUBMITTED).
           content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
         '500': { $ref: '#/components/responses/InternalError' }
   /decks/{id}/export-pdf:
@@ -430,6 +434,7 @@ paths:
                 properties:
                   duplicado: { type: boolean }
                   resultado: { type: string, enum: [creada, coautoria, acepcion_nueva] }
+                  ya_enviada: { type: boolean, description: 'Solo con duplicado: el estudiante de la sesión ya envió esa palabra en el mazo' }
                   tarjeta: { $ref: '#/components/schemas/Tarjeta' }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }

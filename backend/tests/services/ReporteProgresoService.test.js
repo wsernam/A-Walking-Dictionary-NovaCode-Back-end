@@ -152,10 +152,11 @@ describe('ReporteProgresoService.obtenerDatos — HU-018 (CA-18.1, CA-18.2, CA-1
     expect(datos.repaso.tarjetas_repasadas).toBe(0);
   });
 
-  it('la docente consulta dentro del alcance de sus cursos', async () => {
+  it('cualquier docente consulta el progreso sin filtrar por propietario del curso', async () => {
     await ReporteProgresoService.obtenerDatos(docente, '3');
 
-    const esperado = { estudianteId: 3, docenteId: 7 };
+    const esperado = { estudianteId: 3, docenteId: null };
+
     expect(ReporteProgresoRepository.obtenerEstudiante).toHaveBeenCalledWith(esperado);
     expect(ReporteProgresoRepository.listarAportes).toHaveBeenCalledWith(esperado);
     expect(ReporteProgresoRepository.listarResultadosQuiz).toHaveBeenCalledWith(esperado);

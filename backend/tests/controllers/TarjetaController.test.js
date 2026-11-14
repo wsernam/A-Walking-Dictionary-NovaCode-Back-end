@@ -17,7 +17,9 @@ vi.mock('../../src/repositories/TarjetaRepository.js', () => ({
   TarjetaRepository: { crear: vi.fn(), listar: vi.fn(), actualizar: vi.fn(), eliminar: vi.fn() },
 }));
 vi.mock('../../src/repositories/MazoRepository.js', () => ({ MazoRepository: { obtenerPorId: vi.fn() } }));
-vi.mock('../../src/repositories/AporteRepository.js', () => ({ AporteRepository: { crear: vi.fn() } }));
+vi.mock('../../src/repositories/AporteRepository.js', () => ({
+  AporteRepository: { crear: vi.fn(), existeDeInscripcionEnTarjeta: vi.fn() },
+}));
 vi.mock('../../src/repositories/InscripcionRepository.js', () => ({
   InscripcionRepository: { obtenerPorCursoYEstudiante: vi.fn() },
 }));
@@ -60,6 +62,7 @@ beforeEach(() => {
   DeduplicacionService.buscarDuplicado.mockResolvedValue(null);
   TarjetaRepository.crear.mockImplementation(async (datos) => ({ id_tarjeta: 20, ...datos }));
   AporteRepository.crear.mockImplementation(async (datos) => ({ id_aporte: 30, ...datos }));
+  AporteRepository.existeDeInscripcionEnTarjeta.mockResolvedValue(false);
 });
 
 describe('TarjetaController.crear — HU-1.2 (registrar palabra) y HU-1.3 (duplicados)', () => {
@@ -154,6 +157,34 @@ describe('TarjetaController.crear — HU-1.2 (registrar palabra) y HU-1.3 (dupli
     MazoRepository.obtenerPorId.mockRejectedValue(new Error('BD caída'));
     expect((await crearPalabra()).status).toBe(500);
   });
+
+  it('HU-1.3: un duplicado de otro estudiante se guarda como aporte "coautoria" sin crear tarjeta', async () => {
+    DeduplicacionService.buscarDuplicado.mockResolvedValue(tarjetaExistente);
+    DeduplicacionService.resolverAporte.mockReturnValue({ tipo: 'coautoria' });
+
+    const { status, body } = await crearPalabra();
+
+    expect(status).toBe(201);
+    expect(body.resultado).toBe('coautoria');
+    expect(TarjetaRepository.crear).not.toHaveBeenCalled();
+    expect(AporteRepository.existeDeInscripcionEnTarjeta).toHaveBeenCalledWith(7, 5);
+    expect(AporteRepository.crear).toHaveBeenCalledWith(
+      expect.objectContaining({ tarjeta_id: 7, inscripcion_id: 5, tipo_aporte: 'coautoria' })
+    );
+  });
+
+  it('HU-1.3: si el mismo estudiante ya envió la palabra responde 409 CARD_ALREADY_SUBMITTED y no guarda nada', async () => {
+    DeduplicacionService.buscarDuplicado.mockResolvedValue(tarjetaExistente);
+    AporteRepository.existeDeInscripcionEnTarjeta.mockResolvedValue(true);
+
+    const { status, body } = await crearPalabra();
+
+    expect(status).toBe(409);
+    expect(body.code).toBe('CARD_ALREADY_SUBMITTED');
+    expect(DeduplicacionService.resolverAporte).not.toHaveBeenCalled();
+    expect(TarjetaRepository.crear).not.toHaveBeenCalled();
+    expect(AporteRepository.crear).not.toHaveBeenCalled();
+  });
 });
 
 describe('TarjetaController.checkDuplicate — CA-1.3.4 (aviso antes de confirmar)', () => {
@@ -180,6 +211,41 @@ describe('TarjetaController.checkDuplicate — CA-1.3.4 (aviso antes de confirma
     expect(body).toMatchObject({ duplicado: true, resultado: 'coautoria' });
     expect(TarjetaRepository.crear).not.toHaveBeenCalled();
     expect(AporteRepository.crear).not.toHaveBeenCalled();
+  });
+
+  it('HU-1.3: con sesión de estudiante, indica ya_enviada: false si todavía no aportó esa palabra', async () => {
+    DeduplicacionService.buscarDuplicado.mockResolvedValue(tarjetaExistente);
+    DeduplicacionService.resolverAporte.mockReturnValue({ tipo: 'coautoria' });
+
+    const res = crearRes();
+    await TarjetaController.checkDuplicate(crearReq({ body: { mazo_id: 3, palabra: 'cooking' }, usuario: estudiante }), res);
+
+    expect(respuesta(res).body).toMatchObject({ duplicado: true, ya_enviada: false });
+    expect(InscripcionRepository.obtenerPorCursoYEstudiante).toHaveBeenCalledWith(10, 2);
+  });
+
+  it('HU-1.3: indica ya_enviada: true si el estudiante de la sesión ya aportó esa palabra', async () => {
+    DeduplicacionService.buscarDuplicado.mockResolvedValue(tarjetaExistente);
+    DeduplicacionService.resolverAporte.mockReturnValue({ tipo: 'coautoria' });
+    AporteRepository.existeDeInscripcionEnTarjeta.mockResolvedValue(true);
+
+    const res = crearRes();
+    await TarjetaController.checkDuplicate(crearReq({ body: { mazo_id: 3, palabra: 'cooking' }, usuario: estudiante }), res);
+
+    expect(respuesta(res).body).toMatchObject({ duplicado: true, ya_enviada: true });
+    expect(AporteRepository.existeDeInscripcionEnTarjeta).toHaveBeenCalledWith(7, 5);
+  });
+
+  it('HU-1.3: sin inscripción en el curso del mazo, ya_enviada es false', async () => {
+    DeduplicacionService.buscarDuplicado.mockResolvedValue(tarjetaExistente);
+    DeduplicacionService.resolverAporte.mockReturnValue({ tipo: 'acepcion_nueva' });
+    InscripcionRepository.obtenerPorCursoYEstudiante.mockResolvedValue(null);
+
+    const res = crearRes();
+    await TarjetaController.checkDuplicate(crearReq({ body: { mazo_id: 3, palabra: 'cooking' }, usuario: estudiante }), res);
+
+    expect(respuesta(res).body.ya_enviada).toBe(false);
+    expect(AporteRepository.existeDeInscripcionEnTarjeta).not.toHaveBeenCalled();
   });
 
   it('responde 400 si falta la palabra o el mazo_id no es un número', async () => {

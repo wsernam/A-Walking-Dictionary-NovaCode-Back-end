@@ -184,9 +184,25 @@ describe('HU-1.3 — Detectar aportes duplicados', () => {
     });
     expect(body.duplicado).toBe(true);
 
+    // Carlos ya aportó "lighthouse" en CA-1.3.2: la variante "  LIGHTHOUSE " se reconoce como la
+    // misma palabra y, como ya la envió, el backend la rechaza en vez de contarla otra vez.
     const registro = await registrarPalabra('carlos', mazo.id_mazo, { ...original, palabra: '  LIGHTHOUSE ' });
-    expect(registro.status).toBe(201);
-    expect(registro.body.tarjeta.id_tarjeta).toBe(tarjetaOriginal.id_tarjeta);
+    expect(registro.status).toBe(409);
+    expect(registro.body.code).toBe('CARD_ALREADY_SUBMITTED');
+  });
+
+  it('CA-1.3.4 Aporte propio: el aviso indica que el estudiante ya envió la palabra', async () => {
+    const { body } = await api('POST', '/cards/check-duplicate', {
+      como: 'maria',
+      body: { mazo_id: mazo.id_mazo, ...original },
+    });
+    expect(body).toMatchObject({ duplicado: true, ya_enviada: true });
+  });
+
+  it('Un estudiante que repite una palabra ya enviada por él recibe 409 y no suma otro aporte', async () => {
+    const { status, body } = await registrarPalabra('maria', mazo.id_mazo, original);
+    expect(status).toBe(409);
+    expect(body.code).toBe('CARD_ALREADY_SUBMITTED');
   });
 
   it('CA-1.3.4 Sin coincidencia: el aviso indica que se creará una tarjeta nueva', async () => {
