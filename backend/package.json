@@ -11,6 +11,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:funcional": "vitest run --config vitest.funcional.config.js",
+    "test:integracion:hu023": "vitest run --config vitest.hu023.config.js",
     "test:security": "node security-suite/run.mjs",
     "docs:code": "jsdoc -c jsdoc.json"
   },

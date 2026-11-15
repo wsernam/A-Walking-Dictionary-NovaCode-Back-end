@@ -109,8 +109,11 @@ function generar() {
   const criterios = existsSync(args.criterios || '') ? JSON.parse(readFileSync(args.criterios, 'utf8')) : [];
   const porCa = new Map(criterios.map((c) => [c.ca, []]));
   for (const p of pruebas) {
-    for (const ca of new Set(p.nombre.match(RE_CA) || [])) porCa.get(ca)?.push(p.estado);
+  const texto = `${p.contexto} ${p.nombre}`;
+  for (const ca of new Set(texto.match(RE_CA) || [])) {
+    porCa.get(ca)?.push(p.estado);
   }
+}
   const matriz = criterios.map((c) => ({ ...c, estado: estadoCa(porCa.get(c.ca)) }));
   const probados = matriz.filter((c) => /cubierto|error conocido|falla/.test(c.estado)).length;
 
@@ -137,8 +140,15 @@ function generar() {
   // Pruebas por HU (la HU sale del primer CA del nombre, o del título del grupo)
   const porHu = new Map();
   for (const p of pruebas) {
-    const ca = (p.nombre.match(RE_CA) || [])[0];
-    const hu = ca ? `HU-${ca.slice(3).split('.').slice(0, 2).join('.')}` : (p.nombre.match(RE_HU) || p.contexto.match(RE_HU) || ['Otras'])[0];
+       const texto = `${p.contexto} ${p.nombre}`;
+    const ca = (texto.match(RE_CA) || [])[0];
+    const huCatalogo = criterios.find((criterio) => criterio.ca === ca)?.hu;
+
+    const hu = huCatalogo || (
+      ca
+        ? `HU-${ca.slice(3).split('.').slice(0, 2).join('.')}`
+        : (p.nombre.match(RE_HU) || p.contexto.match(RE_HU) || ['Otras'])[0]
+    );
     const fila = porHu.get(hu) || { pasan: 0, fallan: 0, conocidos: 0, pendientes: 0 };
     if (p.estado === ESTADO.PASA) fila.pasan += 1;
     if (p.estado === ESTADO.FALLA) fila.fallan += 1;

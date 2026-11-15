@@ -37,5 +37,7 @@
   {"ca":"CA-5.4.2","hu":"HU-5.4","criterio":"Control de acceso por roles"},
   {"ca":"CA-5.4.3","hu":"HU-5.4","criterio":"Acceso como invitado"},
   {"ca":"CA-23.1","hu":"HU-023","criterio":"Listar y buscar usuarios"},
-  {"ca":"CA-23.2","hu":"HU-023","criterio":"Cambiar rol y activar o desactivar cuenta"}
+  {"ca":"CA-23.2","hu":"HU-023","criterio":"Cambiar rol y activar o desactivar cuenta"},
+  {"ca":"CA-23.3","hu":"HU-023","criterio":"Control de acceso exclusivo del administrador"},
+  {"ca":"CA-23.4","hu":"HU-023","criterio":"Salvaguardas de administración"}
 ]

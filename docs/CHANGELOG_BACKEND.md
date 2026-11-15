@@ -2,6 +2,63 @@
 
 ## Fecha
 2026-11-04 (última actualización — ver historial de sesiones más abajo)
+
+## Cambios aplicados en esta sesión (2026-11-15) — HU-023: acceso, salvaguardas y CI [IA-ASSISTED]
+
+Asistencia: Codex; modelo exacto no confirmado.
+Autoría: Manuela Meneses.
+PR: #76.
+Alcance: backend de CA-23.3 y CA-23.4.
+
+### Control de acceso
+
+- Se conservan los endpoints administrativos y su autorización exclusiva para el rol `administrador`.
+- Se restringen las rutas académicas de perfiles, contexto, registro de tarjetas y aportes a los roles permitidos.
+- El administrador no hereda permisos de docente o estudiante.
+- Se mantienen las comprobaciones de propiedad e inscripción en los controladores.
+- La navegación y vista administrativa de React quedan fuera del alcance de este PR.
+
+### Salvaguardas
+
+- Se conservan las reglas existentes de autoedición, último administrador activo y docente con cursos.
+- Las operaciones administrativas utilizan `ADMIN_INVALID_ID` y `ADMIN_USER_NOT_FOUND`.
+- Las pruebas verifican rechazo sin operaciones de escritura, datos sin cambios, rollback y conservación de un administrador activo ante operaciones simultáneas.
+- No se cambia el esquema de producción.
+- Se mantiene la limitación conocida de los JWT ya emitidos hasta su expiración.
+
+### Seguridad
+
+- Límites de solicitudes en las rutas afectadas: 300 solicitudes por IP cada 15 minutos, con contadores en memoria.
+- Las rutas que comparten una instancia del limitador comparten su contador.
+- Se mantiene el límite propio de las rutas administrativas.
+- Se adaptan las comprobaciones estáticas OWASP H-01 y H-03 para admitir el limitador antes de `authenticate`, sin eliminar la comprobación de autenticación.
+
+### Pruebas y CI
+
+- Pruebas funcionales de acceso: `backend/pruebas-funcionales/hu023-control-acceso.test.js`, 28 casos.
+- Integración: `backend/tests-integracion/hu023-salvaguardas.test.js`, 15 casos.
+- La integración utiliza PostgreSQL 16 aislado, tablas mínimas y un esquema temporal por ejecución.
+- Incluye cuatro comprobaciones HTTP de `ADMIN_INVALID_ID` y `ADMIN_USER_NOT_FOUND`.
+- Se conserva la implementación nativa de Promise al importar la aplicación para evitar la incompatibilidad con Vitest.
+- Nuevo script: `npm run test:integracion:hu023`.
+- Nuevo job `HU-023 - Integración CA-23.4` en `.github/workflows/backend-tests.yml`.
+- El job inicia su propio PostgreSQL en el puerto 55432 y publica un reporte JUnit.
+- Se agregan CA-23.3 y CA-23.4 al catálogo de criterios.
+- El resumen funcional reconoce los CA presentes en los grupos de pruebas y utiliza el catálogo para asociarlos a su HU.
+- Los resultados de integración se publican por separado; no se mezclan automáticamente con la matriz funcional.
+
+### Documentación
+
+- Actualizado `docs/CONTRATO_FRONTEND_HU-023.md`.
+- Actualizados `CHANGELOG.md`, `CLAUDE.md` y el catálogo de criterios.
+- No se modifica el estado de la HU ni de los CA en el backlog.
+
+### Validación
+
+- Validación local previa: 671 pruebas unitarias, 28 funcionales de acceso y 15 de integración aprobadas.
+- Lint sin errores.
+- La primera ejecución del nuevo script y del nuevo job debe verificarse después de incorporar esta actualización.
+
 ## Cambios aplicados en esta sesión (2026-11-14) — HU-023 administrar usuarios y roles [IA-ASSISTED]
 
 [Asistido por IA: Claude; ]
