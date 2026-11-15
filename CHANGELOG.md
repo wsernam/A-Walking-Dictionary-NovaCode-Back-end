@@ -10,6 +10,7 @@ Notas:
 ## [Sin publicar]
 
 ### Agregado
+- 2026-11-15 · HU-023: pruebas funcionales de acceso de CA-23.3 e integración de CA-23.4 con PostgreSQL aislado, script `test:integracion:hu023` y job independiente en CI con reporte JUnit. (#76)
 - 2026-11-14 · HU-023: administración de usuarios y roles desde la aplicación (solo administrador): `GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/:id/role` y `PATCH /api/v1/admin/users/:id/status`. Nuevo rol `administrador` sin cambios de esquema, salvaguardas (propia cuenta, último administrador activo, docente con cursos), auditoría por log y script SQL del primer administrador. (#71, #72, #73)
 - 2026-11-13 · Una palabra repetida por otro estudiante queda como aporte (columna de repetidas en participación); si el mismo estudiante la repite, `POST /decks/:id/cards` responde 409 `CARD_ALREADY_SUBMITTED` y `POST /cards/check-duplicate` trae `ya_enviada`.
 - 2026-11-08 · DAST con OWASP ZAP sobre la API (`dast-zap.yml`) y documento de pruebas de seguridad (`docs/seguridad/README.md`).
@@ -33,11 +34,11 @@ Notas:
 - 2026-09-13 a 2026-09-30 · Base del proyecto: quiz y exportación a PDF (09-13), login con Google/OAuth y control de roles (09-18), perfil académico (09-18), coautorías con columna `aporte.estado` (09-23) y registro de estudiantes (09-24).
 
 ### Cambiado
-- 2026-11-14 · Memoria HITL: alcance vigente de 23 HU, incorporando HU-022 y HU-023; DP-31 conserva DP-25 como antecedente histórico y actualiza el contexto sin inventar un nuevo total de criterios de aceptación.
 - 2026-10-11 · `POST`, `PUT` y `DELETE /quizzes` exigen rol docente; `GET /quizzes` y `GET /quizzes/:id` exigen token.
 - 2026-10-08 · HU-3.1 alineada con el contrato del front: mínimo 4 traducciones distintas, ventana de apertura-cierre, validación de curso y mazos, título de máximo 200 caracteres.
 
 ### Corregido
+- 2026-11-15 · HU-023: errores administrativos `ADMIN_INVALID_ID` y `ADMIN_USER_NOT_FOUND`; catálogo de criterios y reconocimiento de los CA en los grupos de pruebas del resumen funcional. La asociación con HU utiliza el catálogo, incluyendo `HU-023`. (#76)
 - 2026-11-01 · Las tarjetas pendientes incluyen el nombre del estudiante. (#39)
 - 2026-10-21 · `WordnetService` responde 400 (en vez de 500) ante una palabra vacía o de más de 150 caracteres. (#32)
 - 2026-10-18 · Zona horaria: los `TIMESTAMP` de la BD se leen y escriben en UTC. (#27, #28)
@@ -46,6 +47,7 @@ Notas:
 
 ### Seguridad
 Hallazgos de la [auditoría OWASP Top 10:2025](backend/Auditoria_OWASP_Top10_2025.md):
+- 2026-11-15 · HU-023: restricciones del administrador en funciones académicas, límites de solicitudes en las rutas afectadas y adaptación de las verificaciones estáticas OWASP para admitir el limitador antes de la autenticación. (#76)
 - 2026-10-30 · Límite de peticiones en los reportes PDF (CodeQL `js/missing-rate-limiting`). (#37)
 - 2026-10-22 · H-11: barajado de preguntas del quiz con `node:crypto`. (#33)
 - 2026-10-21 · H-11: código de acceso al curso con `node:crypto`. (#31)
