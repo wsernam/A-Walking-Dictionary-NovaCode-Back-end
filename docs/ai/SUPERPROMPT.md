@@ -6,7 +6,7 @@
 ## 0. Cabecera
 - Plantilla: 3.0 (facdbd59)
 - Sprint en curso: 4 · Reportes en PDF (HE-07) · líder del sprint (aprueba contratos): **Karen Sandoval**
-- Fuentes al construirlo: backend@a6e2135, frontend@4cf59a3 · backlog: 21 HU · bitácora: 64 sesiones
+- Fuentes al construirlo: backend@d0411ee, frontend@19ecda7 · backlog: 21 HU · bitácora: 66 sesiones
 - Se reconstruye con: `python tools/hitl/hitl.py build` (o lo hace el flujo de GitHub Actions y abre un PR para revisión humana)
 
 ## 1. Cómo usar este documento
@@ -353,8 +353,8 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 **Antes de proponer nada, lee los markdowns que apliquen a la tarea** (README y carpeta `docs/` o `doc/` de cada repo). Los marcados como CONTRATO son vinculantes: si tu cambio los contradice, aplica la puerta P2.
 
 - `backend:.github/pull_request_template.md` — (sin título) (497 caracteres; último cambio: 3c9f121 2026-10-22)
-- `backend:CHANGELOG.md` — Changelog (5.283 caracteres; último cambio: f9f5004 2026-11-14)
-- `backend:CLAUDE.md` — CLAUDE.md — Contexto del proyecto (44.334 caracteres; último cambio: c3dd496 2026-11-14)
+- `backend:CHANGELOG.md` — Changelog (5.759 caracteres; último cambio: d73c611 2026-11-15)
+- `backend:CLAUDE.md` — CLAUDE.md — Contexto del proyecto (46.104 caracteres; último cambio: d73c611 2026-11-15)
 - `backend:CONTRIBUTING.md` — Guía de contribución — A Walking Dictionary (Back-end) (5.073 caracteres; último cambio: bfe993e 2026-11-06)
 - `backend:README.md` — A Walking Dictionary (7.617 caracteres; último cambio: 352bfe6 2026-11-07)
 - `backend:SECURITY.md` — Política de seguridad (1.571 caracteres; último cambio: bfe993e 2026-11-06)
@@ -364,9 +364,9 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 - `backend:backend/security-suite/README.md` — NovaCode — Suite OWASP v2 (2.101 caracteres; último cambio: ad52a8c 2026-10-18)
 - `backend:docs/CAMBIO_APORTE_ESTADO.md` — Cambio: columna `aporte.estado` y ajustes a la PR #5 (coautorías) (6.606 caracteres; último cambio: c2c2503 2026-09-23)
 - `backend:docs/CAMBIO_REPASO_SM2.md` — Cambio: el repaso SM-2 ya no se queda sin tarjetas (HU-4.1) (7.128 caracteres; último cambio: 4364fa2 2026-09-30)
-- `backend:docs/CHANGELOG_BACKEND.md` — Changelog - Estructura Backend (52.064 caracteres; último cambio: c3dd496 2026-11-14)
+- `backend:docs/CHANGELOG_BACKEND.md` — Changelog - Estructura Backend (55.163 caracteres; último cambio: d73c611 2026-11-15)
 - **[CONTRATO]** `backend:docs/CONTRATO_AUTENTICACION_FRONTEND.md` — Contrato de Autenticación (login con Google) — para Frontend (9.675 caracteres; último cambio: bc07c4f 2026-09-24)
-- **[CONTRATO]** `backend:docs/CONTRATO_FRONTEND_HU-023.md` — Contrato Backend → Frontend — HU-023 (administrar usuarios y roles) (3.662 caracteres; último cambio: c3dd496 2026-11-14)
+- **[CONTRATO]** `backend:docs/CONTRATO_FRONTEND_HU-023.md` — Contrato Backend → Frontend — HU-023 (administrar usuarios y roles) (9.050 caracteres; último cambio: d73c611 2026-11-15)
 - **[CONTRATO]** `backend:docs/CONTRATO_FRONTEND_HU-2.3.md` — Contrato Backend → Frontend — HU-2.3 (HU-006 en la numeración de sprint del equipo) (5.140 caracteres; último cambio: 36f0ae3 2026-10-04)
 - **[CONTRATO]** `backend:docs/CONTRATO_FRONTEND_HU-3.1.md` — Contrato Backend → Frontend — HU-3.1 (HU-007 en la numeración de sprint del equipo) (11.950 caracteres; último cambio: 9be996e 2026-10-11)
 - **[CONTRATO]** `backend:docs/CONTRATO_FRONTEND_HU-3.2.md` — Contrato Backend → Frontend — HU-3.2 (HU-008 en la numeración de sprint del equipo) (14.580 caracteres; último cambio: 9be996e 2026-10-11)
@@ -527,6 +527,8 @@ Registro de decisiones humanas que Claude debe respetar en todas las sesiones. F
 - 2026-11-11 — El equipo confirma que todas las HU del backlog están completas: HU-3.1, 3.2, 3.3, 4.1, 4.2 y 5.3 pasan a "Completado" en la tabla de estado y en sus encabezados, y se retiran las notas de "falta reflejar en Backlog_HU.xlsx" (el backlog ya quedó completo). Los CA de la hoja "Criterios de aceptación" y la discrepancia D-01 no se tocaron — Manuela Meneses — todas las HU (HE-01 a HE-05)
 
 - 2026-11-14 — HU-023 (administrar usuarios y roles; `GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/:id/role` y `PATCH /api/v1/admin/users/:id/status`; contrato en `docs/CONTRATO_FRONTEND_HU-023.md`). S1: el rol se guarda como `administrador` en `usuario.rol`, sin cambios de esquema; `invitado` no se asigna. S2: query `search|rol|activo|page|limit`, body `{rol}` y `{activo}`, lista `{data,page,limit,total,total_pages}`. S3: un docente con cursos no puede perder su rol (409 `ADMIN_TEACHER_HAS_COURSES`); sí se puede desactivar y eso no modifica cursos ni historial. S4: la propia cuenta no cambia su rol ni su estado (409), y el último administrador activo no pierde el rol ni se desactiva (409). S5: pedir el mismo rol o estado responde 200 sin escribir ni auditar. S6 (limitación conocida y documentada): el JWT ya emitido sigue siendo válido hasta 8 h tras desactivar o cambiar el rol; el login sí rechaza cuentas desactivadas. S7: el primer administrador se asigna solo con `backend/scripts/crear-primer-administrador.sql` según `docs/procedimiento-primer-administrador.md`. S8: auditoría con `console.info('[AUDITORIA] ...')`, solo ids. Rama `feature/backend/hu-023-administrar-usuarios` — Karen Nathalia Sandoval — HU-023 (CA-23.1, CA-23.2)
+
+- 2026-11-15 — HU-023, alcance backend de CA-23.3 y CA-23.4, PR #76, Manuela Meneses [IA-ASSISTED: Codex; modelo exacto no confirmado]. Se restringe el acceso del administrador a funciones académicas de perfiles, contexto, registro de tarjetas y aportes, conservando los roles académicos permitidos y las comprobaciones de propiedad e inscripción. Los errores de las operaciones administrativas usan `ADMIN_INVALID_ID` y `ADMIN_USER_NOT_FOUND`; no se reemplazan los códigos genéricos de otras funcionalidades. Las salvaguardas existentes se verifican mediante pruebas unitarias y 15 pruebas de integración con PostgreSQL aislado, incluyendo rollback, rechazo sin cambios, protección del último administrador y concurrencia. Cuatro casos verifican los códigos por HTTP. CA-23.3 dispone de 28 pruebas funcionales de acceso. Las rutas afectadas incorporan límites de solicitudes de 300 por IP cada 15 minutos; las que utilizan la misma instancia comparten contador. Se conserva el límite propio de administración. Las verificaciones estáticas OWASP H-01 y H-03 admiten el limitador antes de `authenticate`, manteniendo la exigencia de autenticación. La integración se ejecuta mediante `npm run test:integracion:hu023` y tiene un job independiente en `.github/workflows/backend-tests.yml`, con PostgreSQL 16 en el puerto 55432 y reporte JUnit. La primera ejecución del nuevo job debe confirmarse en CI. El catálogo incluye CA-23.3 y CA-23.4; el resumen funcional reconoce los CA del contexto y utiliza el catálogo para asociarlos con su HU. Los resultados de integración se publican por separado. Se mantiene la limitación conocida de JWT vigentes hasta su expiración. No se modifica el estado de la HU ni del backlog; la navegación administrativa corresponde al frontend.
 
 #### Bitácora de trabajo con IA del frontend — `frontend:docs/bitacora.md`
 
@@ -692,11 +694,15 @@ detallados faltaban datos del PDF, así que se ajustó:
 
 
 ## 9. Estado e historial de los repositorios
-- `backend`: rama `develop`, HEAD `a6e2135`
-- `frontend`: rama `develop`, HEAD `4cf59a3`
+- `backend`: rama `develop`, HEAD `d0411ee`
+- `frontend`: rama `develop`, HEAD `19ecda7`
 
 ### Historial de commits
-**backend** — últimos 60 de 296 commits (incluye merges de PR):
+**backend** — últimos 60 de 300 commits (incluye merges de PR):
+  - d0411ee 2026-11-15 Karen Sandoval: Merge pull request #78 from wsernam/feature/backend/hu-023-ci-documentacion
+  - d73c611 2026-11-15 Manuela Erazo: ci(backend): automatizar integracion HU-023 y actualizar documentacion
+  - fda6070 2026-11-14 Karen Sandoval: Merge pull request #74 from wsernam/bot/superprompt
+  - 7f9f652 2026-11-14 knnsand: docs(ai): reconstruir SUPERPROMPT y registrar PR con IA
   - a6e2135 2026-11-14 Karen Sandoval: Merge pull request #76 from wsernam/feature/backend/hu-023-acceso-salvaguardas
   - 1e71430 2026-11-14 Karen Sandoval: Merge pull request #77 from wsernam/docs/hitl-alcance-23-hu
   - f9f5004 2026-11-14 Manuela Erazo: docs(hitl): registrar ampliación del alcance a 23 HU
@@ -753,11 +759,9 @@ detallados faltaban datos del PDF, así que se ajustó:
   - c2a9d9a 2026-11-09 Karen Sandoval: Merge pull request #56 from wsernam/bot/superprompt
   - 5a8567a 2026-11-09 Karen Sandoval: Merge pull request #55 from wsernam/feature/backend/sca-dependencias
   - c943cc2 2026-11-09 knnsand: docs(ai): reconstruir SUPERPROMPT y registrar PR con IA
-  - 722c683 2026-11-08 Karen Sandoval: Merge pull request #59 from wsernam/docs/arc42-c
-  - da776c9 2026-11-08 Karen Sandoval: Merge pull request #60 from wsernam/docs/generar-doc-codigo
-  - 32a7486 2026-11-08 wsernam: Update etiquetas.cjs
-  - 409767e 2026-11-08 wsernam: coerreccion en duplicacion
-**frontend** — últimos 60 de 285 commits (incluye merges de PR):
+**frontend** — últimos 60 de 287 commits (incluye merges de PR):
+  - 19ecda7 2026-11-15 thaliabernalepe: Merge pull request #79 from knnsand/feat/hu-023-administrar-usuarios
+  - d035a28 2026-11-14 wsernam: feat(admin): HU-023 vista de gestion de usuarios y roles
   - 4cf59a3 2026-11-13 wsernam: Merge pull request #76 from knnsand/feat/hu-022-panel-revision-resultados-quices
   - b7336fa 2026-11-13 wsernam: fix: corregir lint, prueba de ListaQuices y texto de reviewNotice
   - 7616164 2026-11-13 wsernam: merge: actualizar con develop y resolver conflicto en en.json
@@ -816,11 +820,9 @@ detallados faltaban datos del PDF, así que se ajustó:
   - 31eddc5 2026-10-29 wsernam: docs(frontend): documentar el código del frontend con Doxygen
   - 8472d44 2026-10-28 wsernam: Merge pull request #59 from knnsand/feature/HU-018-reporte-progreso-pdf
   - 5b3cb47 2026-10-28 thaliabernalepe: feat: Implementacion HU-018- Reporte de progreso individual en PDF con mocks
-  - 4878e94 2026-10-23 Manuela Erazo: Merge pull request #58 from knnsand/chore/ci-frontend
-  - ca73e2e 2026-10-23 Karen Sandoval: Plantilla PR
 
 ## 10. Historial de prompts y validaciones (bitácora)
-64 sesiones registradas (una sesión copiada en varias hojas cuenta una vez), en orden cronológico (2026-08-18 a 2026-11-14). Estados: ADAPTADO 11, CORREGIDO 1, VALIDACIÓN 1, VALIDADO 51.
+66 sesiones registradas (una sesión copiada en varias hojas cuenta una vez), en orden cronológico (2026-08-18 a 2026-11-15). Estados: ADAPTADO 11, CORREGIDO 1, VALIDACIÓN 1, VALIDADO 53.
 Úsalo para no repetir trabajo, respetar lo ya adaptado o corregido y copiar el estilo de registro.
 
 - 2026-08-18 · Presentaciones - Documentos · ChatGPT · Karen Sandoval: «Compara tecnologías de frontend, para un proyecto de diccionario colaborativo de vocabulario (mazos semanales, aportes de estudiantes, validación docente, repetición espaciada). Evalúa React, Vue y Angular.» → Tres tablas comparativas (Tabla 1A, 1B, 1C) con cifras de adopción citadas a una encuesta de Stack Overflow proporcionada por integrante del proyecto | VALIDADO: Se contrastaron las características y cifras presentadas con fuentes externas y se verificó que la comparación fuera coherente con las necesidades del proyecto. Los resultados sirvieron como recurso para seleccionar la tecnología frontend.
@@ -887,6 +889,8 @@ detallados faltaban datos del PDF, así que se ajustó:
 - 2026-11-14 · Backend · Claude Haiku 5.5 · Manuela Meneses: «test(admin): HU-023 pruebas funcionales de administracion de usuarios» → - Nuevo `backend/pruebas-funcionales/he05-administracion-usuarios.test.js` (16 pruebas: 14 ejecutables y 2 `todo`): - CA-23.1: lista paginada sin `password_hash`, búsqueda por correo, filtro por rol … | VALIDADO: `npm run lint`, `npm run test:funcional` (98 pruebas pasan, 6 `todo`) tras rebasar sobre `develop`, y generación del resumen con `generar-resumen.js` comprobando que CA-23.1 y CA-23.2 aparecen como cubiertos. (Revisión: Karen Nathalia Sandoval. 2026…
 - 2026-11-14 · Backend · Claude Haiku 5.5 · Manuela Meneses: «docs(admin): HU-023 contrato del front, OpenAPI y changelogs» → - Nuevo `docs/CONTRATO_FRONTEND_HU-023.md`: endpoints, query y body, formato de respuesta paginada, tabla de errores con su `code` y limitaciones conocidas. - `docs/api/openapi.yaml`: etiqueta `admin… | VALIDADO: `redocly lint` del OpenAPI, conteo de 58 operaciones y comprobación manual de que el contrato y los códigos coinciden con los endpoints en `develop`. (Revisión: Karen Nathalia Sandoval, 2026-11-14)
 - 2026-11-14 · Backend · Codex; identificador exacto del modelo no confirmado. · Karen Sandoval: «HU-023: completar control de acceso y salvaguardas del backend (CA-23.3 y CA-23.4)» → - Restringe las rutas académicas de perfiles, contexto, registro de tarjetas y aportes a docentes y estudiantes. - Conserva las restricciones existentes de los endpoints administrativos. - Cambia los… | VALIDADO: pruebas unitarias, funcionales e integración con PostgreSQL aislado; lint y revisión de diferencias. (Revisión: pendiente de completar por la autora y el compañero revisor.)
+- 2026-11-15 · Frontend · Claude Code (Claude Opus 5.5) · Thalia Bernal: «feat(admin): HU-023 vista de gestión de usuarios y roles» → - **CA-23.1:** nueva vista `/admin/usuarios` (`GestionUsuarios.jsx`): tabla paginada con nombre, correo, rol, estado y fecha de registro; búsqueda por nombre o correo; filtros por rol y estado (`GET … | VALIDADO: lint, pruebas unitarias (Vitest), build y prueba manual en Docker (Revisión: William Serna — 14/11/26 **Notas para el equipo:** - El contrato del back dice `USER_NOT_FOUND` para el 404, pero el backend responde `ADMIN_USER_NOT_FOUND`; el front tradu…
+- 2026-11-15 · Backend · Codex; identificador exacto del modelo no confirmado. · Karen Sandoval: «HU-023: automatizar integración de CA-23.4 en CI y actualizar documentación» → - Añade el script `npm run test:integracion:hu023`. - Incorpora un job independiente en `backend-tests.yml`, con PostgreSQL 16 aislado y publicación de resultados JUnit. - Conserva el job existente d… | VALIDADO: lint sin errores, integración aprobada, JSON válido y `git diff --check` limpio. La ejecución del nuevo job en CI queda pendiente de confirmar. Los resultados de integración se publican por separado; no se mezclan automáticamente con la matriz de la…
 
 ## 11. Trazabilidad registrada
 | Fecha | Prompt-ID | Sprint | Autor (rol) | Repo | HU | Rama | Commits | PR | Estado | Hoja · fila bitácora | Plantilla |
@@ -923,6 +927,8 @@ detallados faltaban datos del PDF, así que se ajustó:
 | 2026-11-14 | P-20261114-0612-HU-023 | 4 | Karen Sandoval (PO / SM) | backend | HU-023 | feature/backend/hu-023-pruebas-funcionales | el único commit del PR, `test(admin): HU-023 pruebas funcionales de administracion de usuarios`. Las pruebas y el ajuste de `generar-resumen.js` fueron propuestos por la IA en la conversación y revisados, adaptados y ejecutados por Karen Nathalia Sandoval. | backend#73 | VALIDADO | Backend · fila 29 | automático (PR) |
 | 2026-11-14 | P-20261114-0630-HU-023 | 4 | Karen Sandoval (PO / SM) | backend | HU-023 | feature/backend/hu-023-documentacion | los commits del PR: documentación del contrato, OpenAPI, códigos de error y changelogs, propuestos por la IA en la conversación y revisados, adaptados y ejecutados por Karen Nathalia Sandoval | backend#75 | VALIDADO | Backend · fila 30 | automático (PR) |
 | 2026-11-14 | P-20261114-1442-HU-023 | 4 | Manuela Meneses (Backend) | backend | HU-023 | feature/backend/hu-023-acceso-salvaguardas | - `a5c11ae`: ajuste de errores administrativos y pruebas de CA-23.3 y CA-23.4. - `a7de2d1`: restricciones del administrador en funciones académicas y ampliación de pruebas HTTP e integración. La IA asistió en la revisión del código, la propuesta de cambios, la elaboración de pruebas y el análisis de resultados. Los cambios y comandos fueron aplicados y ejecutados manualmente por la autora. | backend#76 | VALIDADO | Backend · fila 31 | automático (PR) |
+| 2026-11-15 | P-20261115-1643-HU-023 | 4 | William Serna (Frontend) | frontend | HU-023 | feat/hu-023-administrar-usuarios | d035a28 | frontend#79 | VALIDADO | Frontend · fila 27 | automático (PR) |
+| 2026-11-15 | P-20261115-2328-HU-023 | 4 | Manuela Meneses (Backend) | backend | HU-023 | feature/backend/hu-023-ci-documentacion | `d73c611` — automatización de integración de HU-023 y actualización de documentación. La IA asistió en la revisión y propuesta del workflow, script, trazabilidad y documentación. Manuela Meneses aplicó los cambios y ejecutó las verificaciones locales. | backend#78 | VALIDADO | Backend · fila 32 | automático (PR) |
 
 ## 12. Protocolo HITL (puertas obligatorias)
 Te detienes en cada puerta y esperas la frase indicada de la persona responsable de la sesión (o del líder del sprint, **Karen Sandoval**, en P2). Sin esa frase no avanzas.
