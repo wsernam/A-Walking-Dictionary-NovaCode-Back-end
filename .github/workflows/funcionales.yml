@@ -40,6 +40,9 @@ jobs:
       # Las pruebas no usan Google real (el login se simula firmando el JWT); solo debe existir.
       GOOGLE_CLIENT_ID: ci-sin-google.apps.googleusercontent.com
       CORS_ORIGINS: http://localhost:3000
+      RATE_LIMIT_AUTH_MAX: '1000'
+      RATE_LIMIT_REPORTES_MAX: '1000'
+      RATE_LIMIT_ADMIN_MAX: '1000'
 
     defaults:
       run:
