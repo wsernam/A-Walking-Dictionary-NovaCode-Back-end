@@ -96,3 +96,29 @@ Alertas (todas de riesgo bajo o falso positivo):
   en un comentario.
 - Cuando se corrijan las alertas pendientes, se puede hacer obligatorio el escaneo quitando `-I` y
   marcando reglas como `FAIL`.
+
+## Pruebas de control de acceso (RBAC e IDOR)
+
+Verifican que cada endpoint responda lo que dice la matriz de permisos ([`matriz-rbac.md`](matriz-rbac.md)) y que un usuario con el rol correcto no acceda a recursos ajenos. Corren con la suite funcional (`npm run test:funcional`, ver [`backend/pruebas-funcionales/README.md`](../../backend/pruebas-funcionales/README.md)).
+
+| Prueba | Qué comprueba | Casos |
+| --- | --- | --- |
+| `rbac-matriz.test.js` | Código HTTP de cada endpoint con el token de cada rol (datos en `datos/matriz-rbac.json`) | 61 endpoints × 4 roles |
+| `rbac-idor.test.js` | Estudiante A contra B, estudiante no inscrita y docente ajena | 37 casos y 6 controles |
+| `rbac-cobertura.test.js` | Toda ruta de `app.js` está en la matriz y viceversa | 3 |
+
+### Hallazgos (ejecución del 2026-11-17, rama `develop`)
+
+Las celdas con un hueco confirmado corren con `it.fails`: la integración continua sigue en verde, el hueco queda visible en el reporte y, cuando se corrige, la prueba falla y se borra la marca.
+
+| Hallazgo | Qué ocurre | Dónde | Corrección sugerida | Estado |
+| --- | --- | --- | --- | --- |
+| HALLAZGO-1 | El administrador atraviesa rutas que solo exigen sesión | `POST /cards/check-duplicate`, `GET /quizzes`, `GET /quizzes/:id` | Agregar `requireRole` con los roles permitidos | Abierto (D-13) |
+| HALLAZGO-2 | `GET /enrichment/family/:word` responde 500 a todos los roles | Falta `wordnet_cache.categoria_gramatical` en `init.sql` | Agregar la columna (D-05) | Abierto |
+| HALLAZGO-3 | Un estudiante lee, lista y crea aportes de otros | `GET /aportes`, `GET /aportes/:id`, `POST /aportes` | Filtrar por la inscripción del token y validar `inscripcion_id` | Abierto |
+| HALLAZGO-4 | Cualquier docente edita, aprueba y elimina aportes | `PUT`, `PATCH /approve`, `DELETE /aportes/:id` | Comparar `curso.docente_id` con el token | Abierto (D-12) |
+| HALLAZGO-5 | Cualquier docente edita, etiqueta y aprueba tarjetas | `PUT /cards/:id`, `PUT /cards/:id/context`, `PATCH /cards/:id/approve` | Comparar `curso.docente_id` con el token | Abierto (D-12) |
+| HALLAZGO-6 | Cualquier docente genera código, asigna y lista inscritos de un curso ajeno | `POST /courses/:id/access-code`, `POST /courses/:id/assign`, `GET /courses/:id/students` | Comparar `curso.docente_id` con el token | Abierto (D-12) |
+| HALLAZGO-7 | Cualquier docente exporta el PDF y ve las analíticas de un mazo ajeno | `GET /decks/:id/export-pdf`, `GET /teacher/analytics/deck/:id` | Usar `esDuenoDelMazo` | Abierto (D-12) |
+| HALLAZGO-8 | Los quices se leen sin estar inscrito; cualquier docente los lee, edita, elimina, exporta y ve sus resultados | `GET`, `PUT`, `DELETE /quizzes/:id`, `export-pdf`, `teacher-results` | Validar inscripción o docente dueño del curso | Abierto (D-12) |
+| HALLAZGO-9 | El reporte de curso de otra docente responde 200 | `GET /reports/students/export-pdf` | Comparar `curso.docente_id` con el token (el comentario de `ReporteCursoService` ya lo promete) | Abierto (D-12) |
