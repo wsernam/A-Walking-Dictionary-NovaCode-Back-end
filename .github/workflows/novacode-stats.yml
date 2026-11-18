@@ -1,0 +1,53 @@
+name: NovaCode GitHub Stats
+on:
+  workflow_dispatch:
+  pull_request_target:
+    types: [opened, reopened, closed, synchronize, edited]
+  schedule:
+    - cron: '23 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'stats/**'
+      - '.github/workflows/novacode-stats.yml'
+permissions: {}
+concurrency:
+  group: novacode-stats
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main' && github.repository == 'wsernam/A-Walking-Dictionary-NovaCode-Back-end'
+    permissions:
+      contents: read
+      pull-requests: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - run: python3 stats/build.py
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOVACODE_FRONT_READ_TOKEN: ${{ secrets.NOVACODE_FRONT_READ_TOKEN }}
+      - uses: actions/upload-pages-artifact@v3
+        if: vars.NOVACODE_PUBLISH == 'true'
+        with:
+          path: _site
+  publish:
+    if: vars.NOVACODE_PUBLISH == 'true'
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - id: pages
+        uses: actions/deploy-pages@v4
+
+
