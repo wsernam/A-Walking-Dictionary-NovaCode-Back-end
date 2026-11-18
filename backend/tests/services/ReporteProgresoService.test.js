@@ -196,6 +196,13 @@ describe('ReporteProgresoService.obtenerDatos — HU-018 (CA-18.1, CA-18.2, CA-1
     expect(ReporteProgresoRepository.obtenerEstudiante).not.toHaveBeenCalled();
   });
 
+  it('CA-23.3: el administrador no hereda el reporte de progreso (403) y no se consulta la BD', async () => {
+    await expect(
+      ReporteProgresoService.obtenerDatos({ id_usuario: 90, rol: 'administrador' }, '3')
+    ).rejects.toMatchObject({ status: 403, code: 'REPORT_FORBIDDEN' });
+    expect(ReporteProgresoRepository.obtenerEstudiante).not.toHaveBeenCalled();
+  });
+
   it.each(['abc', '0', '-1', '1.5', '', undefined])('un id inválido (%s) responde 400 INVALID_ID', async (valor) => {
     await expect(ReporteProgresoService.obtenerDatos(docente, valor)).rejects.toMatchObject({
       status: 400,

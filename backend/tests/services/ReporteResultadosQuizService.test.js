@@ -224,6 +224,12 @@ describe('ReporteResultadosQuizService.obtenerDatos — HU-021 (CA-21.1, CA-21.2
       ).rejects.toMatchObject({ status: 403, code: 'AUTH_FORBIDDEN' });
     });
 
+    it('CA-23.3: el administrador no hereda el reporte de resultados (403 AUTH_FORBIDDEN)', async () => {
+      await expect(
+        ReporteResultadosQuizService.obtenerDatos({ id_usuario: 90, rol: 'administrador' }, 5)
+      ).rejects.toMatchObject({ status: 403, code: 'AUTH_FORBIDDEN' });
+    });
+
     it('[S1] la docente de otro curso recibe 403 y no se consultan resultados', async () => {
       ReporteResultadosQuizRepository.obtenerQuiz.mockResolvedValue(quiz({ docente_id: 99 }));
 

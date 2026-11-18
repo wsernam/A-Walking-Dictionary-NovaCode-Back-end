@@ -221,6 +221,13 @@ describe('ReporteCursoService.obtenerDatos — HU-020 (CA-20.1, CA-20.2, CA-20.3
     expect(ReporteCursoRepository.obtenerCurso).not.toHaveBeenCalled();
   });
 
+  it('CA-23.3: el administrador no hereda el reporte del curso (403) y no se consulta la BD', async () => {
+    await expect(
+      ReporteCursoService.obtenerDatos({ id_usuario: 90, rol: 'administrador' }, '1')
+    ).rejects.toMatchObject({ status: 403, code: 'REPORT_FORBIDDEN' });
+    expect(ReporteCursoRepository.obtenerCurso).not.toHaveBeenCalled();
+  });
+
   it('CA-20.3: cualquier docente puede consultar el reporte de un curso de otra docente', async () => {
     ReporteCursoRepository.obtenerCurso.mockResolvedValue({
       id_curso: 2,
