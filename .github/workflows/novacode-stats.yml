@@ -1,0 +1,78 @@
+name: NovaCode GitHub Stats
+
+on:
+  push:
+    branches: [develop, novacode-stats-signal]
+
+permissions: {}
+
+jobs:
+  trigger:
+    if: >-
+      github.repository == 'wsernam/A-Walking-Dictionary-NovaCode-Back-end'
+      && !github.event.created && !github.event.deleted && !github.event.forced
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      pull-requests: read
+    outputs:
+      refresh: ${{ github.ref == 'refs/heads/novacode-stats-signal' || steps.merge.outputs.merged == 'true' }}
+    steps:
+      - name: Detectar PR fusionado a develop
+        if: github.ref == 'refs/heads/develop'
+        id: merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          commits=$(jq -c '[.commits[].id] + [.after]' "$GITHUB_EVENT_PATH")
+          for attempt in 1 2 3; do
+            prs=$(gh api "repos/$GITHUB_REPOSITORY/pulls?state=closed&base=develop&sort=updated&direction=desc&per_page=100")
+            if jq -e --argjson commits "$commits" \
+              'any(.[]; .merged_at != null and (.merge_commit_sha as $sha | $commits | index($sha) != null))' \
+              <<< "$prs" >/dev/null; then
+              echo 'merged=true' >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            if [[ "$attempt" != 3 ]]; then sleep 5; fi
+          done
+          echo 'merged=false' >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: trigger
+    if: needs.trigger.outputs.refresh == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: develop
+          persist-credentials: false
+      - run: python3 stats/build.py
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOVACODE_FRONT_READ_TOKEN: ${{ secrets.NOVACODE_FRONT_READ_TOKEN }}
+      - uses: actions/upload-pages-artifact@v3
+        if: vars.NOVACODE_PUBLISH == 'true'
+        with:
+          path: _site
+
+  publish:
+    needs: build
+    if: vars.NOVACODE_PUBLISH == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: novacode-pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - id: pages
+        uses: actions/deploy-pages@v4

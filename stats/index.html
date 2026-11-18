@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NovaCode · Estadísticas de GitHub</title>
+  <style>
+    :root { color-scheme: light; font: 16px system-ui, sans-serif; color: #15243c; background: #edf2f9; }
+    body { margin: 0; }
+    main { max-width: 74rem; margin: auto; padding: clamp(1rem, 4vw, 3rem); }
+    header { border-bottom: 3px solid #2858ad; margin-bottom: 2rem; }
+    h1 { font-size: clamp(1.8rem, 4vw, 3.2rem); margin: 0; }
+    h2 { margin: 0; }
+    a { color: #164694; }
+    section { padding: clamp(1rem, 3vw, 2rem); background: white; border: 1px solid #c8d4e6; border-radius: 1rem; margin-bottom: 1.25rem; }
+    .scroll { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; min-width: 44rem; }
+    th, td { padding: .7rem; text-align: right; border-bottom: 1px solid #dce4ef; }
+    th:first-child { text-align: left; }
+    thead, tfoot { background: #eff4fc; }
+    meter { width: 4rem; }
+    footer { max-width: 75ch; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>NovaCode · Estadísticas de GitHub</h1>
+      <p>Última actualización · {{UPDATED}}</p>
+    </header>
+    {{STATS}}
+    <footer>
+      <p>El porcentaje divide los PR del autor entre todos los PR del repositorio tras excluir bots, en todos los estados. Las cuentas sin vincular aparecen como una fila separada.</p>
+      <p>* Estimación histórica. Cuenta los commits de autoría en la primera línea de develop y excluye los commits de fusión y los que GitHub asocia a PR fusionados hacia develop. La atribución depende de los datos disponibles en GitHub, especialmente tras un rebase o un squash manual. Los commits y los PR se miden por separado.</p>
+    </footer>
+  </main>
+</body>
+</html>
