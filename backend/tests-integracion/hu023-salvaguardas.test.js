@@ -60,9 +60,9 @@ let urlHttp;
 
 const secretoHttp = 'hu023-secreto-exclusivo-de-pruebas-http';
 
-async function solicitarCambio(id, recurso, datos) {
+async function solicitarCambio(id, recurso, datos, actor = 1) {
   const token = jwt.sign(
-    { id_usuario: 1, rol: 'administrador' },
+    { id_usuario: actor, rol: 'administrador' },
     secretoHttp,
     { algorithm: 'HS256', expiresIn: '5m' }
   );
@@ -116,6 +116,9 @@ beforeAll(async () => {
 vi.stubEnv('JWT_SECRET', secretoHttp);
 vi.stubEnv('DISABLE_AUTH', 'false');
 vi.stubEnv('NODE_ENV', 'test');
+// La carrera repetida hace decenas de peticiones desde la misma IP: se sube el límite de
+// administración para que un 429 no se confunda con un fallo de la salvaguarda.
+vi.stubEnv('RATE_LIMIT_ADMIN_MAX', '1000');
 
 const promesaNativa = globalThis.Promise;
 
@@ -317,5 +320,47 @@ describe('CA-23.4 — Códigos administrativos por HTTP', () => {
     expect(respuesta.status).toBe(404);
     expect(respuesta.body.code).toBe('ADMIN_USER_NOT_FOUND');
     expect(await usuariosActuales()).toEqual(antes);
+  });
+});
+
+// CA-23.4 — Carrera de dos administradores.
+// A degrada a B y B degrada a A al mismo tiempo. Sin candado, cada petición vería "hay 2
+// administradores" y ambas pasarían, dejando el sistema sin administradores. Con
+// pg_advisory_xact_lock una espera a la otra: una responde 200 y la otra 409 ADMIN_LAST_ADMIN.
+// Se repite para que no pase por simple suerte de tiempos.
+const REPETICIONES = 20;
+
+describe(`CA-23.4 — Carrera de dos administradores por HTTP (${REPETICIONES} repeticiones)`, () => {
+  describe.each([
+    ['role', { rol: 'estudiante' }, (u) => u.rol === 'administrador'],
+    ['status', { activo: false }, (u) => u.activo === true],
+  ])('PATCH /admin/users/:id/%s', (recurso, datos, sigueSiendoAdmin) => {
+    it.each(Array.from({ length: REPETICIONES }, (_, i) => [i + 1]))(
+      'repetición %i: una responde 200, la otra 409 y queda un administrador activo',
+      async () => {
+        // A (id 1) pide degradar a B (id 2) y B pide degradar a A, a la vez.
+        const [deAaB, deBaA] = await Promise.all([
+          solicitarCambio(2, recurso, datos, 1),
+          solicitarCambio(1, recurso, datos, 2),
+        ]);
+
+        expect([deAaB.status, deBaA.status].sort()).toEqual([200, 409]);
+
+        const rechazada = deAaB.status === 409 ? deAaB : deBaA;
+        expect(rechazada.body.code).toBe('ADMIN_LAST_ADMIN');
+
+        const usuarios = await usuariosActuales();
+        const administradoresActivos = usuarios.filter(
+          (u) => u.rol === 'administrador' && u.activo
+        );
+        expect(administradoresActivos).toHaveLength(1);
+
+        // El objetivo de la petición rechazada conserva su rol y estado: es el que sigue vivo.
+        const idRechazado = deAaB.status === 409 ? 2 : 1;
+        const sobreviviente = usuarios.find((u) => u.id_usuario === idRechazado);
+        expect(sigueSiendoAdmin(sobreviviente)).toBe(true);
+        expect(administradoresActivos[0].id_usuario).toBe(idRechazado);
+      }
+    );
   });
 });
