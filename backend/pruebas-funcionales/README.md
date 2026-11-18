@@ -23,6 +23,12 @@ npm run test:funcional
 
 - **Las pruebas reinician la base local** al estado de `init.sql` + `seed.sql` antes de empezar, para partir siempre del mismo estado. Si el contenedor `walking_dictionary_db` está corriendo, el reinicio se hace dentro de él. Para no reiniciarla: `SIN_REINICIO_BD=true npm run test:funcional`.
 - **Variables:** se leen de las del proceso, luego de `backend/.env` y luego del `.env` de infra. `JWT_SECRET` tiene que ser el mismo que usa el backend probado, y `DISABLE_AUTH` debe ser `false`.
+«Para repetir la suite sin recibir 429, define en backend/.env RATE_LIMIT_AUTH_MAX, RATE_LIMIT_REPORTES_MAX y RATE_LIMIT_ADMIN_MAX (p. ej. 1000) y reinicia el backend; funcionales.yml ya los define.» (2) a la tabla «Qué cubre», después de he05-usuarios-perfiles.test.js:
+| `rbac-matriz.test.js` | Matriz RBAC: código HTTP de 61 endpoints × 4 roles (`datos/matriz-rbac.json`) |
+| `rbac-idor.test.js` | IDOR: estudiante A contra B, no inscrita y docente ajena (37 casos) |
+| `rbac-cobertura.test.js` | Toda ruta de `app.js` está en la matriz |
+
+
 - **Otro backend:** `API_URL=http://localhost:5001 npm run test:funcional`.
 - **Nunca** apuntar `DB_HOST` a Supabase: la preparación lo bloquea.
 
