@@ -23,12 +23,7 @@ npm run test:funcional
 
 - **Las pruebas reinician la base local** al estado de `init.sql` + `seed.sql` antes de empezar, para partir siempre del mismo estado. Si el contenedor `walking_dictionary_db` está corriendo, el reinicio se hace dentro de él. Para no reiniciarla: `SIN_REINICIO_BD=true npm run test:funcional`.
 - **Variables:** se leen de las del proceso, luego de `backend/.env` y luego del `.env` de infra. `JWT_SECRET` tiene que ser el mismo que usa el backend probado, y `DISABLE_AUTH` debe ser `false`.
-«Para repetir la suite sin recibir 429, define en backend/.env RATE_LIMIT_AUTH_MAX, RATE_LIMIT_REPORTES_MAX y RATE_LIMIT_ADMIN_MAX (p. ej. 1000) y reinicia el backend; funcionales.yml ya los define.» (2) a la tabla «Qué cubre», después de he05-usuarios-perfiles.test.js:
-| `rbac-matriz.test.js` | Matriz RBAC: código HTTP de 61 endpoints × 4 roles (`datos/matriz-rbac.json`) |
-| `rbac-idor.test.js` | IDOR: estudiante A contra B, no inscrita y docente ajena (37 casos) |
-| `rbac-cobertura.test.js` | Toda ruta de `app.js` está en la matriz |
-
-
+- **Límite de solicitudes (429):** para repetir la suite sin recibir 429, define en `backend/.env` `RATE_LIMIT_AUTH_MAX`, `RATE_LIMIT_REPORTES_MAX` y `RATE_LIMIT_ADMIN_MAX` (p. ej. 1000) y reinicia el backend; `funcionales.yml` ya los define.
 - **Otro backend:** `API_URL=http://localhost:5001 npm run test:funcional`.
 - **Nunca** apuntar `DB_HOST` a Supabase: la preparación lo bloquea.
 
@@ -56,11 +51,22 @@ Cada ejecución genera `reportes-funcionales/index.html` (abrir con `npx vite pr
 | `he02-curaduria-docente.test.js` | HU-2.1, 2.2, 2.3 |
 | `he03-evaluacion-exportacion.test.js` | HU-3.1, 3.2, 3.3 |
 | `he05-usuarios-perfiles.test.js` | HU-5.1, 5.2, 5.3, 5.4 |
+| `he05-administracion-usuarios.test.js` | HU-023 (CA-23.1, CA-23.2) |
+| `hu023-control-acceso.test.js` | HU-023 (CA-23.3) |
+| `rbac-matriz.test.js` | Matriz RBAC: código HTTP de 61 endpoints × 4 roles (`datos/matriz-rbac.json`) |
+| `rbac-idor.test.js` | IDOR: estudiante A contra B, no inscrita y docente ajena (37 casos) |
+| `rbac-cobertura.test.js` | Toda ruta de `app.js` está en la matriz |
+| `seguridad-sesion.test.js` | Seguridad de sesión: token manipulado, `alg:none`, vencido, reutilizado tras logout y cuenta desactivada (21 casos, 2 `[RIESGO CONOCIDO]`) |
 
 Las pruebas `todo` aparecen en el reporte como pendientes:
 
 - **CA-2.1.3** (rechazo): no está implementado.
 - **CA-3.3.3** (formato del PDF): se revisa abriendo el archivo.
 - **CA-5.1.1 / 5.1.2** (registro exitoso): necesitan un token real de Google.
+
+Los casos marcados `[RIESGO CONOCIDO]` (y los `HALLAZGO-n` de IDOR y de la matriz RBAC) corren con `it.fails`: declaran el resultado seguro y aparecen como "expected fail", así la integración continua sigue en verde y el hueco queda visible. Cuando el backend se corrija, el caso empieza a pasar, `it.fails` lo reporta como fallo y se cambia por `it`:
+
+- **SES-13b**: el backend no revoca tokens al cerrar sesión (no hay `POST /auth/logout` ni lista de revocación).
+- **SES-14b**: el backend no consulta `usuario.activo`; un token vigente de una cuenta desactivada sigue funcionando hasta 8 h.
 
 No se incluyen HU-4.1 ni HU-4.2 (Pendiente en el backlog) ni el diccionario global (todavía no está en el backlog).
