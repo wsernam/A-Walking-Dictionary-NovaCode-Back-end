@@ -131,4 +131,17 @@ describe('CA-23.3 — El administrador no accede a funciones académicas', () =>
     expect(status).toBe(403);
     expect(body.code).toBe('REPORT_FORBIDDEN');
   });
+
+  // Estos dos reportes llevan requireRole('docente'): el rechazo ocurre en el middleware.
+  it.each([
+    '/reports/students/export-pdf?curso_id=1',
+    '/reports/quizzes/1/results/export-pdf',
+  ])('rechaza el reporte %s para administrador', async (ruta) => {
+    const { status, body } = await api('GET', ruta, {
+      tokenCrudo: token(ADMIN),
+    });
+
+    expect(status).toBe(403);
+    expect(body.code).toBe('AUTH_FORBIDDEN');
+  });
 });

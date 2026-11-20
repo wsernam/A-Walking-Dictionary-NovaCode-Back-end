@@ -273,3 +273,18 @@ describe('CA-23.4 — Rechazos sin operaciones de escritura', () => {
     expect(console.info).not.toHaveBeenCalled();
   });
 });
+
+describe('CA-23.4 — La comprobación del último administrador corre dentro del candado', () => {
+  it.each([
+    ['cambiarRol', 'estudiante', { rol: 'administrador' }],
+    ['cambiarEstado', false, { rol: 'administrador' }],
+  ])('%s abre la transacción y cuenta con el cliente de esa transacción', async (metodo, valor, objetivo) => {
+    UsuarioRepository.obtenerParaAdmin.mockResolvedValue(usuario(objetivo));
+
+    await AdminUsuarioService[metodo](admin, 5, valor);
+
+    expect(UsuarioRepository.enTransaccionAdministracion).toHaveBeenCalledTimes(1);
+    expect(UsuarioRepository.obtenerParaAdmin).toHaveBeenCalledWith(5, 'db');
+    expect(UsuarioRepository.contarAdministradoresActivos).toHaveBeenCalledWith('db');
+  });
+});
