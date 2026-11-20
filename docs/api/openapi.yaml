@@ -2133,7 +2133,7 @@ components:
       description: La petición choca con el estado actual del recurso.
       content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
     TooManyRequests:
-      description: Límite de peticiones superado (code RATE_LIMITED). Aplica a /auth, /reports y /admin.
+      description: Límite de peticiones superado (code RATE_LIMITED). Hay un límite global por IP para toda la API (RATE_LIMIT_GLOBAL_MAX, 1000 cada 15 minutos; /health queda fuera) y límites propios, más estrictos, en /auth, /reports y /admin.
       content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
     InternalError:
       description: Error inesperado del servidor (code INTERNAL_ERROR).

@@ -15,6 +15,11 @@ herramienta, sobre qué y en qué momento. Cubre los dos repositorios (back-end 
 Complementa estas técnicas la suite OWASP del equipo (`backend/security-suite/`, workflow
 `owasp-security.yml`), con comprobaciones puntuales de SQLi, XSS, CSRF, JWT e integridad del lockfile.
 
+Además, toda la API tiene un límite global de peticiones por IP (`backend/src/middleware/limiteGlobalMiddleware.js`,
+variable `RATE_LIMIT_GLOBAL_MAX`, 1000 cada 15 minutos; `/health` queda fuera) como techo de lo que no tiene límite
+propio. Los límites de `/auth`, reportes y `/admin` siguen aplicando por encima. Los workflows de DAST, fuzzing, IAST,
+OWASP y pruebas funcionales lo suben a 100000 porque envían miles de peticiones desde una sola IP.
+
 ## SAST — análisis estático
 
 CodeQL busca vulnerabilidades (inyección, XSS, secretos, etc.) y SonarQube Cloud agrega bugs, *code

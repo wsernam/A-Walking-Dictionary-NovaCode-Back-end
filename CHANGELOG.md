@@ -11,7 +11,8 @@ Notas:
 
 ### Agregado
 
-- 2026-11-18 · Control de acceso: pruebas funcionales de la matriz RBAC (61 endpoints × 4 roles), 37 casos IDOR y cobertura de rutas (`backend/pruebas-funcionales/rbac-*.test.js`), documento de la matriz (`docs/seguridad/matriz-rbac.md`) y 9 hallazgos abiertos en `docs/seguridad/README.md`; `funcionales.yml` eleva los límites de solicitudes. (#N1, #N2, #N3…)
+- 2026-11-19 · Seguridad (OWASP H-07, ampliación): límite global de peticiones por IP para toda la API (`RATE_LIMIT_GLOBAL_MAX`, 1000 cada 15 minutos; `/health` queda fuera), con pruebas unitarias y funcionales; los workflows de DAST, fuzzing, IAST, OWASP y pruebas funcionales lo suben a 100000. 
+- 2026-11-18 · Control de acceso: pruebas funcionales de la matriz RBAC (61 endpoints × 4 roles), 37 casos IDOR y cobertura de rutas (`backend/pruebas-funcionales/rbac-*.test.js`), documento de la matriz (`docs/seguridad/matriz-rbac.md`) y 9 hallazgos abiertos en `docs/seguridad/README.md`; `funcionales.yml` eleva los límites de solicitudes. 
 - 2026-11-15 · HU-023: pruebas funcionales de acceso de CA-23.3 e integración de CA-23.4 con PostgreSQL aislado, script `test:integracion:hu023` y job independiente en CI con reporte JUnit. (#76)
 - 2026-11-14 · HU-023: administración de usuarios y roles desde la aplicación (solo administrador): `GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/:id/role` y `PATCH /api/v1/admin/users/:id/status`. Nuevo rol `administrador` sin cambios de esquema, salvaguardas (propia cuenta, último administrador activo, docente con cursos), auditoría por log y script SQL del primer administrador. (#71, #72, #73)
 - 2026-11-13 · Una palabra repetida por otro estudiante queda como aporte (columna de repetidas en participación); si el mismo estudiante la repite, `POST /decks/:id/cards` responde 409 `CARD_ALREADY_SUBMITTED` y `POST /cards/check-duplicate` trae `ya_enviada`.
