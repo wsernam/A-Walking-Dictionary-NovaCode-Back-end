@@ -6,7 +6,7 @@
 ## 0. Cabecera
 - Plantilla: 3.0 (facdbd59)
 - Sprint en curso: 4 · Reportes en PDF (HE-07) · líder del sprint (aprueba contratos): **Karen Sandoval**
-- Fuentes al construirlo: backend@ea23911, frontend@19ecda7 · backlog: 21 HU · bitácora: 74 sesiones
+- Fuentes al construirlo: backend@846ad62, frontend@cf9878e · backlog: 21 HU · bitácora: 79 sesiones
 - Se reconstruye con: `python tools/hitl/hitl.py build` (o lo hace el flujo de GitHub Actions y abre un PR para revisión humana)
 
 ## 1. Cómo usar este documento
@@ -353,14 +353,14 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 **Antes de proponer nada, lee los markdowns que apliquen a la tarea** (README y carpeta `docs/` o `doc/` de cada repo). Los marcados como CONTRATO son vinculantes: si tu cambio los contradice, aplica la puerta P2.
 
 - `backend:.github/pull_request_template.md` — (sin título) (497 caracteres; último cambio: 3c9f121 2026-10-22)
-- `backend:CHANGELOG.md` — Changelog (6.121 caracteres; último cambio: f8e92e4 2026-11-18)
-- `backend:CLAUDE.md` — CLAUDE.md — Contexto del proyecto (47.368 caracteres; último cambio: 11efcd7 2026-11-18)
+- `backend:CHANGELOG.md` — Changelog (6.403 caracteres; último cambio: 12383fd 2026-11-19)
+- `backend:CLAUDE.md` — CLAUDE.md — Contexto del proyecto (48.033 caracteres; último cambio: 12383fd 2026-11-19)
 - `backend:CONTRIBUTING.md` — Guía de contribución — A Walking Dictionary (Back-end) (5.073 caracteres; último cambio: bfe993e 2026-11-06)
 - `backend:README.md` — A Walking Dictionary (7.617 caracteres; último cambio: 352bfe6 2026-11-07)
 - `backend:SECURITY.md` — Política de seguridad (1.571 caracteres; último cambio: bfe993e 2026-11-06)
 - `backend:backend/Auditoria_OWASP_Top10_2025.md` — Auditoría de seguridad — OWASP Top 10:2025 (22.729 caracteres; último cambio: 6dcb4bc 2026-10-08)
 - `backend:backend/jsdoc/INICIO.md` — A Walking Dictionary — Documentación del código (Back-end) (525 caracteres; último cambio: 352bfe6 2026-11-07)
-- `backend:backend/pruebas-funcionales/README.md` — Pruebas funcionales de la API (3.525 caracteres; último cambio: eaba6c3 2026-11-18)
+- `backend:backend/pruebas-funcionales/README.md` — Pruebas funcionales de la API (4.387 caracteres; último cambio: efc636d 2026-11-19)
 - `backend:backend/security-suite/README.md` — NovaCode — Suite OWASP v2 (2.101 caracteres; último cambio: ad52a8c 2026-10-18)
 - `backend:docs/CAMBIO_APORTE_ESTADO.md` — Cambio: columna `aporte.estado` y ajustes a la PR #5 (coautorías) (6.606 caracteres; último cambio: c2c2503 2026-09-23)
 - `backend:docs/CAMBIO_REPASO_SM2.md` — Cambio: el repaso SM-2 ya no se queda sin tarjetas (HU-4.1) (7.128 caracteres; último cambio: 4364fa2 2026-09-30)
@@ -394,7 +394,7 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 - **[CONTRATO]** `backend:docs/codigos-error.md` — Códigos de error de la API (9.913 caracteres; último cambio: c3dd496 2026-11-14)
 - `backend:docs/cumplimiento-guia-seguridad-documentacion.md` — Cumplimiento de la guía «Ingeniería de Software: Seguridad y Documentación» (14.297 caracteres; último cambio: 251cb85 2026-11-08)
 - `backend:docs/procedimiento-primer-administrador.md` — Procedimiento seguro para asignar el primer administrador (HU-023) (2.876 caracteres; último cambio: 4e3b6bf 2026-11-14)
-- `backend:docs/seguridad/README.md` — Pruebas de seguridad del código y de la API (9.248 caracteres; último cambio: fb50159 2026-11-18)
+- `backend:docs/seguridad/README.md` — Pruebas de seguridad del código y de la API (9.700 caracteres; último cambio: 12383fd 2026-11-19)
 - `backend:docs/seguridad/matriz-rbac.md` — Matriz RBAC — A Walking Dictionary (31.095 caracteres; último cambio: ededb4c 2026-11-18)
 - `frontend:.github/pull_request_template.md` — (sin título) (495 caracteres; último cambio: ca73e2e 2026-10-23)
 - `frontend:CHANGELOG.md` — Changelog (2.719 caracteres; último cambio: e678d54 2026-11-07)
@@ -410,7 +410,7 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 - **[CONTRATO]** `frontend:docs/contrato-perfil.md` — Contrato: Perfil Académico del Estudiante (HU-013) (4.860 caracteres; último cambio: 2c72fb4 2026-09-23)
 - **[CONTRATO]** `frontend:docs/contrato-quiz-estudiante.md` — Contrato Frontend → Backend — quices del estudiante (HU-3.2 y lista de quices) (5.023 caracteres; último cambio: 5b8d8e2 2026-10-10)
 - **[CONTRATO]** `frontend:docs/contrato-quiz.md` — Contrato de datos — Quiz acumulativo (HU-3.1) (13.957 caracteres; último cambio: 8611b65 2026-10-16)
-- **[CONTRATO]** `frontend:docs/contrato-reporte-curso.md` — Contrato de datos — Reporte de estudiantes del curso en PDF (HU-020) (9.033 caracteres; último cambio: 4bbc2a6 2026-10-29)
+- **[CONTRATO]** `frontend:docs/contrato-reporte-curso.md` — Contrato de datos — Reporte de estudiantes del curso en PDF (HU-020) (9.219 caracteres; último cambio: b61aaf6 2026-11-13)
 - **[CONTRATO]** `frontend:docs/contrato-reporte-resultados-quiz.md` — Contrato de datos — Reporte de resultados por quiz en PDF (HU-021) (10.375 caracteres; último cambio: dd6f6b3 2026-10-31)
 - `frontend:e2e/README.md` — Pruebas E2E (Playwright) (5.012 caracteres; último cambio: 0c2407c 2026-10-21)
 - `frontend:jsdoc/INICIO.md` — A Walking Dictionary — Documentación del código (Front-end) (640 caracteres; último cambio: e678d54 2026-11-07)
@@ -534,6 +534,8 @@ Registro de decisiones humanas que Claude debe respetar en todas las sesiones. F
 - 2026-11-15 — HU-023, alcance backend de CA-23.3 y CA-23.4, PR #76, Manuela Meneses [IA-ASSISTED: Codex; modelo exacto no confirmado]. Se restringe el acceso del administrador a funciones académicas de perfiles, contexto, registro de tarjetas y aportes, conservando los roles académicos permitidos y las comprobaciones de propiedad e inscripción. Los errores de las operaciones administrativas usan `ADMIN_INVALID_ID` y `ADMIN_USER_NOT_FOUND`; no se reemplazan los códigos genéricos de otras funcionalidades. Las salvaguardas existentes se verifican mediante pruebas unitarias y 15 pruebas de integración con PostgreSQL aislado, incluyendo rollback, rechazo sin cambios, protección del último administrador y concurrencia. Cuatro casos verifican los códigos por HTTP. CA-23.3 dispone de 28 pruebas funcionales de acceso. Las rutas afectadas incorporan límites de solicitudes de 300 por IP cada 15 minutos; las que utilizan la misma instancia comparten contador. Se conserva el límite propio de administración. Las verificaciones estáticas OWASP H-01 y H-03 admiten el limitador antes de `authenticate`, manteniendo la exigencia de autenticación. La integración se ejecuta mediante `npm run test:integracion:hu023` y tiene un job independiente en `.github/workflows/backend-tests.yml`, con PostgreSQL 16 en el puerto 55432 y reporte JUnit. La primera ejecución del nuevo job debe confirmarse en CI. El catálogo incluye CA-23.3 y CA-23.4; el resumen funcional reconoce los CA del contexto y utiliza el catálogo para asociarlos con su HU. Los resultados de integración se publican por separado. Se mantiene la limitación conocida de JWT vigentes hasta su expiración. No se modifica el estado de la HU ni del backlog; la navegación administrativa corresponde al frontend.
 
 - 2026-11-18 — Pruebas de control de acceso: matriz RBAC endpoint × rol (61 endpoints × 4 roles), 37 casos IDOR y cobertura de rutas en `backend/pruebas-funcionales/rbac-*.test.js`; matriz documentada en `docs/seguridad/matriz-rbac.md`. Los huecos confirmados quedan con `it.fails` (CI en verde) y se registran como HALLAZGO-1 a 9 en `docs/seguridad/README.md`; se corrigen en PR aparte cuando el equipo decida D-13 a D-14. `funcionales.yml` y `backend/.env` elevan los límites de solicitudes (`RATE_LIMIT_AUTH_MAX`, `RATE_LIMIT_REPORTES_MAX`, `RATE_LIMIT_ADMIN_MAX`) para repetir la suite sin 429 — Karen Nathalia Sandoval [IA-ASSISTED: Claude Code; modelo exacto: Haiku 5.5] — HU-5.4, HU-023 (control de acceso)
+
+- 2026-11-19 — Límite global de peticiones (OWASP H-07, ampliación): `app.use(crearLimiteGlobal())` en `app.js`, después de `cors` y antes de `express.json`; 1000 peticiones por IP cada 15 minutos, ajustable con `RATE_LIMIT_GLOBAL_MAX`; `/health` no cuenta; contador en memoria (se reinicia con el servicio); responde 429 `RATE_LIMITED` y deja una línea `[SEGURIDAD]` por IP y ventana. Se mantienen los límites de `/auth`, reportes, admin y rutas académicas. El valor por defecto es un supuesto pendiente de validar, porque varios estudiantes pueden compartir IP (NAT) — Karen Sandoval [IA-ASSISTED: Claude Code; modelo exacto: Sonnet 5.5] — seguridad transversal
 
 #### Bitácora de trabajo con IA del frontend — `frontend:docs/bitacora.md`
 
@@ -699,11 +701,31 @@ detallados faltaban datos del PDF, así que se ajustó:
 
 
 ## 9. Estado e historial de los repositorios
-- `backend`: rama `develop`, HEAD `ea23911`
-- `frontend`: rama `develop`, HEAD `19ecda7`
+- `backend`: rama `develop`, HEAD `846ad62`
+- `frontend`: rama `develop`, HEAD `cf9878e`
 
 ### Historial de commits
-**backend** — últimos 60 de 320 commits (incluye merges de PR):
+**backend** — últimos 60 de 340 commits (incluye merges de PR):
+  - 846ad62 2026-11-19 Karen Sandoval: Merge pull request #96 from wsernam/docs/rate-limit-global
+  - cb62653 2026-11-19 Karen Sandoval: Merge pull request #95 from wsernam/feature/backend/rate-limit-global
+  - 740b200 2026-11-19 Karen Sandoval: Merge pull request #94 from wsernam/ci/rate-limit-global-workflows
+  - 812bab5 2026-11-19 Karen Sandoval: Merge pull request #92 from wsernam/feature/backend/hu-023-pruebas
+  - 6c6d872 2026-11-19 Karen Sandoval: Merge pull request #93 from wsernam/feature/backend/seguridad-sesion
+  - 12383fd 2026-11-19 Karen Sandoval: docs(seguridad): documentar el límite global de peticiones
+  - 1469510 2026-11-19 Karen Sandoval: feat(seguridad): límite global de peticiones por IP (OWASP H-07)
+  - a7a0f81 2026-11-19 Karen Sandoval: ci(seguridad): preparar los workflows para el límite global de peticiones
+  - efc636d 2026-11-19 Manuela Erazo: docs(pruebas-funcionales): documenta seguridad-sesion.test.js y ordena la tabla Qué cubre
+  - b0d47f6 2026-11-19 Manuela Erazo: test(seguridad): agrega pruebas de seguridad de sesión (token manipulado, alg:none, vencido, logout y cuenta desactivada)
+  - 0cbfbd6 2026-11-18 Manuela Erazo: test(hu-023): rechazar al administrador en los reportes de docente
+  - f914ac3 2026-11-18 Manuela Erazo: test(hu-023): el administrador recibe 403 en los cuatro reportes
+  - e268fa6 2026-11-18 Manuela Erazo: test(hu-023): verificar el candado y el conteo dentro de la transaccion
+  - 4073f89 2026-11-18 Manuela Erazo: test(hu-023): repetir 20 veces la carrera de dos administradores por HTTP
+  - ffb31cb 2026-11-18 Karen Sandoval: Merge pull request #86 from wsernam/bot/superprompt
+  - d526ec0 2026-11-18 Karen Sandoval: Merge pull request #90 from wsernam/ci/novacode-github-stats
+  - 3b441f7 2026-11-18 Manuela Erazo: [IA-ASSISTED] fix(ci): actualizar el dashboard tras merges a develop
+  - e1efea6 2026-11-18 Manuela Erazo: [IA-ASSISTED] fix(ci): ejecutar estadísticas desde develop
+  - 1086297 2026-11-18 Manuela Erazo: ci: agregar dashboard de estadísticas NovaCode
+  - f3b06c6 2026-11-18 ManuelaE08: docs(ai): reconstruir SUPERPROMPT y registrar PR con IA
   - ea23911 2026-11-18 Manuela Erazo: Merge pull request #89 from wsernam/docs/changelog-control-acceso
   - 310eb48 2026-11-18 Manuela Erazo: Merge pull request #88 from wsernam/docs/decisiones-control-acceso
   - 8454331 2026-11-18 Manuela Erazo: Merge pull request #87 from wsernam/docs/hallazgos-control-acceso
@@ -744,29 +766,23 @@ detallados faltaban datos del PDF, así que se ajustó:
   - 8bb5839 2026-11-14 ManuelaE08: docs(ai): reconstruir SUPERPROMPT y registrar PR con IA
   - 9d5ba7e 2026-11-14 Manuela Erazo: Merge pull request #72 from wsernam/feature/backend/hu-023-endpoints-admin
   - 15f00d6 2026-11-14 Karen Sandoval: Merge remote-tracking branch 'origin/develop' into feature/backend/hu-023-endpoints-admin
-  - fba3965 2026-11-14 Karen Sandoval: fix(admin): HU-023 corregir avisos de Sonar (log injection y String.raw)
-  - 6b18d9b 2026-11-14 Karen Sandoval: Merge pull request #70 from wsernam/feature/backend/aportes-repetidos
-  - a0b9946 2026-11-14 Manuela Erazo: Merge pull request #71 from wsernam/feature/backend/hu-023-primer-administrador
-  - a736952 2026-11-14 Karen Sandoval: feat(admin): HU-023 endpoints de administracion de usuarios y roles con pruebas unitarias
-  - 4e3b6bf 2026-11-14 Karen Sandoval: feat(admin): HU-023 script SQL y procedimiento seguro del primer administrador
-  - e543d38 2026-11-13 Manuela Erazo: docs: actualizar errores, contrato API y registro de cambios
-  - 3cb2792 2026-11-13 Manuela Erazo: test: cubrir aportes repetidos y acceso docente compartido a reportes
-  - 20e98bf 2026-11-13 Manuela Erazo: fix: ajustar rotulos de repetidas y permitir reportes HU-018 y HU-020 a cualquier docente
-  - 2eaa41d 2026-11-13 Manuela Erazo: feat: rechazar con 409 la palabra que el mismo estudiante ya envió
-  - 4babacd 2026-11-13 Manuela Erazo: feat: agregar consulta de aporte previo del estudiante sobre una tarjeta
-  - ee11cb0 2026-11-13 Manuela Erazo: Merge pull request #68 from wsernam/feat/hu-022-panel-revision-resultados-quices
-  - 9d1dd55 2026-11-13 thaliabernalepe: test(quices): agregar pruebas de servicio y controlador HU-022
-  - 9ef9024 2026-11-13 thaliabernalepe: fix(security): agregar rate limiting a consultas docentes de quices
-  - b02c164 2026-11-13 Karen Sandoval: Merge pull request #61 from wsernam/bot/superprompt
-  - 349baa3 2026-11-13 knnsand: docs(ai): reconstruir SUPERPROMPT y registrar PR con IA
-  - abd871c 2026-11-13 Karen Sandoval: Merge pull request #67 from wsernam/feature/backend/abrir-cerrar-mazo-cualquier-docente
-  - 9f0380d 2026-11-13 thaliabernalepe: feat(quices): implementar consulta docente de resultados y respuestas
-  - 4e7bb29 2026-11-11 Manuela Erazo: docs: marcar todas las HU como completadas en CLAUDE.md
-  - ee062b5 2026-11-11 Manuela Erazo: docs: documentar apertura y cierre de mazos por cualquier docente
-  - 672b174 2026-11-11 Manuela Erazo: test: ajustar pruebas de abrir y cerrar mazo sin regla de dueño
-**frontend** — últimos 60 de 287 commits (incluye merges de PR):
+**frontend** — últimos 60 de 301 commits (incluye merges de PR):
+  - cf9878e 2026-11-18 thaliabernalepe: Merge pull request #81 from knnsand/ci/novacode-github-stats
+  - a441e4e 2026-11-18 thaliabernalepe: Merge pull request #77 from knnsand/feature/frontend/aportes-repetidos
+  - 856a2be 2026-11-18 Manuela Erazo: [IA-ASSISTED] fix(ci): avisar al Back-end tras merges a develop
+  - 679325a 2026-11-18 Manuela Erazo: [IA-ASSISTED] fix(ci): enviar avisos del dashboard a develop
+  - 1f2b31b 2026-11-18 Manuela Erazo: ci: avisar al dashboard de NovaCode
+  - 476054c 2026-11-18 thaliabernalepe: Merge pull request #80 from knnsand/test/e2e-admin-matriz-roles
+  - b148b94 2026-11-17 wsernam: test(e2e): HU-023 administrador y matriz de control de acceso por rol
   - 19ecda7 2026-11-15 thaliabernalepe: Merge pull request #79 from knnsand/feat/hu-023-administrar-usuarios
   - d035a28 2026-11-14 wsernam: feat(admin): HU-023 vista de gestion de usuarios y roles
+  - bd8b617 2026-11-14 Manuela Erazo: test: cubrir coautorias configurables y restaurar su confirmacion
+  - f0de179 2026-11-14 Manuela Erazo: test: corregir aporte propio y encabezado de palabras repetidas en E2E
+  - 32c8fda 2026-11-13 Manuela Erazo: fix: eliminar propiedad semana duplicada al crear mazo
+  - b61aaf6 2026-11-13 Manuela Erazo: docs: actualizar contrato del reporte de estudiantes del curso
+  - ede3af1 2026-11-13 Manuela Erazo: test: ajustar pruebas unitarias y E2E de palabras repetidas
+  - 3167a0a 2026-11-13 Manuela Erazo: feat: registrar la palabra repetida de otro estudiante y avisar si es propia
+  - 3c688e3 2026-11-13 Manuela Erazo: i18n: agregar textos de palabra repetida y aporte propio
   - 4cf59a3 2026-11-13 wsernam: Merge pull request #76 from knnsand/feat/hu-022-panel-revision-resultados-quices
   - b7336fa 2026-11-13 wsernam: fix: corregir lint, prueba de ListaQuices y texto de reviewNotice
   - 7616164 2026-11-13 wsernam: merge: actualizar con develop y resolver conflicto en en.json
@@ -811,23 +827,9 @@ detallados faltaban datos del PDF, así que se ajustó:
   - f8cc6dc 2026-11-06 Karen Sandoval: Merge pull request #66 from knnsand/docs/readme-e-indices
   - 60750c3 2026-11-06 Karen Sandoval: docs: README con instalación y estructura real, e índice de documentación
   - ea7738f 2026-11-02 thaliabernalepe: Merge pull request #65 from knnsand/feature/HU-021-reporte-resultados-quiz-pdf
-  - dd6f6b3 2026-10-31 wsernam: feat: implementacion HU-021 reporte de resultados por quiz en PDF (frontend)
-  - 566687d 2026-10-30 thaliabernalepe: Merge pull request #64 from knnsand/chore/avisar-superprompt
-  - 119e1fb 2026-10-30 Manuela Erazo: chore(ci): avisar al backend para reconstruir el SUPERPROMPT en cada fusión a develop
-  - 5153652 2026-10-30 wsernam: Merge pull request #63 from knnsand/feature/HU-019-reporte-modo-estudio-pdf
-  - c0e41a6 2026-10-30 thaliabernalepe: feat: implementacion HU-019 reporte del modo de estudio PDF
-  - 78927cc 2026-10-30 Karen Sandoval: Merge pull request #62 from knnsand/chore/ci-frontend
-  - 4a64b5b 2026-10-30 Karen Sandoval: Fix: Ajuste de modo oscuro
-  - 50a853c 2026-10-30 thaliabernalepe: Merge pull request #61 from knnsand/feature/HU-020-reporte-curso-pdf
-  - 4bbc2a6 2026-10-29 wsernam: feat(HU-020): reporte de estudiantes del curso en PDF
-  - 0d5cf5e 2026-10-29 wsernam: feat(HU-020): reporte de estudiantes del curso en PDF
-  - 7125e93 2026-10-29 thaliabernalepe: Merge pull request #60 from knnsand/docs/doxygen-frontend
-  - 31eddc5 2026-10-29 wsernam: docs(frontend): documentar el código del frontend con Doxygen
-  - 8472d44 2026-10-28 wsernam: Merge pull request #59 from knnsand/feature/HU-018-reporte-progreso-pdf
-  - 5b3cb47 2026-10-28 thaliabernalepe: feat: Implementacion HU-018- Reporte de progreso individual en PDF con mocks
 
 ## 10. Historial de prompts y validaciones (bitácora)
-74 sesiones registradas (una sesión copiada en varias hojas cuenta una vez), en orden cronológico (2026-08-18 a 2026-11-18). Estados: ADAPTADO 11, CORREGIDO 1, VALIDACIÓN 1, VALIDADO 61.
+79 sesiones registradas (una sesión copiada en varias hojas cuenta una vez), en orden cronológico (2026-08-18 a 2026-11-20). Estados: ADAPTADO 11, CORREGIDO 1, VALIDACIÓN 1, VALIDADO 66.
 Úsalo para no repetir trabajo, respetar lo ya adaptado o corregido y copiar el estilo de registro.
 
 - 2026-08-18 · Presentaciones - Documentos · ChatGPT · Karen Sandoval: «Compara tecnologías de frontend, para un proyecto de diccionario colaborativo de vocabulario (mazos semanales, aportes de estudiantes, validación docente, repetición espaciada). Evalúa React, Vue y Angular.» → Tres tablas comparativas (Tabla 1A, 1B, 1C) con cifras de adopción citadas a una encuesta de Stack Overflow proporcionada por integrante del proyecto | VALIDADO: Se contrastaron las características y cifras presentadas con fuentes externas y se verificó que la comparación fuera coherente con las necesidades del proyecto. Los resultados sirvieron como recurso para seleccionar la tecnología frontend.
@@ -896,6 +898,8 @@ detallados faltaban datos del PDF, así que se ajustó:
 - 2026-11-14 · Backend · Codex; identificador exacto del modelo no confirmado. · Karen Sandoval: «HU-023: completar control de acceso y salvaguardas del backend (CA-23.3 y CA-23.4)» → - Restringe las rutas académicas de perfiles, contexto, registro de tarjetas y aportes a docentes y estudiantes. - Conserva las restricciones existentes de los endpoints administrativos. - Cambia los… | VALIDADO: pruebas unitarias, funcionales e integración con PostgreSQL aislado; lint y revisión de diferencias. (Revisión: pendiente de completar por la autora y el compañero revisor.)
 - 2026-11-15 · Frontend · Claude Code (Claude Opus 5.5) · Thalia Bernal: «feat(admin): HU-023 vista de gestión de usuarios y roles» → - **CA-23.1:** nueva vista `/admin/usuarios` (`GestionUsuarios.jsx`): tabla paginada con nombre, correo, rol, estado y fecha de registro; búsqueda por nombre o correo; filtros por rol y estado (`GET … | VALIDADO: lint, pruebas unitarias (Vitest), build y prueba manual en Docker (Revisión: William Serna — 14/11/26 **Notas para el equipo:** - El contrato del back dice `USER_NOT_FOUND` para el 404, pero el backend responde `ADMIN_USER_NOT_FOUND`; el front tradu…
 - 2026-11-15 · Backend · Codex; identificador exacto del modelo no confirmado. · Karen Sandoval: «HU-023: automatizar integración de CA-23.4 en CI y actualizar documentación» → - Añade el script `npm run test:integracion:hu023`. - Incorpora un job independiente en `backend-tests.yml`, con PostgreSQL 16 aislado y publicación de resultados JUnit. - Conserva el job existente d… | VALIDADO: lint sin errores, integración aprobada, JSON válido y `git diff --check` limpio. La ejecución del nuevo job en CI queda pendiente de confirmar. Los resultados de integración se publican por separado; no se mezclan automáticamente con la matriz de la…
+- 2026-11-18 · Frontend · Claude Code (Claude Opus 5.5) · Thalia Bernal: «test(e2e): HU-023 administrador y matriz de control de acceso por rol» → - **`e2e/he05-admin.e2e.js`** (8 pruebas): - CA-23.1: listar usuarios (nombre, correo, rol, estado, fecha; sin `password_hash`), buscar por correo y filtrar por rol y estado. - CA-23.2: cambiar rol c… | VALIDADO: lint, ejecución completa de Playwright contra Docker local y generación del resumen de métricas (Revisión: William Serna — 17/11/26 **Notas:** - La cobertura de CA del resumen E2E pasa a **28 de 41**. - Las E2E no deben correr contra el despliegue: …
+- 2026-11-18 · Frontend · ChatGPT/Codex; GPT-6.1 Sol. · Thalia Bernal: «Aportes repetidos cuentan en participación» → - Agrega textos para palabras repetidas y aportes propios. - Ajusta el formulario de registro y el manejo de sus respuestas. - Actualiza pruebas unitarias y E2E. - Actualiza el contrato del reporte d… | VALIDADO: pendientes de registrar los resultados actuales de Vitest, ESLint, E2E y las comprobaciones manuales. (Revisión: Thalia Bernal- 18/11/2026)
 - 2026-11-18 · Backend · Claude Code (Anthropic), Claude Sonnet 5.5 · Manuela Meneses: «ci(funcionales): subir límites de solicitudes para repetir la suite» → - `.github/workflows/funcionales.yml`: tres variables nuevas en el bloque `env` del job. | VALIDADO: `npm run test:funcional` en local con las tres variables, repetido sin recibir 429; job «Backend pruebas funcionales» en verde. (Revisión: Karen Sandoval, 2026-11-18)
 - 2026-11-18 · Backend · Claude Code (Anthropic), Claude Sonnet 5.5 · Manuela Meneses: «docs(seguridad): matriz RBAC de los 61 endpoints» → - `docs/seguridad/matriz-rbac.md` (nuevo): roles, matriz de permisos, separación de funciones (R1 a R3), modelo de datos, verificación en el servidor, reglas de propiedad, casos IDOR, pruebas automát… | VALIDADO: matriz cotejada con las rutas montadas en `app.js` (la prueba `rbac-cobertura.test.js` compara ambas) y con los resultados de `npm run test:funcional` del 2026-11-17. (Revisión: Karen Sandoval, 2026-11-18)
 - 2026-11-18 · Backend · Claude Code (Anthropic), Claude Sonnet 5.5 · Manuela Meneses: «Test/matriz rbac endpoint rol» → - `backend/pruebas-funcionales/datos/matriz-rbac.json`: 61 endpoints con los roles permitidos. - `backend/pruebas-funcionales/rbac-matriz.test.js`: 254 pruebas (244 celdas endpoint × rol y 10 de toke… | VALIDADO: `npm run test:funcional` con la suite completa en verde (las pruebas `expected fail` son los hallazgos documentados). (Revisión: Karen Sandoval, 2026-11-18)
@@ -904,6 +908,9 @@ detallados faltaban datos del PDF, así que se ajustó:
 - 2026-11-18 · Backend · Claude Code (Anthropic), Claude Sonnet 5.5 · Manuela Meneses: «docs(pruebas): documentar las pruebas RBAC y las variables de límite» → - `backend/pruebas-funcionales/README.md`: nota sobre `RATE_LIMIT_AUTH_MAX`, `RATE_LIMIT_REPORTES_MAX` y `RATE_LIMIT_ADMIN_MAX` en el bullet «Variables», y tres filas nuevas en «Qué cubre». | VALIDADO: los pasos descritos se siguieron en Windows con `npm run test:funcional`. (Revisión: Karen Sandoval, 2026-11-18)
 - 2026-11-18 · Backend · Claude Code (Anthropic), Claude Sonnet 5.5 · Manuela Meneses: «docs(seguridad): hallazgos de las pruebas de control de acceso (HALLA…» → - `docs/seguridad/README.md`: sección «Pruebas de control de acceso (RBAC e IDOR)» con la tabla de pruebas y la tabla de hallazgos (qué ocurre, dónde, corrección sugerida y estado). | VALIDADO: cada hallazgo se contrastó con el caso de prueba que lo detecta y con el código de `develop`. (Revisión: Karen Sandoval, 2026-11-18)
 - 2026-11-18 · Backend · Claude Code (Anthropic), Claude Sonnet 5.5 · Manuela Meneses: «docs(claude): discrepancias D-13 y D-14 y decisión de las pruebas» → - `CLAUDE.md`, «Discrepancias pendientes de decisión humana»: - D-13: el administrador en rutas que solo exigen sesión. - D-14: separación de funciones R1 (el docente aporta y aprueba tarjetas). - `C… | VALIDADO: cada discrepancia se contrastó con el código de `develop` y con el caso de prueba que la detecta. (Revisión: Karen Sandoval, 2026-11-18)
+- 2026-11-20 · Backend · Claude (chat), Sonnet 5.5 · Karen Sandoval: «test(hu-023): carrera de dos administradores x20 y roles en reportes» → - Carrera de dos administradores (A degrada a B y B degrada a A con `Promise.all`), repetida 20 veces para el cambio de rol y 20 para la desactivación. Una petición responde 200, la otra 409 `ADMIN_L… | VALIDADO: pruebas unitarias, integración con PostgreSQL real, funcionales y ESLint (Revisión: Manuela Meneses, 2026-11-18)
+- 2026-11-20 · Backend · Claude Code (Anthropic), Claude Sonnet 5.5 · Karen Sandoval: «[IA ASSISTED] feat(seguridad): límite global de peticiones por IP (OWASP H-07)» → - `backend/src/middleware/limiteGlobalMiddleware.js` (nuevo): `crearLimiteGlobal()`. - `backend/src/app.js`: `app.use(crearLimiteGlobal())` después de `cors`. - `backend/.env.example`: documenta `RAT… | VALIDADO: `npm run lint` sin errores, `npm test` (677 pruebas) y `npm run test:funcional` (10 archivos: 404 passed | 28 expected fail | 6 todo) en verde. (Revisión: Karen Sandoval, 2026-11-20)
+- 2026-11-20 · Backend · Claude Code (Anthropic), Claude Sonnet 5.5 · Karen Sandoval: «docs(seguridad): documentar el límite global de peticiones» → - `docs/api/openapi.yaml`: la respuesta `TooManyRequests` indica el límite global y los límites propios. - `docs/seguridad/README.md`: párrafo sobre el límite global y los workflows. - `CHANGELOG.md`… | VALIDADO: lint, npm test y test:funcional en verde (Revisión: Karen Sandoval, 2026-11-20)
 
 ## 11. Trazabilidad registrada
 | Fecha | Prompt-ID | Sprint | Autor (rol) | Repo | HU | Rama | Commits | PR | Estado | Hoja · fila bitácora | Plantilla |
@@ -950,6 +957,11 @@ detallados faltaban datos del PDF, así que se ajustó:
 | 2026-11-18 | P-20261118-0521 | 4 | Karen Sandoval (PO / SM) | backend | — | docs/pruebas-funcionales-rbac | el texto del README, propuesto por la IA y revisado, adaptado y aplicado por Karen Sandoval. | backend#85 | VALIDADO | Backend · fila 38 | automático (PR) |
 | 2026-11-18 | P-20261118-0525 | 4 | Karen Sandoval (PO / SM) | backend | — | docs/hallazgos-control-acceso | ` la sección de hallazgos a partir de la ejecución de las pruebas y revisada, adaptada y aplicada por Karen Sandoval. | backend#87 | VALIDADO | Backend · fila 39 | automático (PR) |
 | 2026-11-18 | P-20261118-0525-HU-015 | 4 | Karen Sandoval (PO / SM) | backend | HU-015 | docs/decisiones-control-acceso | `<hash>`: las discrepancias y la decisión, redactadas por la IA y revisadas, adaptadas y aplicadas por Karen Sandoval; no cambia ningún estado de HU ni de CA. | backend#88 | VALIDADO | Backend · fila 40 | automático (PR) |
+| 2026-11-18 | P-20261118-0555-HU-023 | 4 | William Serna (Frontend) | frontend | HU-023 | test/e2e-admin-matriz-roles | b148b94 | frontend#80 | VALIDADO | Frontend · fila 28 | automático (PR) |
+| 2026-11-18 | P-20261118-2039-HU-002 | 4 | Manuela Meneses (Backend) | frontend | HU-002 | feature/frontend/aportes-repetidos | asistencia en textos, formulario de registro, pruebas, contrato del reporte y revisión de la propiedad `semana` duplicada. Agregar los SHA de los commits asistidos. | frontend#77 | VALIDADO | Frontend · fila 29 | automático (PR) |
+| 2026-11-20 | P-20261120-0309-HU-023 | 4 | Manuela Meneses (Backend) | backend | HU-023 | feature/backend/hu-023-pruebas | los 4 commits del PR (prueba de la carrera, unitarias del candado, roles en reportes, funcionales) | backend#92 | VALIDADO | Backend · fila 41 | automático (PR) |
+| 2026-11-20 | P-20261120-0310 | 4 | Karen Sandoval (PO / SM) | backend | — | feature/backend/rate-limit-global | `1469510`: el middleware del límite global, su conexión en `app.js`, la documentación de la variable en `.env.example` y las pruebas unitarias y funcionales, propuestos por la IA en la conversación y revisados, adaptados y ejecutados por Karen Sandoval. | backend#95 | VALIDADO | Backend · fila 42 | automático (PR) |
+| 2026-11-20 | P-20261120-0310 | 4 | Karen Sandoval (PO / SM) | backend | — | docs/rate-limit-global | 12383fd: propuesto por la IA y revisado, adaptado y ejecutado por Karen Sandoval. | backend#96 | VALIDADO | Backend · fila 43 | automático (PR) |
 
 ## 12. Protocolo HITL (puertas obligatorias)
 Te detienes en cada puerta y esperas la frase indicada de la persona responsable de la sesión (o del líder del sprint, **Karen Sandoval**, en P2). Sin esa frase no avanzas.
