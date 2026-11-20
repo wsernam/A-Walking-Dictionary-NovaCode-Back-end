@@ -93,6 +93,7 @@ import adminUsuarioRoutes from './routes/adminUsuarioRoutes.js';
 import { registroSeguridad } from './middleware/registroSeguridadMiddleware.js';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { crearLimiteGlobal } from './middleware/limiteGlobalMiddleware.js';
 import rutasEnriquecimiento from './routes/enriquecimientoRoutes.js';
 import diccionarioRoutes from './routes/diccionarioRoutes.js';
 import reporteRoutes from './routes/reporteRoutes.js';
@@ -126,6 +127,12 @@ const origenesPermitidos = (process.env.CORS_ORIGINS || '')
   .filter(Boolean);
 
 app.use(cors({ origin: origenesPermitidos }));
+
+
+// Auditoría OWASP H-07 (ampliación): límite global por IP para toda la API, con RATE_LIMIT_GLOBAL_MAX
+// (por defecto 1000 cada 15 minutos). Va después de cors y antes de express.json; /health queda fuera
+// porque se declaró antes. Los límites de /auth, reportes, admin y rutas académicas siguen aplicando.
+app.use(crearLimiteGlobal());
 
 // Auditoría OWASP H-07: límite de intentos fallidos por IP en /auth (contador en memoria; se reinicia si Render reinicia el servicio).
 // El valor se puede ajustar con la variable de entorno RATE_LIMIT_AUTH_MAX sin cambiar el código.
