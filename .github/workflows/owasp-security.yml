@@ -46,6 +46,8 @@ jobs:
       NODE_ENV: production
       GOOGLE_CLIENT_ID: ci-sin-google.apps.googleusercontent.com
       CORS_ORIGINS: http://localhost:3000
+      # Las pruebas hacen cientos de peticiones desde una sola IP: sin esto el límite global las bloquearía.
+      RATE_LIMIT_GLOBAL_MAX: '100000'
       PGPASSWORD: walking
       
       SECURITY_SUPABASE_URL: https://hvyrtzawcbtuhvqkpogi.supabase.co
