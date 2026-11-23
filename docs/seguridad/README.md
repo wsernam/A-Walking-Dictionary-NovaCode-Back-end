@@ -127,3 +127,26 @@ Las celdas con un hueco confirmado corren con `it.fails`: la integración contin
 | HALLAZGO-7 | Cualquier docente exporta el PDF y ve las analíticas de un mazo ajeno | `GET /decks/:id/export-pdf`, `GET /teacher/analytics/deck/:id` | Usar `esDuenoDelMazo` | Abierto (D-12) |
 | HALLAZGO-8 | Los quices se leen sin estar inscrito; cualquier docente los lee, edita, elimina, exporta y ve sus resultados | `GET`, `PUT`, `DELETE /quizzes/:id`, `export-pdf`, `teacher-results` | Validar inscripción o docente dueño del curso | Abierto (D-12) |
 | HALLAZGO-9 | El reporte de curso de otra docente responde 200 | `GET /reports/students/export-pdf` | Comparar `curso.docente_id` con el token (el comentario de `ReporteCursoService` ya lo promete) | Abierto (D-12) |
+
+## Pruebas de seguridad de sesión
+
+Construyen tokens "malos" y verifican que la API los rechace con 401. Corren con la suite funcional (`npm run test:funcional`) contra el backend de pruebas, nunca contra producción, y forman parte de `funcionales.yml`. Viven en `backend/pruebas-funcionales/seguridad-sesion.test.js` (21 pruebas).
+
+| Prueba | Qué comprueba | Resultado |
+| --- | --- | --- |
+| SES-01 a SES-03 | Controles: sin token, cabecera sin esquema Bearer y token legítimo que sí accede | 401 / 200 |
+| SES-04 a SES-06 | Token manipulado: firma alterada, payload con otro rol y firma con otro secreto | 401 |
+| SES-07 a SES-10 | `alg:none` (y variantes de mayúsculas), `none` con la firma original y HS384/HS512 con el secreto correcto | 401 |
+| SES-11 y SES-12 | Token vencido y token con `nbf` en el futuro | 401 |
+| SES-13b y SES-14b | Token reutilizado tras cerrar sesión y token de una cuenta desactivada | `[RIESGO CONOCIDO]` |
+
+Los dos riesgos corren con `it.fails` (igual que los HALLAZGO de arriba): la integración continua sigue en verde, el hueco queda visible como "expected fail" y, cuando el backend se corrija, la prueba falla y se cambia `it.fails` por `it`.
+
+### Riesgos conocidos (ejecución del 2026-11-19, rama `develop`)
+
+| Riesgo | Qué ocurre | Dónde | Corrección sugerida | Estado |
+| --- | --- | --- | --- | --- |
+| RIESGO-SES-1 (SES-13b) | Un token sigue valiendo tras cerrar sesión: el JWT es sin estado (8 h) y "cerrar sesión" solo lo borra del navegador | No existe `POST /auth/logout` ni lista de revocación en `autenticacionMiddleware.js` | Versión de token por usuario o lista de revocación; reducir la caducidad a 2-4 h | Abierto (H-12, T7) |
+| RIESGO-SES-2 (SES-14b) | La cuenta desactivada conserva el acceso con un token ya emitido, hasta 8 h | `authenticate` solo verifica firma y vigencia; `usuario.activo` se consulta únicamente al iniciar sesión (`AUTH_ACCOUNT_INACTIVE`) | Consultar `activo` en `authenticate` (una consulta por petición) o usar la versión de token de RIESGO-SES-1 | Abierto (H-12) |
+
+Ambos son el mismo hueco que H-12 de `backend/Auditoria_OWASP_Top10_2025.md` (sin revocación: si se desactiva a un usuario o se le cambia el rol, conserva el acceso hasta que expire) y que T7 de [`11-riesgos-y-deuda-tecnica.md`](../arquitectura/arc42/11-riesgos-y-deuda-tecnica.md).
