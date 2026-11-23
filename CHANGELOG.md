@@ -11,6 +11,7 @@ Notas:
 
 ### Agregado
 
+- 2026-11-19 · Seguridad de sesión: 21 pruebas funcionales de token manipulado, `alg:none`, token vencido, reutilizado tras cerrar sesión y cuenta desactivada (`backend/pruebas-funcionales/seguridad-sesion.test.js`); los dos huecos confirmados (sin revocación de tokens y `authenticate` no consulta `usuario.activo`) quedan como `[RIESGO CONOCIDO]` con `it.fails` y documentados en `docs/seguridad/README.md`. (#93)
 - 2026-11-19 · Seguridad (OWASP H-07, ampliación): límite global de peticiones por IP para toda la API (`RATE_LIMIT_GLOBAL_MAX`, 1000 cada 15 minutos; `/health` queda fuera), con pruebas unitarias y funcionales; los workflows de DAST, fuzzing, IAST, OWASP y pruebas funcionales lo suben a 100000. 
 - 2026-11-18 · Control de acceso: pruebas funcionales de la matriz RBAC (61 endpoints × 4 roles), 37 casos IDOR y cobertura de rutas (`backend/pruebas-funcionales/rbac-*.test.js`), documento de la matriz (`docs/seguridad/matriz-rbac.md`) y 9 hallazgos abiertos en `docs/seguridad/README.md`; `funcionales.yml` eleva los límites de solicitudes. 
 - 2026-11-15 · HU-023: pruebas funcionales de acceso de CA-23.3 e integración de CA-23.4 con PostgreSQL aislado, script `test:integracion:hu023` y job independiente en CI con reporte JUnit. (#76)
