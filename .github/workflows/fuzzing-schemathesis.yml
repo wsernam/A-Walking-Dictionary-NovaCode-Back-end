@@ -3,7 +3,8 @@ name: Fuzzing - Schemathesis (API)
 # Fuzzing de la API: se levanta el backend con una base de datos temporal y Schemathesis envía
 # entradas aleatorias e inválidas a cada endpoint descrito en docs/api/openapi.yaml, buscando
 # respuestas 500 (el servidor se rompe) y datos inválidos que el backend acepta como buenos.
-# Se corre una vez como docente y otra como estudiante, porque cada rol ve rutas distintas.
+# Se corre una vez por rol (docente, estudiante y administrador), porque cada rol ve rutas distintas.
+# El administrador necesita su propia cuenta de prueba: .github/ci/admin-pruebas.sql (seed.sql no la trae).
 on:
   workflow_dispatch:
   schedule:
@@ -31,10 +32,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # ruta_verificacion y codigo_esperado: comprobacion de arranque del token. Cada rol llama a una
+          # ruta cuyo resultado conoce: el docente entra a /cards/pending (200), el estudiante recibe 403
+          # ahi, y el administrador entra a /admin/users (200; /cards/pending seria 403 para el).
           - rol: docente
             email: ana.docente@unicauca.edu.co
+            ruta_verificacion: /cards/pending
+            codigo_esperado: '200'
           - rol: estudiante
             email: juan.estudiante@unicauca.edu.co
+            ruta_verificacion: /cards/pending
+            codigo_esperado: '403'
+          - rol: administrador
+            email: admin.pruebas@unicauca.edu.co
+            ruta_verificacion: /admin/users
+            codigo_esperado: '200'
     services:
       postgres:
         image: postgres:16-alpine
@@ -65,6 +77,8 @@ jobs:
       RATE_LIMIT_AUTH_MAX: '100000'
       RATE_LIMIT_GLOBAL_MAX: '100000'
       RATE_LIMIT_REPORTES_MAX: '100000'
+      # /api/v1/admin tiene su propio limite (100 por defecto); sin subirlo, los 429 taparian el fuzzing del administrador.
+      RATE_LIMIT_ADMIN_MAX: '100000'
 
     steps:
       - uses: actions/checkout@v4
@@ -91,6 +105,10 @@ jobs:
           psql -h localhost -U walking -d walking_dictionary -v ON_ERROR_STOP=1 -f init.sql
           psql -h localhost -U walking -d walking_dictionary -v ON_ERROR_STOP=1 -f seed.sql
 
+
+      - name: Agregar el administrador de prueba
+        run: psql -h localhost -U walking -d walking_dictionary -v ON_ERROR_STOP=1 -f .github/ci/admin-pruebas.sql
+
       - name: Generar secreto JWT temporal
         run: echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
 
@@ -106,10 +124,14 @@ jobs:
           exit 1
 
       - name: Generar token JWT de prueba (${{ matrix.rol }})
+        RUTA_VERIFICACION: ${{ matrix.ruta_verificacion }}
+        CODIGO_ESPERADO: ${{ matrix.codigo_esperado }}
         working-directory: backend
         env:
           USUARIO_EMAIL: ${{ matrix.email }}
           USUARIO_ROL: ${{ matrix.rol }}
+          RUTA_VERIFICACION: ${{ matrix.ruta_verificacion }}
+          CODIGO_ESPERADO: ${{ matrix.codigo_esperado }}
         run: |
           ID=$(psql -h localhost -U walking -d walking_dictionary -tA -c "SELECT id_usuario FROM usuario WHERE email = '${USUARIO_EMAIL}'")
           if [ -z "$ID" ]; then
@@ -119,12 +141,14 @@ jobs:
           TOKEN=$(ID="$ID" node -e "const jwt=require('jsonwebtoken');process.stdout.write(jwt.sign({id_usuario:Number(process.env.ID),email:process.env.USUARIO_EMAIL,rol:process.env.USUARIO_ROL},process.env.JWT_SECRET,{algorithm:'HS256',expiresIn:'2h'}))")
           echo "::add-mask::$TOKEN"
           echo "FUZZ_TOKEN=$TOKEN" >> "$GITHUB_ENV"
-          # Comprobación rápida con una ruta protegida (/cards/pending es solo de docente):
-          # con un token válido responde 200 (docente) o 403 (estudiante), y 401 solo si el token no sirve.
-          CODIGO=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOKEN" http://127.0.0.1:5000/api/v1/cards/pending)
-          echo "GET /api/v1/cards/pending con el token (${USUARIO_ROL}) respondió HTTP $CODIGO"
-          if [ "$CODIGO" = "401" ]; then
-            echo "El backend rechazó el token: el fuzzing no estaría autenticado."
+          
+          # Comprobacion de arranque: cada rol llama a una ruta cuyo resultado se conoce (ver la matriz).
+          # Si el codigo no coincide, el token no se esta reconociendo con el rol que se declaro y el
+          # fuzzing no probaria lo que dice probar (401 = token rechazado; otro codigo = rol no reconocido).
+          CODIGO=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOKEN" "http://127.0.0.1:5000/api/v1${RUTA_VERIFICACION}")
+          echo "GET /api/v1${RUTA_VERIFICACION} con el token (${USUARIO_ROL}) respondió HTTP $CODIGO (esperado $CODIGO_ESPERADO)"
+          if [ "$CODIGO" != "$CODIGO_ESPERADO" ]; then
+            echo "Se esperaba HTTP $CODIGO_ESPERADO y llegó $CODIGO: el fuzzing no estaría autenticado como ${USUARIO_ROL}."
             exit 1
           fi
 
