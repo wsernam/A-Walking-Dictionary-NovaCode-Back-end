@@ -124,8 +124,6 @@ jobs:
           exit 1
 
       - name: Generar token JWT de prueba (${{ matrix.rol }})
-        RUTA_VERIFICACION: ${{ matrix.ruta_verificacion }}
-        CODIGO_ESPERADO: ${{ matrix.codigo_esperado }}
         working-directory: backend
         env:
           USUARIO_EMAIL: ${{ matrix.email }}
