@@ -225,6 +225,25 @@ export const TarjetaController = {
           code: 'INVALID_FIELD_TYPE',
         });
       }
+
+      if (typeof definicion !== 'string') {
+        return res.status(400).json({
+          error: 'definicion debe ser una cadena de texto',
+          code: 'INVALID_FIELD_TYPE',
+        });
+      }
+
+      if (
+        ejemplo !== undefined &&
+        ejemplo !== null &&
+        typeof ejemplo !== 'string'
+      ) {
+        return res.status(400).json({
+          error: 'ejemplo debe ser una cadena de texto o null',
+          code: 'INVALID_FIELD_TYPE',
+        });
+      }
+
       const tarjetaExistente = await DeduplicacionService.buscarDuplicado(mazoId, palabra);
 
       if (!tarjetaExistente) {

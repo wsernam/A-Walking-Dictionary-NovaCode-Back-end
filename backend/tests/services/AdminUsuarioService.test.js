@@ -44,13 +44,35 @@ describe('AdminUsuarioService.listar — CA-23.1', () => {
     expect(r.data[0]).not.toHaveProperty('password_hash');
   });
 
-  it('usa página 1, 20 por página y limita a 100', async () => {
-    UsuarioRepository.listarParaAdmin.mockResolvedValue({ usuarios: [], total: 0 });
-    await AdminUsuarioService.listar({});
-    expect(UsuarioRepository.listarParaAdmin).toHaveBeenLastCalledWith(expect.objectContaining({ limite: 20, desplazamiento: 0 }));
-    await AdminUsuarioService.listar({ limit: '500' });
-    expect(UsuarioRepository.listarParaAdmin).toHaveBeenLastCalledWith(expect.objectContaining({ limite: 100 }));
+it('usa página 1 y 20 registros por página por defecto', async () => {
+  UsuarioRepository.listarParaAdmin.mockResolvedValue({
+    usuarios: [],
+    total: 0
   });
+
+  await AdminUsuarioService.listar({});
+
+  expect(UsuarioRepository.listarParaAdmin).toHaveBeenCalledWith(
+    expect.objectContaining({
+      limite: 20,
+      desplazamiento: 0
+    })
+  );
+});
+
+it('permite el límite máximo de 100', async () => {
+  UsuarioRepository.listarParaAdmin.mockResolvedValue({
+    usuarios: [],
+    total: 0
+  });
+
+  const resultado = await AdminUsuarioService.listar({ limit: '100' });
+
+  expect(resultado.limit).toBe(100);
+  expect(UsuarioRepository.listarParaAdmin).toHaveBeenCalledWith(
+    expect.objectContaining({ limite: 100 })
+  );
+});
 
   it.each([
     [{ rol: 'invitado' }, 'ADMIN_INVALID_ROLE'],
@@ -124,9 +146,22 @@ describe('AdminUsuarioService.cambiarEstado — CA-23.2', () => {
     expect(console.info.mock.calls[0][0]).toContain('cambio_estado admin=1 objetivo=5 activo_anterior=true activo_nuevo=false');
   });
 
-  it.each(['false', 0, undefined])('activo %j no booleano responde 400', async (activo) => {
-    await expect(AdminUsuarioService.cambiarEstado(admin, 5, activo)).rejects.toMatchObject({ status: 400, code: 'ADMIN_INVALID_STATUS' });
+ it.each([
+  [{ rol: 'invitado' }, 'ADMIN_INVALID_ROLE'],
+  [{ activo: 'quizas' }, 'ADMIN_INVALID_STATUS'],
+  [{ page: '0' }, 'ADMIN_INVALID_QUERY'],
+  [{ limit: 'abc' }, 'ADMIN_INVALID_QUERY'],
+  [{ limit: '101' }, 'ADMIN_INVALID_QUERY'],
+  [{ limit: '500' }, 'ADMIN_INVALID_QUERY'],
+  [{ search: ['a', 'b'] }, 'ADMIN_INVALID_QUERY'],
+])('filtro inválido %j responde 400 %s', async (query, code) => {
+  await expect(AdminUsuarioService.listar(query)).rejects.toMatchObject({
+    status: 400,
+    code
   });
+
+  expect(UsuarioRepository.listarParaAdmin).not.toHaveBeenCalled();
+});
 
   it('no puede desactivar su propia cuenta (409)', async () => {
     await expect(AdminUsuarioService.cambiarEstado(admin, 1, false)).rejects.toMatchObject({ status: 409, code: 'ADMIN_SELF_CHANGE' });
