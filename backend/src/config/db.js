@@ -12,6 +12,7 @@ import { resolve } from 'node:path';
 
 const { Pool } = pg;
 
+
 // Las columnas TIMESTAMP del DER no guardan zona horaria (ej. quiz.fecha_apertura). Por defecto pg
 // las lee y escribe con la hora local del proceso, así que un backend que no corre en UTC (ej.
 // "npm run dev" en Windows, UTC-5) desplaza las fechas 5 h y los quices abren tarde. Se fija UTC

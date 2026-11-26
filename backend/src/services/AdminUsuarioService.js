@@ -67,7 +67,13 @@ export const AdminUsuarioService = {
    */
   async listar(query = {}) {
     const page = enteroPositivo(query.page, 1);
-    const limit = Math.min(enteroPositivo(query.limit, LIMITE_POR_DEFECTO), LIMITE_MAXIMO);
+    
+    const limit = enteroPositivo(query.limit, LIMITE_POR_DEFECTO);
+
+    if (limit > LIMITE_MAXIMO) {
+      throw errorApi(400, 'ADMIN_INVALID_QUERY', 'El límite máximo permitido es 100');
+    }
+
     const busqueda = leerBusqueda(query.search);
     const activo = leerEstado(query.activo);
     const rol = vacio(query.rol) ? undefined : query.rol;

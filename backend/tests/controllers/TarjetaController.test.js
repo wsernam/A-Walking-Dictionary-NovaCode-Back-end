@@ -194,12 +194,20 @@ describe('TarjetaController.checkDuplicate — CA-1.3.4 (aviso antes de confirma
     return respuesta(res);
   }
 
-  it('CA-1.3.4: sin coincidencia responde duplicado: false', async () => {
-    expect(await revisar({ mazo_id: 3, palabra: 'cooking' })).toEqual({
-      status: 200,
-      body: { duplicado: false, resultado: 'creada' },
-    });
+
+it('CA-1.3.4: sin coincidencia responde duplicado: false', async () => {
+  expect(
+    await revisar({
+      mazo_id: 3,
+      palabra: 'cooking',
+      definicion: 'Preparar alimentos',
+    })
+  ).toEqual({
+    status: 200,
+    body: { duplicado: false, resultado: 'creada' },
   });
+});
+
 
   it('CA-1.3.4: con coincidencia avisa si será coautoría o acepción, sin crear nada', async () => {
     DeduplicacionService.buscarDuplicado.mockResolvedValue(tarjetaExistente);
@@ -218,7 +226,17 @@ describe('TarjetaController.checkDuplicate — CA-1.3.4 (aviso antes de confirma
     DeduplicacionService.resolverAporte.mockReturnValue({ tipo: 'coautoria' });
 
     const res = crearRes();
-    await TarjetaController.checkDuplicate(crearReq({ body: { mazo_id: 3, palabra: 'cooking' }, usuario: estudiante }), res);
+    await TarjetaController.checkDuplicate(
+  crearReq({
+    body: {
+      mazo_id: 3,
+      palabra: 'cooking',
+      definicion: 'Preparar alimentos',
+    },
+    usuario: estudiante,
+  }),
+  res
+);
 
     expect(respuesta(res).body).toMatchObject({ duplicado: true, ya_enviada: false });
     expect(InscripcionRepository.obtenerPorCursoYEstudiante).toHaveBeenCalledWith(10, 2);
@@ -230,7 +248,17 @@ describe('TarjetaController.checkDuplicate — CA-1.3.4 (aviso antes de confirma
     AporteRepository.existeDeInscripcionEnTarjeta.mockResolvedValue(true);
 
     const res = crearRes();
-    await TarjetaController.checkDuplicate(crearReq({ body: { mazo_id: 3, palabra: 'cooking' }, usuario: estudiante }), res);
+    await TarjetaController.checkDuplicate(
+  crearReq({
+    body: {
+      mazo_id: 3,
+      palabra: 'cooking',
+      definicion: 'Preparar alimentos',
+    },
+    usuario: estudiante,
+  }),
+  res
+);
 
     expect(respuesta(res).body).toMatchObject({ duplicado: true, ya_enviada: true });
     expect(AporteRepository.existeDeInscripcionEnTarjeta).toHaveBeenCalledWith(7, 5);
@@ -242,7 +270,17 @@ describe('TarjetaController.checkDuplicate — CA-1.3.4 (aviso antes de confirma
     InscripcionRepository.obtenerPorCursoYEstudiante.mockResolvedValue(null);
 
     const res = crearRes();
-    await TarjetaController.checkDuplicate(crearReq({ body: { mazo_id: 3, palabra: 'cooking' }, usuario: estudiante }), res);
+    await TarjetaController.checkDuplicate(
+  crearReq({
+    body: {
+      mazo_id: 3,
+      palabra: 'cooking',
+      definicion: 'Preparar alimentos',
+    },
+    usuario: estudiante,
+  }),
+  res
+);
 
     expect(respuesta(res).body.ya_enviada).toBe(false);
     expect(AporteRepository.existeDeInscripcionEnTarjeta).not.toHaveBeenCalled();
@@ -253,10 +291,46 @@ describe('TarjetaController.checkDuplicate — CA-1.3.4 (aviso antes de confirma
     expect((await revisar({ mazo_id: 'abc', palabra: 'x' })).status).toBe(400);
   });
 
-  it('responde 500 ante un error inesperado', async () => {
-    DeduplicacionService.buscarDuplicado.mockRejectedValue(new Error('BD caída'));
-    expect((await revisar({ mazo_id: 3, palabra: 'x' })).status).toBe(500);
+ 
+it('responde 500 ante un error inesperado', async () => {
+  DeduplicacionService.buscarDuplicado.mockRejectedValue(
+    new Error('BD caída')
+  );
+
+  expect(
+    (
+      await revisar({
+        mazo_id: 3,
+        palabra: 'x',
+        definicion: 'Definición de prueba',
+      })
+    ).status
+  ).toBe(500);
+});
+
+
+it.each([
+  ['definicion como booleano', { definicion: true }],
+  ['definicion como objeto', { definicion: { texto: 'x' } }],
+  ['ejemplo como objeto', {
+    definicion: 'Preparar alimentos',
+    ejemplo: { texto: 'Estoy cocinando' },
+  }],
+  ['ejemplo como booleano', {
+    definicion: 'Preparar alimentos',
+    ejemplo: true,
+  }],
+])('rechaza con 400 %s', async (_caso, campos) => {
+  const { status, body } = await revisar({
+    mazo_id: 3,
+    palabra: 'cooking',
+    ...campos,
   });
+
+  expect(status).toBe(400);
+  expect(body.code).toBe('INVALID_FIELD_TYPE');
+});
+
 });
 
 describe('TarjetaController — curaduría docente (HU-2.1) y contexto (HU-2.2)', () => {

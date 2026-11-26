@@ -23,30 +23,39 @@ export const EnriquecimientoController = {
    * @param {import('express').Response} res
    */
   async obtenerFamilia(req, res) {
-    try {
-      const palabra = req.params.word?.trim();
+  try {
+    const palabra = req.params.word;
 
-      if (!palabra) {
-        return res.status(400).json({
-          error: 'La palabra es obligatoria',
-          code: 'REQUIRED_FIELDS_MISSING',
-        });
-      }
-
-      const resultado =
-        await WordnetService.obtenerFamilia(palabra);
-      return res.status(200).json(resultado);
-
-    } catch (error) {
-      console.error(
-        'Error al obtener sugerencias léxicas:',
-        error
-      );
-
-      return res.status(error.status || 500).json({
-        error: error.message || 'Error al obtener sugerencias léxicas',
-        code: error.code,
+    if (typeof palabra !== 'string' || !palabra.trim()) {
+      return res.status(400).json({
+        error: 'La palabra es obligatoria',
+        code: 'REQUIRED_FIELDS_MISSING',
       });
     }
-  },
-};
+
+    if (palabra.length > 150) {
+      return res.status(400).json({
+        error: 'La palabra no puede superar 150 caracteres',
+        code: 'FIELD_TOO_LONG',
+      });
+    }
+
+    const resultado = await WordnetService.obtenerFamilia(
+      palabra.trim()
+    );
+
+    return res.status(200).json(resultado);
+
+  } catch (error) {
+    console.error(
+      'Error al obtener sugerencias léxicas:',
+      error.message
+    );
+
+    return res.status(error.status || 500).json({
+      error: error.message || 'Error al obtener sugerencias léxicas',
+      code: error.code,
+    });
+  }
+}
+}
