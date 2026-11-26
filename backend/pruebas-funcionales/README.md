@@ -11,18 +11,19 @@ Una prueba por criterio de aceptación (CA) del backlog, contra el backend **cor
 
 ## Ejecutar en local
 
-Con este repo clonado dentro de `walking-dictionary-infra`:
+Con el repo del backend clonado:
 
 ```bash
-# desde la raíz de walking-dictionary-infra
-docker compose up -d db backend
+# desde la raíz de este repo (crea la base con init.sql + seed.sql)
+docker compose up -d postgres
 
-# desde backend/
-npm run test:funcional
+# desde backend/ (con backend/.env creado, ver .env.example)
+npm run dev                 # en una terminal
+npm run test:funcional      # en otra
 ```
 
 - **Las pruebas reinician la base local** al estado de `init.sql` + `seed.sql` antes de empezar, para partir siempre del mismo estado. Si el contenedor `walking_dictionary_db` está corriendo, el reinicio se hace dentro de él. Para no reiniciarla: `SIN_REINICIO_BD=true npm run test:funcional`.
-- **Variables:** se leen de las del proceso, luego de `backend/.env` y luego del `.env` de infra. `JWT_SECRET` tiene que ser el mismo que usa el backend probado, y `DISABLE_AUTH` debe ser `false`.
+- **Variables:** se leen de las del proceso, luego de `backend/.env` y luego del .env de la carpeta que contiene el clon del repo. `JWT_SECRET` tiene que ser el mismo que usa el backend probado, y `DISABLE_AUTH` debe ser `false`.
 - **Límite de solicitudes (429):** para repetir la suite sin recibir 429, define en `backend/.env` `RATE_LIMIT_AUTH_MAX`, `RATE_LIMIT_REPORTES_MAX` y `RATE_LIMIT_ADMIN_MAX` (p. ej. 1000) y reinicia el backend; `funcionales.yml` ya los define.
 - **Otro backend:** `API_URL=http://localhost:5001 npm run test:funcional`.
 - **Nunca** apuntar `DB_HOST` a Supabase: la preparación lo bloquea.
