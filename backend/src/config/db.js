@@ -12,13 +12,6 @@ import { resolve } from 'node:path';
 
 const { Pool } = pg;
 
-console.log('[DB CONFIG]', {
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  ssl: process.env.DB_SSL
-});
 
 // Las columnas TIMESTAMP del DER no guardan zona horaria (ej. quiz.fecha_apertura). Por defecto pg
 // las lee y escribe con la hora local del proceso, así que un backend que no corre en UTC (ej.
