@@ -1,8 +1,10 @@
 -- seed.sql
 -- Datos mínimos de prueba para poder ejercitar los endpoints de HE-01 y HE-02
 -- (POST /decks, POST /decks/:id/cards, POST /cards/check-duplicate, curaduría, contexto,
--- analíticas). Ejecutar DESPUÉS de que init.sql haya creado las tablas. No se auto-ejecuta con
--- Docker (solo init.sql en /docker-entrypoint-initdb.d/ se ejecuta solo); este se corre a mano.
+-- analíticas). Ejecutar DESPUÉS de que init.sql haya creado las tablas. Con Docker Compose se
+-- ejecuta solo: docker-compose.yml monta init.sql y seed.sql en /docker-entrypoint-initdb.d/
+-- (1-init.sql y 2-seed.sql) y corren únicamente al crear el volumen. Sin Docker, se corre a mano
+-- con psql. NUNCA en producción (ver manual de despliegue, sección 4.5).
 
 -- 1 docente
 INSERT INTO usuario (nombre_completo, email, password_hash, rol, nivel_ingles, activo)
