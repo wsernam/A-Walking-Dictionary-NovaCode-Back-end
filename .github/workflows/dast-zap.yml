@@ -1,10 +1,14 @@
 name: DAST - OWASP ZAP
 
 # Prueba dinámica de seguridad (DAST): enciende la API con una base de datos desechable
-# (init.sql + seed.sql) y OWASP ZAP la ataca desde afuera, como lo haría un atacante,
-# usando docs/api/openapi.yaml como mapa de los endpoints.
-# Por ahora SOLO REPORTA: no hace fallar el workflow. El reporte queda como artefacto.
-# Detalle y cómo leer el reporte: docs/seguridad/README.md
+# (init.sql + seed.sql + el administrador de prueba) y OWASP ZAP la ataca desde afuera, como lo
+# haría un atacante, usando docs/api/openapi.yaml como mapa de los endpoints.
+# El escaneo es ACTIVO y se repite una vez por rol (invitado sin token, estudiante, docente y
+# administrador); cada rol genera su propio reporte. Solo corre contra el entorno de pruebas de CI
+# (base desechable en localhost): el paso "Verificar que es un entorno de pruebas" corta el job si el
+# objetivo o la base no son locales. NUNCA apuntarlo a producción.
+# Por ahora SOLO REPORTA: no hace fallar el workflow. Los reportes quedan como artefactos.
+# Detalle, cómo leer cada reporte y qué esperar por rol: docs/seguridad/README.md
 on:
   push:
     branches: [develop]
@@ -21,9 +25,30 @@ concurrency:
 
 jobs:
   zap:
-    name: Escaneo de la API con ZAP
+    name: Escaneo activo de la API con ZAP (${{ matrix.rol }})
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 120 # el escaneo activo con intensidad alta tarda bastante más que el pasivo
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # invitado = sin token: prueba lo que un visitante anónimo puede alcanzar.
+          - rol: invitado
+            email: ''
+            ruta_verificacion: ''
+            codigo_esperado: ''
+          - rol: estudiante
+            email: juan.estudiante@unicauca.edu.co
+            ruta_verificacion: /cards/pending
+            codigo_esperado: '403'
+          - rol: docente
+            email: ana.docente@unicauca.edu.co
+            ruta_verificacion: /cards/pending
+            codigo_esperado: '200'
+          - rol: administrador
+            email: admin.pruebas@unicauca.edu.co
+            ruta_verificacion: /admin/users
+            codigo_esperado: '200'
 
     services:
       postgres:
@@ -57,6 +82,11 @@ jobs:
       RATE_LIMIT_AUTH_MAX: '100000'
       RATE_LIMIT_GLOBAL_MAX: '100000'
 
+      RATE_LIMIT_ADMIN_MAX: '100000'
+      RATE_LIMIT_REPORTES_MAX: '100000'
+      # Objetivo del escaneo: SIEMPRE el backend local de este job (ver "Verificar que es un entorno de pruebas").
+      ZAP_TARGET: http://localhost:5000
+
     steps:
       - uses: actions/checkout@v4
 
@@ -70,10 +100,27 @@ jobs:
         working-directory: backend
         run: npm ci
 
+
+      # Barrera de seguridad: el escaneo activo crea, modifica y borra datos. Se corta si el backend
+      # o la base no son locales, para que nadie lo apunte a staging o producción por error.
+      - name: Verificar que es un entorno de pruebas
+        run: |
+          case "$ZAP_TARGET" in
+            http://localhost:*|http://127.0.0.1:*) ;;
+            *) echo "ZAP_TARGET ($ZAP_TARGET) no es local: el escaneo activo solo corre contra la base desechable de CI."; exit 1 ;;
+          esac
+          case "$DB_HOST" in
+            localhost|127.0.0.1) ;;
+            *) echo "DB_HOST ($DB_HOST) no es local: el escaneo activo solo corre contra la base desechable de CI."; exit 1 ;;
+          esac
+          echo "Entorno de pruebas confirmado: $ZAP_TARGET, base $DB_HOST."
+
+
       - name: Crear la base de datos de prueba
         run: |
           psql -h localhost -U walking -d walking_dictionary -v ON_ERROR_STOP=1 -q -f init.sql
           psql -h localhost -U walking -d walking_dictionary -v ON_ERROR_STOP=1 -q -f seed.sql
+          psql -h localhost -U walking -d walking_dictionary -v ON_ERROR_STOP=1 -q -f .github/ci/admin-pruebas.sql
 
       - name: Generar JWT_SECRET
         run: echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
@@ -89,16 +136,40 @@ jobs:
           cat backend.log
           exit 1
 
-      # Token de la docente de seed.sql (ana.docente, id 1) para que ZAP pruebe también las rutas
-      # protegidas. Se firma con el JWT_SECRET de esta ejecución y se oculta en el log.
-      - name: Crear token de prueba
+      
+
+      # Token del rol que se escanea (el invitado no lleva token). El id sale de la base de pruebas y el
+      # token se firma con el JWT_SECRET de esta ejecución; se oculta en el log.
+      - name: Crear token de prueba (${{ matrix.rol }})
+        if: matrix.rol != 'invitado'
         working-directory: backend
+        env:
+          USUARIO_EMAIL: ${{ matrix.email }}
+          USUARIO_ROL: ${{ matrix.rol }}
+          RUTA_VERIFICACION: ${{ matrix.ruta_verificacion }}
+          CODIGO_ESPERADO: ${{ matrix.codigo_esperado }}
         run: |
-          TOKEN=$(node -e "console.log(require('jsonwebtoken').sign({ id_usuario: 1, email: 'ana.docente@unicauca.edu.co', rol: 'docente' }, process.env.JWT_SECRET, { algorithm: 'HS256', expiresIn: '2h' }))")
+          ID=$(psql -h localhost -U walking -d walking_dictionary -tA -c "SELECT id_usuario FROM usuario WHERE email = '${USUARIO_EMAIL}'")
+          if [ -z "$ID" ]; then
+            echo "No existe el usuario ${USUARIO_EMAIL} en la base de pruebas (revisar seed.sql y .github/ci/admin-pruebas.sql)."
+            exit 1
+          fi
+          TOKEN=$(ID="$ID" node -e "const jwt=require('jsonwebtoken');process.stdout.write(jwt.sign({id_usuario:Number(process.env.ID),email:process.env.USUARIO_EMAIL,rol:process.env.USUARIO_ROL},process.env.JWT_SECRET,{algorithm:'HS256',expiresIn:'4h'}))")
           echo "::add-mask::$TOKEN"
           echo "ZAP_AUTH_HEADER_VALUE=Bearer $TOKEN" >> "$GITHUB_ENV"
+          # Comprobación de arranque: si el código no es el esperado, ZAP no estaría escaneando como este rol.
+          CODIGO=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOKEN" "http://localhost:5000/api/v1${RUTA_VERIFICACION}")
+          echo "GET /api/v1${RUTA_VERIFICACION} con el token (${USUARIO_ROL}) respondió HTTP $CODIGO (esperado $CODIGO_ESPERADO)"
+          if [ "$CODIGO" != "$CODIGO_ESPERADO" ]; then
+            echo "Se esperaba HTTP $CODIGO_ESPERADO y llegó $CODIGO: el escaneo no estaría autenticado como ${USUARIO_ROL}."
+            exit 1
+          fi
 
-      - name: Escanear con ZAP
+      # Escaneo ACTIVO (zap-api-scan.py ya lo es; -z sube la intensidad): fuerza de ataque alta y umbral
+      # de alertas bajo, con tope de 60 minutos por escaneo. Reporte separado por rol.
+      - name: Escanear con ZAP (${{ matrix.rol }})
+        env:
+          ROL: ${{ matrix.rol }}
         run: |
           mkdir -p zap
           cp docs/api/openapi.yaml .zap/rules.tsv zap/
@@ -108,36 +179,30 @@ jobs:
             -e ZAP_AUTH_HEADER_VALUE \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-api-scan.py -t /zap/wrk/openapi.yaml -f openapi \
-              -O http://localhost:5000 \
+              -O "$ZAP_TARGET" \
               -c rules.tsv \
-              -r reporte-zap.html -J reporte-zap.json -I
+              -z "-config scanner.strength=HIGH -config scanner.threshold=LOW -config scanner.maxScanDurationInMins=60" \
+              -r "reporte-zap-${ROL}.html" -J "reporte-zap-${ROL}.json" -I
 
       - name: Resumen en el job
         if: always()
+        env:
+          ROL: ${{ matrix.rol }}
         run: |
-          echo "## DAST con OWASP ZAP" >> "$GITHUB_STEP_SUMMARY"
-          if [ ! -f zap/reporte-zap.json ]; then
+          echo "## DAST con OWASP ZAP - rol ${ROL}" >> "$GITHUB_STEP_SUMMARY"
+          if [ ! -f "zap/reporte-zap-${ROL}.json" ]; then
+
             echo "No se generó el reporte." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          node -e '
-            const r = require("./zap/reporte-zap.json");
-            const alertas = r.site.flatMap((s) => s.alerts);
-            const nivel = { 3: "Alto", 2: "Medio", 1: "Bajo", 0: "Informativo" };
-            const filas = alertas
-              .sort((a, b) => b.riskcode - a.riskcode)
-              .map((a) => `| ${nivel[a.riskcode]} | ${a.name} | ${a.count} |`);
-            console.log(`Alertas: ${alertas.length}. Reporte completo en el artefacto **reporte-zap**.\n`);
-            console.log("| Riesgo | Alerta | Instancias |\n| --- | --- | --- |");
-            console.log(filas.join("\n") || "| — | Sin alertas | 0 |");
-          ' >> "$GITHUB_STEP_SUMMARY"
+          node -e '…': require("./zap/reporte-zap.json") pasa a require("./zap/reporte-zap-" + process.env.ROL + ".json"), y el texto Reporte completo en el artefacto **reporte-zap**. pasa a Rol ${process.env.ROL}. Reporte completo en el artefacto **reporte-zap-${process.env.ROL}**.
 
       - name: Publicar reporte
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: reporte-zap
-          path: zap/reporte-zap.*
+          name: reporte-zap-${{ matrix.rol }}
+          path: zap/reporte-zap-${{ matrix.rol }}.*
           retention-days: 30
 
       - name: Log del backend
