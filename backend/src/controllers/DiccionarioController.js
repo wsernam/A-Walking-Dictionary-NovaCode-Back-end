@@ -7,6 +7,7 @@
  */
 
 import { DiccionarioService } from '../services/DiccionarioService.js';
+import { tieneCaracteresDeControl } from '../utils/validacion.js';
 
 export const DiccionarioController = {
 
@@ -27,6 +28,14 @@ export const DiccionarioController = {
       if (q !== undefined && typeof q !== 'string') {
         return res.status(400).json({
           error: 'El parámetro q debe ser un texto',
+          code: 'INVALID_QUERY',
+        });
+      }
+
+      // PostgreSQL no acepta el byte nulo en un texto y respondía 500 (fuzzing Schemathesis).
+      if (q !== undefined && tieneCaracteresDeControl(q)) {
+        return res.status(400).json({
+          error: 'El parámetro q no puede tener caracteres de control',
           code: 'INVALID_QUERY',
         });
       }

@@ -87,7 +87,9 @@ function validarDatosAporte(body) {
       return { status: 400, error: `${campo} debe ser un entero positivo valido`, code: 'INVALID_ID' };
     }
   }
-  if (!vacio(fecha_aporte) && !esFechaValida(fecha_aporte)) {
+  // fecha_aporte es opcional: null u omitida la pone la base de datos; "" no es una fecha y
+  // llegaba a PostgreSQL como "invalid input syntax for type timestamp" (500).
+  if (fecha_aporte !== undefined && fecha_aporte !== null && !esFechaValida(fecha_aporte)) {
     return { status: 400, error: 'fecha_aporte debe ser una fecha ISO 8601 valida', code: 'INVALID_FIELD_TYPE' };
   }
   return null;

@@ -72,10 +72,18 @@ describe('AporteController.crear', () => {
     ['definicion_aportada', 42],
     ['ejemplo_aportado', ['x']],
     ['fecha_aporte', '2026-02-30'],
+    // Fuzzing Schemathesis run #29 (docente y estudiante): "" llegaba a PostgreSQL y respondía 500.
+    ['fecha_aporte', ''],
   ])('rechaza con 400 INVALID_FIELD_TYPE un %s inválido', async (campo, valor) => {
     const { status, body } = await llamar(AporteController, 'crear', { body: { ...valido, [campo]: valor } });
     expect(status).toBe(400);
     expect(body.code).toBe('INVALID_FIELD_TYPE');
+  });
+
+  it('acepta fecha_aporte null u omitida (la pone la base de datos)', async () => {
+    AporteRepository.crear.mockResolvedValue({ id_aporte: 31 });
+    expect((await llamar(AporteController, 'crear', { body: { ...valido, fecha_aporte: null } })).status).toBe(201);
+    expect((await llamar(AporteController, 'crear', { body: valido })).status).toBe(201);
   });
 
   it.each([

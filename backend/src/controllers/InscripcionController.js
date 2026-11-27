@@ -12,6 +12,7 @@
 
 import { InscripcionRepository } from '../repositories/InscripcionRepository.js';
 import { InscripcionService } from '../services/InscripcionService.js';
+import { tieneCaracteresDeControl } from '../utils/validacion.js';
 
 export const InscripcionController = {
 
@@ -232,6 +233,12 @@ export const InscripcionController = {
             error: 'codigo_acceso debe ser una cadena de texto',
             code: 'INVALID_FIELD_TYPE',
           });
+        }
+
+        // Ningún curso tiene un código con caracteres de control (se generan con A-Z y 0-9); sin
+        // este control el byte nulo llegaba a PostgreSQL y respondía 500 (fuzzing Schemathesis).
+        if (tieneCaracteresDeControl(codigo_acceso)) {
+          return res.status(404).json({ error: 'Código de acceso inválido', code: 'ENROLL_INVALID_CODE' });
         }
 
         const estudiante_id = req.usuario.id_usuario;

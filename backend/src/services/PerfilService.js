@@ -16,6 +16,7 @@
 
 import { UsuarioRepository } from '../repositories/UsuarioRepository.js';
 import { InscripcionRepository } from '../repositories/InscripcionRepository.js';
+import { tieneCaracteresDeControl } from '../utils/validacion.js';
 
 /** @brief CA-5.2.1: niveles MCER permitidos (A1-C2); selección controlada, no texto libre. */
 const NIVELES_MCER = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -43,7 +44,11 @@ function errorValidacion(mensaje) {
  * @throws {Error} status 400 si supera MAX_CODIGO_ESTUDIANTIL caracteres.
  */
 function validarCodigoEstudiantil(codigo_estudiantil) {
-  if (codigo_estudiantil && String(codigo_estudiantil).length > MAX_CODIGO_ESTUDIANTIL) {
+  if (!codigo_estudiantil) return;
+  if (typeof codigo_estudiantil !== 'string' || tieneCaracteresDeControl(codigo_estudiantil)) {
+    throw errorValidacion('codigo_estudiantil debe ser un texto sin caracteres de control');
+  }
+  if (codigo_estudiantil.length > MAX_CODIGO_ESTUDIANTIL) {
     throw errorValidacion(`codigo_estudiantil no puede superar ${MAX_CODIGO_ESTUDIANTIL} caracteres`);
   }
 }
@@ -55,11 +60,17 @@ function validarCodigoEstudiantil(codigo_estudiantil) {
  * archivo: se rechaza un data URI (base64) o cualquier string que no quepa en la columna.
  *
  * @param {string} [avatar] - URL o ruta de la imagen (opcional).
- * @throws {Error} status 400 si es un data URI o supera MAX_AVATAR caracteres.
+ * @throws {Error} status 400 si no es un texto, trae caracteres de control, es un data URI o supera
+ * MAX_AVATAR caracteres.
  */
 function validarAvatar(avatar) {
   if (!avatar) return;
-  if (String(avatar).startsWith('data:') || String(avatar).length > MAX_AVATAR) {
+  // Un objeto pasaba como String(avatar) = "[object Object]" o "{}" y se guardaba (fuzzing
+  // Schemathesis, ST201); el byte nulo llegaba a PostgreSQL y respondía 500.
+  if (typeof avatar !== 'string' || tieneCaracteresDeControl(avatar)) {
+    throw errorValidacion('avatar debe ser un texto sin caracteres de control');
+  }
+  if (avatar.startsWith('data:') || avatar.length > MAX_AVATAR) {
     throw errorValidacion(
       `avatar debe ser la URL o ruta de una imagen (máx. ${MAX_AVATAR} caracteres), no el archivo en base64`
     );
@@ -75,6 +86,10 @@ function validarIntereses(intereses) {
   if (intereses === undefined || intereses === null) return;
   if (!Array.isArray(intereses) || intereses.some((i) => typeof i !== 'string' || !i.trim())) {
     throw errorValidacion('intereses debe ser un arreglo de strings no vacíos');
+  }
+  // El byte nulo llegaba a PostgreSQL y respondía 500 (fuzzing Schemathesis, rol estudiante).
+  if (intereses.some(tieneCaracteresDeControl)) {
+    throw errorValidacion('intereses no puede tener caracteres de control');
   }
 }
 

@@ -29,6 +29,9 @@ const PG_FOREIGN_KEY_VIOLATION = '23503';
 function validarDatosQuiz(body) {
   const { curso_id, titulo, semana_corte, estado, fecha_apertura, fecha_cierre, tiempo_limite_min } = body;
   const vacio = (valor) => valor === undefined || valor === null || valor === '';
+  // Opcionales: null u omitido = sin valor. "" NO es una fecha ni un entero (el contrato pide
+  // date-time/integer o null), así que responde 400 en vez de guardarse como null.
+  const ausente = (valor) => valor === undefined || valor === null;
 
   const camposFaltantes = ['curso_id', 'titulo', 'semana_corte', 'estado'].filter((campo) => vacio(body[campo]));
   if (camposFaltantes.length > 0) {
@@ -60,10 +63,10 @@ function validarDatosQuiz(body) {
   if (!esEnteroEnRango(semana_corte)) {
     return { status: 400, error: 'semana_corte debe ser un entero positivo valido', code: 'INVALID_FIELD_TYPE' };
   }
-  if (!vacio(tiempo_limite_min) && !esEnteroEnRango(tiempo_limite_min)) {
+  if (!ausente(tiempo_limite_min) && !esEnteroEnRango(tiempo_limite_min)) {
     return { status: 400, error: 'tiempo_limite_min debe ser un entero positivo valido', code: 'INVALID_FIELD_TYPE' };
   }
-  if ((!vacio(fecha_apertura) && !esFechaValida(fecha_apertura)) || (!vacio(fecha_cierre) && !esFechaValida(fecha_cierre))) {
+  if ((!ausente(fecha_apertura) && !esFechaValida(fecha_apertura)) || (!ausente(fecha_cierre) && !esFechaValida(fecha_cierre))) {
     return {
       status: 400,
       error: 'fecha_apertura y fecha_cierre deben ser fechas ISO 8601 validas',
@@ -75,14 +78,14 @@ function validarDatosQuiz(body) {
 
 /**
  * @brief Arma los datos que se guardan: descarta fecha_creacion del cliente (la asigna la base de
- * datos) y deja en null las fechas y el tiempo límite vacíos.
+ * datos) y deja en null las fechas y el tiempo límite que no llegaron.
  * @param {Object} body - req.body ya validado.
  * @return {Object}
  */
 function datosQuizParaGuardar(body) {
   const { fecha_creacion, ...datos } = body;
   for (const campo of ['fecha_apertura', 'fecha_cierre', 'tiempo_limite_min']) {
-    if (datos[campo] === '' || datos[campo] === undefined) datos[campo] = null;
+    if (datos[campo] === undefined) datos[campo] = null;
   }
   return datos;
 }

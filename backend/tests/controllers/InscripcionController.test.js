@@ -45,6 +45,17 @@ describe('InscripcionController.inscribirsePorCodigo — CA-5.3.1', () => {
     expect(InscripcionService.inscribirsePorCodigo).not.toHaveBeenCalled();
   });
 
+  // Fuzzing Schemathesis run #29 (estudiante): el byte nulo llegaba a PostgreSQL y respondía 500.
+  it('CA-5.3.1: un código con caracteres de control responde 404 ENROLL_INVALID_CODE sin llamar al servicio', async () => {
+    const { status, body } = await llamar(InscripcionController, 'inscribirsePorCodigo', {
+      body: { codigo_acceso: 'K7M2\u0000P9QX' },
+      usuario: estudiante,
+    });
+    expect(status).toBe(404);
+    expect(body.code).toBe('ENROLL_INVALID_CODE');
+    expect(InscripcionService.inscribirsePorCodigo).not.toHaveBeenCalled();
+  });
+
   it.each([404, 409, 400])('CA-5.3.1: traduce el %i del servicio', async (codigo) => {
     InscripcionService.inscribirsePorCodigo.mockRejectedValue(errorConStatus(codigo));
     const { status } = await llamar(InscripcionController, 'inscribirsePorCodigo', {

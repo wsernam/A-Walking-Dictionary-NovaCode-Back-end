@@ -155,10 +155,10 @@ describe('QuizController — CRUD directo (solo docente)', () => {
     expect(QuizRepository.crear).not.toHaveBeenCalled();
   });
 
-  it('crear descarta la fecha_creacion del cliente y deja en null las fechas vacías', async () => {
+  it('crear descarta la fecha_creacion del cliente y deja en null las fechas que no llegan', async () => {
     QuizRepository.crear.mockReset();
     QuizRepository.crear.mockResolvedValue(quiz);
-    await llamar(QuizController, 'crear', { body: { ...valido, fecha_creacion: '1999-01-01', fecha_apertura: '' } });
+    await llamar(QuizController, 'crear', { body: { ...valido, fecha_creacion: '1999-01-01', fecha_apertura: null } });
     const guardado = QuizRepository.crear.mock.calls[0][0];
     expect(guardado).not.toHaveProperty('fecha_creacion');
     expect(guardado.fecha_apertura).toBeNull();
@@ -174,6 +174,9 @@ describe('QuizController — CRUD directo (solo docente)', () => {
     // Fuzzing Schemathesis (docente): PostgreSQL rechaza "+22:38" con 500 (time zone displacement out of range).
     ['fecha_cierre', '0204-01-14T07:53:17+22:38', 'INVALID_FIELD_TYPE'],
     ['fecha_apertura', 'mañana', 'INVALID_FIELD_TYPE'],
+    // Fuzzing Schemathesis run #29 (docente, ST201): "" se guardaba como null con 201.
+    ['fecha_cierre', '', 'INVALID_FIELD_TYPE'],
+    ['tiempo_limite_min', '', 'INVALID_FIELD_TYPE'],
   ])('crear y actualizar rechazan con 400 un %s = %s (%s)', async (campo, valor, code) => {
     for (const metodo of ['crear', 'actualizar']) {
       const { status, body } = await llamar(QuizController, metodo, { params: { id: '1' }, body: { ...valido, [campo]: valor } });
