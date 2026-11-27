@@ -8,6 +8,7 @@
 
 import { ResultadoQuizRepository } from '../repositories/ResultadoQuizRepository.js';
 import { QuizService } from '../services/QuizService.js';
+import { leerIdRuta } from '../utils/validacion.js';
 
 export const ResultadoQuizController = {
   /**
@@ -26,7 +27,7 @@ export const ResultadoQuizController = {
    */
   async submit(req, res) {
     try {
-      const quiz_id = Number(req.params.id);
+      const quiz_id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(quiz_id) || quiz_id < 1 || quiz_id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -69,7 +70,7 @@ export const ResultadoQuizController = {
    */
   async obtenerPorId(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -108,7 +109,7 @@ export const ResultadoQuizController = {
    */
   async actualizar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -131,7 +132,7 @@ export const ResultadoQuizController = {
    */
   async eliminar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }

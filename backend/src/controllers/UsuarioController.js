@@ -5,6 +5,7 @@
  */
 
 import { PerfilService } from '../services/PerfilService.js';
+import { leerIdRuta } from '../utils/validacion.js';
 
 export const UsuarioController = {
   /**
@@ -22,7 +23,7 @@ export const UsuarioController = {
    */
   async obtenerPerfil(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -93,7 +94,7 @@ export const UsuarioController = {
    */
   async obtenerContextoAcademico(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }

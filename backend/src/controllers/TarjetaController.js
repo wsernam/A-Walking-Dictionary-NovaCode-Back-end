@@ -18,6 +18,7 @@ import { DeduplicacionService } from '../services/DeduplicacionService.js';
 import { CuraduriaService } from '../services/CuraduriaService.js';
 import { ContextoService } from '../services/ContextoService.js';
 import { TarjetaService } from '../services/TarjetaService.js';
+import { leerIdRuta } from '../utils/validacion.js';
 
 export const TarjetaController = {
   /**
@@ -56,7 +57,7 @@ export const TarjetaController = {
 
       // a) el mazo debe existir y estar "abierto" (CA-1.2.3). El id del mazo viene de la URL
       // (ruta anidada /decks/:id/cards), no del body.
-      const mazoId = Number(req.params.id);
+      const mazoId = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(mazoId) || mazoId < 1 || mazoId > 2147483647) {
         return res.status(400).json({ error: 'El id del mazo en la URL no es válido', code: 'INVALID_ID' });
       }
@@ -288,7 +289,7 @@ export const TarjetaController = {
    */
   async obtenerPorId(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -328,7 +329,7 @@ export const TarjetaController = {
    */
   async actualizar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -356,7 +357,7 @@ export const TarjetaController = {
    */
   async editarRevision(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -382,7 +383,7 @@ export const TarjetaController = {
    */
   async aprobar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -436,7 +437,7 @@ export const TarjetaController = {
    */
   async actualizarContexto(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -455,7 +456,7 @@ export const TarjetaController = {
    */
   async eliminar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }

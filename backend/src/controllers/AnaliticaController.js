@@ -5,6 +5,7 @@
 
 import { MazoRepository } from '../repositories/MazoRepository.js';
 import { AnaliticaRepository } from '../repositories/AnaliticaRepository.js';
+import { leerIdRuta } from '../utils/validacion.js';
 
 export const AnaliticaController = {
   /**
@@ -23,7 +24,7 @@ export const AnaliticaController = {
    */
   async resumenPorMazo(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }

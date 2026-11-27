@@ -104,6 +104,51 @@ describe('MazoController.crear — HU-1.1 (crear mazos por semana)', () => {
     MazoRepository.crear.mockRejectedValue(new Error('BD caída'));
     expect((await llamar('crear', { body: datosNuevos })).status).toBe(500);
   });
+
+  // Fuzzing Schemathesis (docente): sin curso_id el INSERT violaba el NOT NULL y respondía 500.
+  it('sin curso_id responde 400 REQUIRED_FIELDS_MISSING sin llegar a la base de datos', async () => {
+    const { curso_id, ...sinCurso } = datosNuevos;
+    const { status, body } = await llamar('crear', { body: sinCurso });
+
+    expect(status).toBe(400);
+    expect(body).toMatchObject({ code: 'REQUIRED_FIELDS_MISSING' });
+    expect(body.error).toContain('curso_id');
+    expect(MazoRepository.crear).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['curso_id', 0, 'INVALID_ID'],
+    ['curso_id', '10', 'INVALID_ID'],
+    ['curso_id', 2147483648, 'INVALID_ID'],
+    ['fecha_apertura', '2026-02-30', 'INVALID_FIELD_TYPE'],
+    ['fecha_cierre', 'pronto', 'INVALID_FIELD_TYPE'],
+    ['variante_regional_predeterminada', ['ghanes'], 'INVALID_FIELD_TYPE'],
+  ])('rechaza con 400 un %s = %s (%s)', async (campo, valor, code) => {
+    const { status, body } = await llamar('crear', { body: { ...datosNuevos, [campo]: valor } });
+
+    expect(status).toBe(400);
+    expect(body.code).toBe(code);
+    expect(MazoRepository.crear).not.toHaveBeenCalled();
+  });
+
+  it('un curso_id que no existe responde 404 COURSE_NOT_FOUND', async () => {
+    MazoRepository.crear.mockRejectedValue(Object.assign(new Error('fk'), { code: '23503', constraint: 'fk_mazo_curso' }));
+    const { status, body } = await llamar('crear', { body: datosNuevos });
+
+    expect(status).toBe(404);
+    expect(body.code).toBe('COURSE_NOT_FOUND');
+  });
+});
+
+describe('MazoController.obtenerPorId — id de la URL solo con dígitos (fuzzing run #30)', () => {
+  it.each(['\n4', ' 4', '0x4', '4e0', '4.0'])('rechaza con 400 INVALID_ID el id %j sin consultar', async (id) => {
+    MazoRepository.obtenerPorId.mockClear();
+    const { status, body } = await llamar('obtenerPorId', { id });
+
+    expect(status).toBe(400);
+    expect(body.code).toBe('INVALID_ID');
+    expect(MazoRepository.obtenerPorId).not.toHaveBeenCalled();
+  });
 });
 
 describe('MazoController.listar / obtenerPorId — CA-1.2.1', () => {
@@ -277,7 +322,29 @@ describe('MazoController.eliminar — solo el docente dueño', () => {
     MazoRepository.obtenerPorId.mockResolvedValueOnce(null);
     expect((await llamar('eliminar', { id: '3' })).status).toBe(404);
     expect((await llamar('eliminar', { id: 'abc' })).status).toBe(400);
-    MazoRepository.eliminar.mockRejectedValueOnce(new Error('tiene tarjetas'));
+    MazoRepository.eliminar.mockRejectedValueOnce(new Error('BD caída'));
     expect((await llamar('eliminar', { id: '3' })).status).toBe(500);
+  });
+
+  // Fuzzing Schemathesis (docente): la foreign key de tarjeta respondía 500. Decisión del equipo
+  // (2026-11-27): 409 DECK_HAS_CARDS, sin borrado en cascada.
+  it('un mazo con tarjetas responde 409 DECK_HAS_CARDS', async () => {
+    MazoRepository.eliminar.mockRejectedValueOnce(
+      Object.assign(new Error('fk'), { code: '23503', constraint: 'fk_tarjeta_mazo' })
+    );
+    const { status, body } = await llamar('eliminar', { id: '3' });
+
+    expect(status).toBe(409);
+    expect(body.code).toBe('DECK_HAS_CARDS');
+  });
+
+  it('un mazo incluido en un quiz responde 409 CONFLICT', async () => {
+    MazoRepository.eliminar.mockRejectedValueOnce(
+      Object.assign(new Error('fk'), { code: '23503', constraint: 'fk_quizmazo_mazo' })
+    );
+    const { status, body } = await llamar('eliminar', { id: '3' });
+
+    expect(status).toBe(409);
+    expect(body.code).toBe('CONFLICT');
   });
 });

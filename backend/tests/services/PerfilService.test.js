@@ -69,6 +69,42 @@ describe('PerfilService.obtenerPerfil — CA-5.2.1', () => {
   });
 });
 
+describe('PerfilService.actualizarPerfil — validación de tipos y caracteres de control (fuzzing run #29)', () => {
+  it.each([
+    ['avatar', {}],
+    ['avatar', ['/avatars/zorro.png']],
+    ['avatar', '/avatars/zo\u0000rro.png'],
+    ['codigo_estudiantil', 104123],
+    ['codigo_estudiantil', '1041\u0000'],
+    ['intereses', ['lectura', 'po\u0000esia']],
+    ['intereses', ['salto\nde linea']],
+    // Fuzzing run #31 (ST201): false y 0 se saltaban la validación y se guardaba "false".
+    ['avatar', false],
+    ['avatar', 0],
+    ['codigo_estudiantil', false],
+    ['codigo_estudiantil', 0],
+  ])('rechaza con 400 PROFILE_INVALID_DATA un %s = %j', async (campo, valor) => {
+    await expect(PerfilService.actualizarPerfil(2, { [campo]: valor })).rejects.toMatchObject({
+      status: 400,
+      code: 'PROFILE_INVALID_DATA',
+    });
+  });
+
+  // Antes un número o booleano llegaba a .toUpperCase() y respondía 500.
+  it.each([5, true, false, ['B1'], { nivel: 'B1' }])('rechaza con 400 PROFILE_INVALID_LEVEL un nivel_ingles = %j', async (nivel) => {
+    await expect(PerfilService.actualizarPerfil(2, { nivel_ingles: nivel })).rejects.toMatchObject({
+      status: 400,
+      code: 'PROFILE_INVALID_LEVEL',
+    });
+  });
+
+  it.each([null, undefined, ''])('acepta %j en avatar, codigo_estudiantil y nivel_ingles (no cambia)', async (valor) => {
+    await expect(
+      PerfilService.actualizarPerfil(2, { avatar: valor, codigo_estudiantil: valor, nivel_ingles: valor })
+    ).resolves.toBeDefined();
+  });
+});
+
 describe('PerfilService.actualizarPerfil — CA-5.2.1 (perfil académico y avatar)', () => {
   it.each(['A1', 'A2', 'B1', 'B2', 'C1', 'C2'])('CA-5.2.1: acepta el nivel MCER %s', async (nivel) => {
     await expect(PerfilService.actualizarPerfil(2, { nivel_ingles: nivel })).resolves.toMatchObject({

@@ -26,9 +26,9 @@ export const AporteRepository = {
     } = datos;
     const { rows } = await pool.query(
       `INSERT INTO aporte (tarjeta_id, inscripcion_id, traduccion_aportada, definicion_aportada, ejemplo_aportado, tipo_aporte, fecha_aporte)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7, NOW()))
        RETURNING *`,
-      [tarjeta_id, inscripcion_id, traduccion_aportada, definicion_aportada, ejemplo_aportado, tipo_aporte, fecha_aporte]
+      [tarjeta_id, inscripcion_id, traduccion_aportada, definicion_aportada, ejemplo_aportado, tipo_aporte, fecha_aporte ?? null]
     );
     return new Aporte(rows[0]);
   },
@@ -170,7 +170,7 @@ export const AporteRepository = {
     const { rows } = await pool.query(
       `UPDATE aporte
        SET tarjeta_id = $2, inscripcion_id = $3, traduccion_aportada = $4, definicion_aportada = $5,
-           ejemplo_aportado = $6, tipo_aporte = $7, fecha_aporte = $8
+           ejemplo_aportado = $6, tipo_aporte = $7, fecha_aporte = COALESCE($8, fecha_aporte)
        WHERE id_aporte = $1
        RETURNING *`,
       [id_aporte, tarjeta_id, inscripcion_id, traduccion_aportada, definicion_aportada, ejemplo_aportado, tipo_aporte, fecha_aporte]

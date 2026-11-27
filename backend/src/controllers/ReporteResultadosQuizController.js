@@ -1,4 +1,5 @@
 import { ReporteResultadosQuizPDFService } from '../services/ReporteResultadosQuizPDFService.js';
+import { leerIdRuta } from '../utils/validacion.js';
 
 export const ReporteResultadosQuizController = {
   /**
@@ -14,7 +15,7 @@ export const ReporteResultadosQuizController = {
       // El servicio ya validó que :id es un entero positivo, por eso es seguro usarlo en el nombre.
       res.setHeader(
         'Content-Disposition',
-        `attachment; filename="quiz-results-${Number(req.params.id)}.pdf"`
+        `attachment; filename="quiz-results-${leerIdRuta(req.params.id)}.pdf"`
       );
       return res.status(200).send(Buffer.from(pdf));
     } catch (error) {

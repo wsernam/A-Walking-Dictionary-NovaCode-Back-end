@@ -10,6 +10,7 @@
 import { UsuarioRepository } from '../repositories/UsuarioRepository.js';
 import { CursoRepository } from '../repositories/CursoRepository.js';
 import { errorApi } from '../utils/codigosError.js';
+import { tieneCaracteresDeControl } from '../utils/validacion.js';
 
 export const ROLES_ASIGNABLES = ['estudiante', 'docente', 'administrador'];
 const LIMITE_POR_DEFECTO = 20;
@@ -29,7 +30,9 @@ function enteroPositivo(valor, porDefecto) {
 
 function leerBusqueda(valor) {
   if (vacio(valor)) return undefined;
-  if (typeof valor !== 'string' || valor.length > BUSQUEDA_MAXIMA) {
+  // Caracteres de control: PostgreSQL no acepta el byte nulo en un texto y respondía 500
+  // (fuzzing Schemathesis, rol administrador).
+  if (typeof valor !== 'string' || valor.length > BUSQUEDA_MAXIMA || tieneCaracteresDeControl(valor)) {
     throw errorApi(400, 'ADMIN_INVALID_QUERY', 'El texto de búsqueda no es válido');
   }
   return valor.trim() || undefined;

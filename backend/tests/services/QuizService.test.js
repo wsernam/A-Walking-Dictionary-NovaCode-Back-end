@@ -121,6 +121,9 @@ describe('QuizService.generar — HU-3.1 (CA-3.1.1, CA-3.1.2, CA-3.1.3)', () => 
     ['titulo supera 200 caracteres', { titulo: 'x'.repeat(201) }, 'QUIZ_INVALID_TITLE'],
     ['cantidad_preguntas es 0', { cantidad_preguntas: 0 }, 'QUIZ_INVALID_QUESTION_COUNT'],
     ['mazo_ids contiene valores no enteros', { mazo_ids: [1, 'a'] }, 'QUIZ_INVALID_DECK_IDS'],
+    // Fuzzing Schemathesis run #29 (docente): "out of range for type integer" respondía 500.
+    ['mazo_ids tiene un id fuera del rango de INT', { mazo_ids: [1, 313169722268] }, 'QUIZ_INVALID_DECK_IDS'],
+    ['tiempo_limite_min supera el rango de INT', { tiempo_limite_min: 2147483648 }, 'QUIZ_INVALID_TIME_LIMIT'],
   ])('CA-3.1.3: responde 400 cuando %s', async (_caso, cambios, code) => {
     await expect(QuizService.generar({ ...datosValidos(), ...cambios })).rejects.toMatchObject({
       status: 400,

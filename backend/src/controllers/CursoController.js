@@ -10,6 +10,7 @@
 
 import { CursoRepository } from '../repositories/CursoRepository.js';
 import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
+import { esFechaValida, leerIdRuta } from '../utils/validacion.js';
 
 const ocultarCodigo = (curso, req) => {
   if (req.usuario?.rol === 'docente') {
@@ -56,6 +57,21 @@ export const CursoController = {
         });
       }
 
+      // Sin esta validación un arreglo u objeto pasaba el control de longitud (.length) y
+      // PostgreSQL respondía 500 al convertirlo a texto (fuzzing Schemathesis, rol docente).
+      if (typeof nombre !== 'string' || typeof periodo !== 'string' || typeof estado !== 'string') {
+        return res.status(400).json({
+          error: 'nombre, periodo y estado deben ser cadenas de texto',
+          code: 'INVALID_FIELD_TYPE',
+        });
+      }
+      if (!esFechaValida(fecha_inicio) || !esFechaValida(fecha_fin)) {
+        return res.status(400).json({
+          error: 'fecha_inicio y fecha_fin deben ser fechas validas (AAAA-MM-DD)',
+          code: 'INVALID_FIELD_TYPE',
+        });
+      }
+
       // Longitud máxima según el DER: nombre varchar(150), periodo varchar(20), estado varchar(30).
       const erroresLongitud = [];
       if (nombre.length > 150) {
@@ -93,7 +109,7 @@ export const CursoController = {
 
   async obtenerPorId(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
 
       // Validar que el identificador sea un entero positivo
       // dentro del rango de PostgreSQL INTEGER.
@@ -138,7 +154,7 @@ export const CursoController = {
 
   async actualizar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -154,7 +170,7 @@ export const CursoController = {
 
   async eliminar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }

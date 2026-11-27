@@ -19,6 +19,7 @@
 
 import { ReporteEstudioRepository } from '../repositories/ReporteEstudioRepository.js';
 import { errorApi } from '../utils/codigosError.js';
+import { leerIdRuta } from '../utils/validacion.js';
 
 /** @brief Cantidad de palabras difíciles por estudiante (S7/S8). */
 const PALABRAS_DIFICILES_POR_ESTUDIANTE = 10;
@@ -29,7 +30,7 @@ const PALABRAS_DIFICILES_POR_ESTUDIANTE = 10;
  */
 function leerStudentId(studentId) {
   if (studentId === undefined || studentId === null || studentId === '') return null;
-  const id = Number(studentId);
+  const id = leerIdRuta(studentId);
   if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
     throw errorApi(400, 'INVALID_ID', 'student_id inválido');
   }

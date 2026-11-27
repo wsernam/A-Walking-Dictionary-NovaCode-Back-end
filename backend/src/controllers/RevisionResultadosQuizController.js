@@ -6,11 +6,12 @@
 
 import { RevisionResultadosQuizService }
   from '../services/RevisionResultadosQuizService.js';
+import { leerIdRuta } from '../utils/validacion.js';
 
 export const RevisionResultadosQuizController = {
   async consultarResumen(req, res) {
     try {
-      const quizId = Number(req.params.id);
+      const quizId = leerIdRuta(req.params.id);
 
       if (
         !Number.isSafeInteger(quizId) ||
@@ -52,8 +53,8 @@ export const RevisionResultadosQuizController = {
  */
 async consultarRespuestas(req, res) {
   try {
-    const quizId = Number(req.params.id);
-    const resultadoId = Number(req.params.resultadoId);
+    const quizId = leerIdRuta(req.params.id);
+    const resultadoId = leerIdRuta(req.params.resultadoId);
 
     // Validar ambos identificadores.
     const idValido = (id) =>

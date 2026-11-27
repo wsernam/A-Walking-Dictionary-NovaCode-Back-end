@@ -16,6 +16,7 @@
  */
 
 import { QuizMazoRepository } from '../repositories/QuizMazoRepository.js';
+import { leerIdRuta } from '../utils/validacion.js';
 
 export const QuizMazoController = {
 
@@ -40,8 +41,8 @@ export const QuizMazoController = {
    */
   async obtenerPorQuizYMazo(req, res) {
     try {
-      const quizId = Number(req.params.quizId);
-      const mazoId = Number(req.params.mazoId);
+      const quizId = leerIdRuta(req.params.quizId);
+      const mazoId = leerIdRuta(req.params.mazoId);
       if (Number.isNaN(quizId) || Number.isNaN(mazoId)) {
         return res.status(400).json({ error: 'quizId o mazoId inválido' });
       }
@@ -76,8 +77,8 @@ export const QuizMazoController = {
    */
   async actualizar(req, res) {
     try {
-      const quizId = Number(req.params.quizId);
-      const mazoId = Number(req.params.mazoId);
+      const quizId = leerIdRuta(req.params.quizId);
+      const mazoId = leerIdRuta(req.params.mazoId);
       if (Number.isNaN(quizId) || Number.isNaN(mazoId)) {
         return res.status(400).json({ error: 'quizId o mazoId inválido' });
       }
@@ -98,8 +99,8 @@ export const QuizMazoController = {
    */
   async eliminar(req, res) {
     try {
-      const quizId = Number(req.params.quizId);
-      const mazoId = Number(req.params.mazoId);
+      const quizId = leerIdRuta(req.params.quizId);
+      const mazoId = leerIdRuta(req.params.mazoId);
       if (Number.isNaN(quizId) || Number.isNaN(mazoId)) {
         return res.status(400).json({ error: 'quizId o mazoId inválido' });
       }

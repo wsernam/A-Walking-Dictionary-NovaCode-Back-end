@@ -15,6 +15,7 @@
 import { ReporteResultadosQuizRepository } from '../repositories/ReporteResultadosQuizRepository.js';
 import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
 import { errorApi } from '../utils/codigosError.js';
+import { leerIdRuta } from '../utils/validacion.js';
 
 /** @brief Cantidad de preguntas con mayor porcentaje de error que se muestran (S4). */
 const PREGUNTAS_CON_MAS_ERROR = 5;
@@ -27,7 +28,7 @@ const aNumero = (valor) => (valor === null || valor === undefined ? null : Numbe
  * @throws {Error} 400 INVALID_ID si no es un entero positivo.
  */
 function leerIdQuiz(valor) {
-  const id = Number(valor);
+  const id = leerIdRuta(valor);
   if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
     throw errorApi(400, 'INVALID_ID', 'id inválido');
   }

@@ -1,6 +1,7 @@
 import { EstudioService } from '../services/EstudioService.js';
 import { InscripcionRepository } from '../repositories/InscripcionRepository.js';
 import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
+import { esIdValido } from '../utils/validacion.js';
 
 /**
  * Auditoría OWASP H-03 (A01): comprueba que la inscripción pertenece al usuario del token.
@@ -30,7 +31,9 @@ export const EstudioController = {
 
       const id = Number(inscripcion_id);
 
-      if (Number.isNaN(id)) {
+      // Entero entre 1 y 2147483647 (INT de PostgreSQL); antes solo se rechazaba NaN y un
+      // decimal o un número fuera de rango llegaba a la base de datos y respondía 500.
+      if (!esIdValido(id)) {
         return res.status(400).json({
           error: 'inscripcion_id inválido',
           code: 'INVALID_ID',
@@ -70,7 +73,7 @@ export const EstudioController = {
       const inscripcionId = Number(inscripcion_id);
       const tarjetaId = Number(tarjeta_id);
 
-      if (Number.isNaN(inscripcionId) || Number.isNaN(tarjetaId)) {
+      if (!esIdValido(inscripcionId) || !esIdValido(tarjetaId)) {
         return res.status(400).json({
           error: 'inscripcion_id y tarjeta_id deben ser números válidos',
           code: 'INVALID_ID',

@@ -38,6 +38,7 @@ import { ResultadoQuizRepository } from '../repositories/ResultadoQuizRepository
 import { RespuestaQuizRepository } from '../repositories/RespuestaQuizRepository.js';
 import { TarjetaRepository } from '../repositories/TarjetaRepository.js';
 import { errorApi } from '../utils/codigosError.js';
+import { ID_MAXIMO } from '../utils/validacion.js';
 
 /** @brief Margen (ms) que se tolera al recibir un envío tras vencer el tiempo/cierre (latencia). */
 const MARGEN_ENVIO_MS = 30 * 1000;
@@ -106,7 +107,9 @@ function sinClaveDeRespuesta({ id_pregunta, tipo_pregunta, enunciado, opcion_a, 
  */
 function esEnteroPositivo(valor) {
   const n = Number(valor);
-  return valor !== '' && valor !== null && Number.isInteger(n) && n >= 1;
+  // Tope de INT en PostgreSQL: un id mayor llegaba a la base de datos y respondía 500
+  // ("out of range for type integer", fuzzing Schemathesis, rol docente).
+  return valor !== '' && valor !== null && Number.isInteger(n) && n >= 1 && n <= ID_MAXIMO;
 }
 
 /**

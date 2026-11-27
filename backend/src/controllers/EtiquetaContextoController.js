@@ -11,6 +11,7 @@
  */
 
 import { EtiquetaContextoRepository } from '../repositories/EtiquetaContextoRepository.js';
+import { leerIdRuta } from '../utils/validacion.js';
 
 export const EtiquetaContextoController = {
 
@@ -64,7 +65,7 @@ export const EtiquetaContextoController = {
    */
   async obtenerPorId(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido' });
       }
@@ -99,7 +100,7 @@ export const EtiquetaContextoController = {
    */
   async actualizar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido' });
       }
@@ -120,7 +121,7 @@ export const EtiquetaContextoController = {
    */
   async eliminar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido' });
       }

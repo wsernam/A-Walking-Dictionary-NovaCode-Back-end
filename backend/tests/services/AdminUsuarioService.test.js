@@ -80,6 +80,9 @@ it('permite el límite máximo de 100', async () => {
     [{ page: '0' }, 'ADMIN_INVALID_QUERY'],
     [{ limit: 'abc' }, 'ADMIN_INVALID_QUERY'],
     [{ search: ['a', 'b'] }, 'ADMIN_INVALID_QUERY'],
+    // Fuzzing Schemathesis (administrador): el byte nulo llegaba a PostgreSQL y respondía 500.
+    [{ search: '\u00e6CA\u00f6Vg\u0000\u0003(' }, 'ADMIN_INVALID_QUERY'],
+    [{ search: 'ana\nmaria' }, 'ADMIN_INVALID_QUERY'],
   ])('filtro inválido %j responde 400 %s', async (query, code) => {
     await expect(AdminUsuarioService.listar(query)).rejects.toMatchObject({ status: 400, code });
     expect(UsuarioRepository.listarParaAdmin).not.toHaveBeenCalled();

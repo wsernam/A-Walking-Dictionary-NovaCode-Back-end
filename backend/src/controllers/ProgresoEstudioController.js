@@ -11,6 +11,7 @@
  */
 
 import { ProgresoEstudioRepository } from '../repositories/ProgresoEstudioRepository.js';
+import { leerIdRuta } from '../utils/validacion.js';
 
 export const ProgresoEstudioController = {
 
@@ -47,7 +48,7 @@ export const ProgresoEstudioController = {
    */
   async obtenerPorId(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido' });
       }
@@ -82,7 +83,7 @@ export const ProgresoEstudioController = {
    */
   async actualizar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido' });
       }
@@ -103,7 +104,7 @@ export const ProgresoEstudioController = {
    */
   async eliminar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido' });
       }

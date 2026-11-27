@@ -83,6 +83,21 @@ describe('CursoController.crear — auditoría OWASP H-13 (identidad desde el to
     CursoRepository.crear.mockRejectedValue(new Error('x'));
     expect((await llamar(CursoController, 'crear', { body: datosNuevos, usuario: docente })).status).toBe(500);
   });
+
+  // Fuzzing Schemathesis (docente): un periodo enviado como arreglo pasaba el control de longitud
+  // y PostgreSQL respondía 500 ("value too long for type character varying(20)").
+  it.each([
+    ['periodo', [{}, [], 'x']],
+    ['nombre', { a: 1 }],
+    ['estado', 7],
+    ['fecha_inicio', '2026-13-01'],
+    ['fecha_fin', 20261201],
+  ])('rechaza con 400 INVALID_FIELD_TYPE un %s inválido', async (campo, valor) => {
+    const { status, body } = await llamar(CursoController, 'crear', { body: { ...datosNuevos, [campo]: valor }, usuario: docente });
+    expect(status).toBe(400);
+    expect(body.code).toBe('INVALID_FIELD_TYPE');
+    expect(CursoRepository.crear).not.toHaveBeenCalled();
+  });
 });
 
 describe('CursoController — editar y borrar [SIN RUTA MONTADA]', () => {

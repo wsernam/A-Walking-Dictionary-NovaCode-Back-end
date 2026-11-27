@@ -229,14 +229,15 @@ paths:
       summary: Crea un mazo
       description: |
         **Supuesto pendiente de validar (D-09):** el DER exige `curso_id`, `fecha_apertura` y `fecha_cierre`.
-        El controlador valida `nombre_lectura`, `semana`, `autor`, `fecha_apertura` y `fecha_cierre`, pero NO
-        valida `curso_id`: si falta, el INSERT falla y responde 500.
+        El controlador exige los tres (además de `nombre_lectura`, `semana` y `autor`): `curso_id` debe ser un
+        entero positivo y las fechas, fechas válidas (400 si no); un `curso_id` que no existe responde 404
+        COURSE_NOT_FOUND.
 
         Solo docente. El `docente_id` sale del token (no del body). El mazo siempre se crea en estado
         `abierto` (CA-1.1.1); el `estado` y la `fecha_creacion` que vengan en el body se ignoran.
       x-hu: HU-1.1
       x-ca: [CA-1.1.1, CA-1.1.2]
-      x-pendiente: 'D-09: curso_id es NOT NULL en el DER pero el controlador no lo valida (500 si falta)'
+      x-pendiente: 'D-09: de dónde salen curso_id, fecha_apertura y fecha_cierre (el controlador los exige)'
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -244,12 +245,12 @@ paths:
           application/json:
             schema:
               type: object
-              required: [nombre_lectura, semana, autor, fecha_apertura, fecha_cierre]
+              required: [curso_id, nombre_lectura, semana, autor, fecha_apertura, fecha_cierre]
               properties:
-                curso_id: { type: integer, description: 'Obligatorio en el DER; el controlador no lo valida (D-09)' }
+                curso_id: { type: integer, minimum: 1, maximum: 2147483647 }
                 nombre_lectura: { type: string, maxLength: 200 }
                 autor: { type: string, maxLength: 150 }
-                semana: { type: integer }
+                semana: { type: integer, minimum: 1, maximum: 2147483647 }
                 variante_regional_predeterminada: { type: string, maxLength: 100 }
                 fecha_apertura: { type: string, format: date }
                 fecha_cierre: { type: string, format: date }
@@ -260,6 +261,7 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalError' }
     get:
       tags: [decks]
@@ -339,8 +341,9 @@ paths:
       operationId: eliminarMazo
       summary: Elimina un mazo
       description: |
-        Solo la docente dueña del mazo. Si el mazo todavía tiene tarjetas asociadas, la foreign key
-        impide borrarlo y responde 500.
+        Solo la docente dueña del mazo. Si el mazo todavía tiene tarjetas asociadas responde 409
+        DECK_HAS_CARDS, y si está incluido en un quiz, 409 CONFLICT; en ambos casos no se borra nada
+        (no hay borrado en cascada). Para dejar de recibir aportes se cierra el mazo (PATCH /decks/{id}/estado).
       x-hu: HU-1.1
       security: [{ bearerAuth: [] }]
       responses:
@@ -351,6 +354,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
         '500': { $ref: '#/components/responses/InternalError' }
   /decks/{id}/estado:
     parameters:
@@ -716,7 +720,8 @@ paths:
       summary: Crea un curso
       description: |
         Solo docente. El `docente_id` sale del token (no del body). Valida que vengan todos los campos
-        (NOT NULL en el DER) y sus longitudes máximas.
+        (NOT NULL en el DER), que `nombre`, `periodo` y `estado` sean texto con su longitud máxima y que
+        las fechas sean válidas.
       x-hu: HU-5.3
       security: [{ bearerAuth: [] }]
       requestBody:
@@ -1022,10 +1027,10 @@ paths:
             schema:
               type: object
               properties:
-                nivel_ingles: { type: string, enum: [A1, A2, B1, B2, C1, C2] }
-                codigo_estudiantil: { type: string, maxLength: 20 }
-                avatar: { type: string, maxLength: 500, description: URL o ruta de la imagen; se rechaza un data URI }
-                intereses: { type: array, items: { type: string, minLength: 1 } }
+                nivel_ingles: { type: string, nullable: true, enum: [A1, A2, B1, B2, C1, C2, null], description: 'null o ausente = no cambia' }
+                codigo_estudiantil: { type: string, nullable: true, maxLength: 20, description: 'null o ausente = no cambia' }
+                avatar: { type: string, nullable: true, maxLength: 500, description: 'URL o ruta de la imagen; se rechaza un data URI. null o ausente = no cambia' }
+                intereses: { type: array, nullable: true, items: { type: string, minLength: 1 }, description: 'null o ausente = no cambia' }
       responses:
         '200':
           description: Perfil actualizado.
@@ -1110,29 +1115,21 @@ paths:
       summary: Crea un aporte (CRUD genérico)
       description: |
         Requiere sesión (cualquier rol). CRUD genérico: guarda las columnas del body tal como llegan, sin las
-        reglas de HU-1.2/HU-1.3 (para registrar palabras se usa POST /decks/{id}/cards). Solo valida que vengan
-        `traduccion_aportada` y `tipo_aporte` y las longitudes máximas; si falta otra columna NOT NULL o una
-        foreign key no existe, responde 500.
+        reglas de HU-1.2/HU-1.3 (para registrar palabras se usa POST /decks/{id}/cards). Exige las columnas
+        NOT NULL del DER, sus tipos y longitudes máximas (400 si no); si la tarjeta o la inscripción no existen
+        responde 404 (CARD_NOT_FOUND / ENROLLMENT_NOT_FOUND). Sin `fecha_aporte`, la pone la base de datos.
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required: [traduccion_aportada, tipo_aporte]
-              properties:
-                tarjeta_id: { type: integer }
-                inscripcion_id: { type: integer }
-                traduccion_aportada: { type: string, maxLength: 255 }
-                definicion_aportada: { type: string }
-                ejemplo_aportado: { type: string, maxLength: 150 }
-                tipo_aporte: { type: string, maxLength: 40, enum: [creada, coautoria, acepcion_nueva] }
+            schema: { $ref: '#/components/schemas/AporteEntrada' }
       responses:
         '201':
           description: Aporte creado.
           content: { application/json: { schema: { $ref: '#/components/schemas/Aporte' } } }
         '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/InternalError' }
     get:
@@ -1170,13 +1167,16 @@ paths:
       tags: [aportes]
       operationId: actualizarAporte
       summary: Edita un aporte (CRUD genérico)
-      description: Solo docente. Actualiza las columnas del aporte con las del body, sin validaciones de negocio.
+      description: |
+        Solo docente. Reemplaza las columnas del aporte con las del body, sin validaciones de negocio. Exige las
+        mismas columnas que POST /aportes (400 si no); sin `fecha_aporte` se conserva la actual. Una tarjeta o
+        inscripción inexistente responde 404.
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/Aporte' }
+            schema: { $ref: '#/components/schemas/AporteEntrada' }
       responses:
         '200':
           description: Aporte actualizado.
@@ -1293,24 +1293,16 @@ paths:
       operationId: crearQuiz
       summary: Crea un quiz (CRUD genérico)
       description: |
-        Solo docente. CRUD genérico, sin la lógica de HU-3.1 (para eso está POST /quizzes/generate). Solo valida
-        `titulo` y `estado`; si falta otra columna NOT NULL (`curso_id`, `semana_corte`) responde 500.
+        Solo docente. CRUD genérico, sin la lógica de HU-3.1 (para eso está POST /quizzes/generate). Exige las
+        columnas NOT NULL (`curso_id`, `titulo`, `semana_corte`, `estado`) y valida tipos, longitudes y fechas
+        ISO 8601 (400 si no); un `curso_id` que no existe responde 404 COURSE_NOT_FOUND. La `fecha_creacion`
+        la pone la base de datos.
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required: [titulo, estado]
-              properties:
-                curso_id: { type: integer }
-                titulo: { type: string, maxLength: 200 }
-                semana_corte: { type: integer }
-                fecha_apertura: { type: string, format: date-time }
-                fecha_cierre: { type: string, format: date-time }
-                tiempo_limite_min: { type: integer }
-                estado: { type: string, maxLength: 30 }
+            schema: { $ref: '#/components/schemas/QuizEntrada' }
       responses:
         '201':
           description: Quiz creado.
@@ -1318,6 +1310,7 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalError' }
     get:
       tags: [quizzes]
@@ -1388,22 +1381,16 @@ paths:
       tags: [quizzes]
       operationId: actualizarQuiz
       summary: Edita un quiz (CRUD genérico)
-      description: Solo docente. Reemplaza las columnas del quiz con las del body, sin validaciones de negocio.
+      description: |
+        Solo docente. Reemplaza las columnas del quiz con las del body, sin validaciones de negocio. Exige y
+        valida lo mismo que POST /quizzes (400 si no); 404 si el quiz o el curso no existen. La `fecha_creacion`
+        se conserva.
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              properties:
-                curso_id: { type: integer }
-                titulo: { type: string, maxLength: 200 }
-                semana_corte: { type: integer }
-                fecha_apertura: { type: string, format: date-time }
-                fecha_cierre: { type: string, format: date-time }
-                tiempo_limite_min: { type: integer }
-                estado: { type: string, maxLength: 30 }
+            schema: { $ref: '#/components/schemas/QuizEntrada' }
       responses:
         '200':
           description: Quiz actualizado.
@@ -1899,6 +1886,18 @@ components:
         tipo_aporte: { type: string, maxLength: 40, enum: [creada, coautoria, acepcion_nueva] }
         fecha_aporte: { type: string, format: date-time }
         estado: { type: string, maxLength: 30, example: pendiente_revision }
+    AporteEntrada:
+      type: object
+      description: Body de POST /aportes y PUT /aportes/{id} (columnas NOT NULL de `aporte` obligatorias).
+      required: [tarjeta_id, inscripcion_id, traduccion_aportada, definicion_aportada, tipo_aporte]
+      properties:
+        tarjeta_id: { type: integer, minimum: 1, maximum: 2147483647 }
+        inscripcion_id: { type: integer, minimum: 1, maximum: 2147483647 }
+        traduccion_aportada: { type: string, minLength: 1, maxLength: 255 }
+        definicion_aportada: { type: string, minLength: 1 }
+        ejemplo_aportado: { type: string, maxLength: 150, nullable: true }
+        tipo_aporte: { type: string, enum: [creada, coautoria, acepcion_nueva] }
+        fecha_aporte: { type: string, format: date-time, nullable: true, description: 'Opcional; null u omitida la pone la base de datos (o se conserva en PUT). "" responde 400' }
     AportePendiente:
       type: object
       description: Coautoría o acepción nueva pendiente, con datos de su tarjeta.
@@ -1970,6 +1969,18 @@ components:
           items: { $ref: '#/components/schemas/TarjetaEstudio' }
 
     # ---------- Quices ----------
+    QuizEntrada:
+      type: object
+      description: Body de POST /quizzes y PUT /quizzes/{id} (CRUD genérico). La `fecha_creacion` del cliente se ignora.
+      required: [curso_id, titulo, semana_corte, estado]
+      properties:
+        curso_id: { type: integer, minimum: 1, maximum: 2147483647 }
+        titulo: { type: string, minLength: 1, maxLength: 200 }
+        semana_corte: { type: integer, minimum: 1, maximum: 2147483647 }
+        fecha_apertura: { type: string, format: date-time, nullable: true }
+        fecha_cierre: { type: string, format: date-time, nullable: true }
+        tiempo_limite_min: { type: integer, minimum: 1, maximum: 2147483647, nullable: true }
+        estado: { type: string, minLength: 1, maxLength: 30 }
     Quiz:
       type: object
       description: Tabla `quiz` más `estado_efectivo`, calculado según la fecha actual (CA-3.1.3).

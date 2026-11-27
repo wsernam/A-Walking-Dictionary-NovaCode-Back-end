@@ -12,6 +12,7 @@
 
 import { InscripcionRepository } from '../repositories/InscripcionRepository.js';
 import { InscripcionService } from '../services/InscripcionService.js';
+import { leerIdRuta, tieneCaracteresDeControl } from '../utils/validacion.js';
 
 export const InscripcionController = {
 
@@ -60,7 +61,7 @@ export const InscripcionController = {
    */
   async obtenerPorId(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
 
       if (Number.isNaN(id)) {
         return res.status(400).json({
@@ -112,7 +113,7 @@ export const InscripcionController = {
    */
   async actualizar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
 
       if (Number.isNaN(id)) {
         return res.status(400).json({
@@ -149,7 +150,7 @@ export const InscripcionController = {
    */
   async eliminar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
 
       if (Number.isNaN(id)) {
         return res.status(400).json({
@@ -186,7 +187,7 @@ export const InscripcionController = {
    */
   async generarCodigoAcceso(req, res) {
     try {
-      const id_curso = Number(req.params.id);
+      const id_curso = leerIdRuta(req.params.id);
 
       if (!Number.isSafeInteger(id_curso) || id_curso < 1 || id_curso > 2147483647) {
         return res.status(400).json({
@@ -234,6 +235,12 @@ export const InscripcionController = {
           });
         }
 
+        // Ningún curso tiene un código con caracteres de control (se generan con A-Z y 0-9); sin
+        // este control el byte nulo llegaba a PostgreSQL y respondía 500 (fuzzing Schemathesis).
+        if (tieneCaracteresDeControl(codigo_acceso)) {
+          return res.status(404).json({ error: 'Código de acceso inválido', code: 'ENROLL_INVALID_CODE' });
+        }
+
         const estudiante_id = req.usuario.id_usuario;
 
         const inscripcion =
@@ -259,7 +266,7 @@ export const InscripcionController = {
    */
   async asignarPorCorreo(req, res) {
     try {
-      const id_curso = Number(req.params.id);
+      const id_curso = leerIdRuta(req.params.id);
 
       if (!Number.isSafeInteger(id_curso) || id_curso < 1 || id_curso > 2147483647) {
         return res.status(400).json({
@@ -300,7 +307,7 @@ export const InscripcionController = {
    */
   async listarEstudiantesPorCurso(req, res) {
     try {
-      const id_curso = Number(req.params.id);
+      const id_curso = leerIdRuta(req.params.id);
 
       if (!Number.isSafeInteger(id_curso) || id_curso < 1 || id_curso > 2147483647) {
         return res.status(400).json({
