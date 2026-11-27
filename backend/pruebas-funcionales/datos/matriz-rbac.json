@@ -6,7 +6,7 @@
     {"id": 2, "permiso": "auth.register", "metodo": "POST", "ruta": "/auth/register", "permitido": ["invitado", "estudiante", "docente", "administrador"], "body": {}},
     {"id": 3, "permiso": "dictionary.read", "metodo": "GET", "ruta": "/dictionary", "permitido": ["invitado", "estudiante", "docente", "administrador"]},
     {"id": 4, "permiso": "dictionary.read_card", "metodo": "GET", "ruta": "/dictionary/{id}", "permitido": ["invitado", "estudiante", "docente", "administrador"]},
-    {"id": 5, "permiso": "enrichment.family", "metodo": "GET", "ruta": "/enrichment/family/{palabra}", "permitido": ["invitado", "estudiante", "docente", "administrador"], "hallazgos": {"invitado": "HALLAZGO-2: responde 500 porque init.sql no tiene wordnet_cache.categoria_gramatical (D-05, ya conocido)", "estudiante": "HALLAZGO-2: responde 500 porque init.sql no tiene wordnet_cache.categoria_gramatical (D-05, ya conocido)", "docente": "HALLAZGO-2: responde 500 porque init.sql no tiene wordnet_cache.categoria_gramatical (D-05, ya conocido)", "administrador": "HALLAZGO-2: responde 500 porque init.sql no tiene wordnet_cache.categoria_gramatical (D-05, ya conocido)"}},
+    {"id": 5, "permiso": "enrichment.family", "metodo": "GET", "ruta": "/enrichment/family/{palabra}", "permitido": ["invitado", "estudiante", "docente", "administrador"]},
     {"id": 6, "permiso": "course.list", "metodo": "GET", "ruta": "/courses", "permitido": ["invitado", "estudiante", "docente", "administrador"]},
     {"id": 7, "permiso": "course.read", "metodo": "GET", "ruta": "/courses/{id}", "permitido": ["invitado", "estudiante", "docente", "administrador"]},
     {"id": 8, "permiso": "course.create", "metodo": "POST", "ruta": "/courses", "permitido": ["docente"], "body": {}},

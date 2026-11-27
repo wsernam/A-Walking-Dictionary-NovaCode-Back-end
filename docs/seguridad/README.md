@@ -88,7 +88,7 @@ Alertas (todas de riesgo bajo o falso positivo):
 | Alerta ZAP | Riesgo | Qué pasa | Decisión |
 | --- | --- | --- | --- |
 | Server Error response (100000), 20 casos | Bajo | Entradas inválidas que la API no valida llegan a PostgreSQL y la respuesta es **500** en vez de **400**: ids fuera del rango `integer` (`GET /cards/5026139382315441753`), fechas y textos inválidos o demasiado largos, campos obligatorios vacíos (`POST /decks` sin `curso_id`, `POST /aportes`, `POST /quizzes`, `PUT /quizzes/:id`). El mensaje es genérico (`INTERNAL_ERROR`, OWASP H-08): **no se filtran datos** | Pendiente: agregar validación de entrada en los controladores (tarea aparte) |
-| Server Error en `GET /enrichment/family/{word}` | Bajo | La columna `wordnet_cache.categoria_gramatical` no está en `init.sql` (ya conocido, D-05) | Pendiente de decisión del equipo |
+| Server Error en `GET /enrichment/family/{word}` | Bajo | La columna `wordnet_cache.categoria_gramatical` no está en `init.sql` (ya conocido, D-05) | Corregido 2026-11-27: la columna se agregó a `init.sql` (commit 928e5d5) |
 | Application Error Disclosure (90022), 5 casos | Bajo | Son las mismas respuestas 500; el cuerpo no muestra trazas ni SQL | Se resuelve con la validación de entrada |
 | Unexpected Content-Type (100001), 78 casos | Bajo | Una ruta inexistente responde el 404 HTML por defecto de Express («Cannot GET …») en vez de JSON `{ error, code }` | Pendiente: manejador 404 en JSON (tarea aparte) |
 | Format String Error (30002), 1 caso | — | **Falso positivo**: Node.js no interpreta `%n`/`%s`; ZAP lo marca por el 500 de `PUT /quizzes/:id` con un `estado` inválido | Ignorado en `.zap/rules.tsv`, con justificación |
@@ -119,7 +119,7 @@ Las celdas con un hueco confirmado corren con `it.fails`: la integración contin
 | Hallazgo | Qué ocurre | Dónde | Corrección sugerida | Estado |
 | --- | --- | --- | --- | --- |
 | HALLAZGO-1 | El administrador atraviesa rutas que solo exigen sesión | `POST /cards/check-duplicate`, `GET /quizzes`, `GET /quizzes/:id` | Agregar `requireRole` con los roles permitidos | Abierto (D-13) |
-| HALLAZGO-2 | `GET /enrichment/family/:word` responde 500 a todos los roles | Falta `wordnet_cache.categoria_gramatical` en `init.sql` | Agregar la columna (D-05) | Abierto |
+| HALLAZGO-2 | `GET /enrichment/family/:word` responde 500 a todos los roles | Falta `wordnet_cache.categoria_gramatical` en `init.sql` | Agregar la columna (D-05) | Corregido 2026-11-27 (commit 928e5d5) |
 | HALLAZGO-3 | Un estudiante lee, lista y crea aportes de otros | `GET /aportes`, `GET /aportes/:id`, `POST /aportes` | Filtrar por la inscripción del token y validar `inscripcion_id` | Abierto |
 | HALLAZGO-4 | Cualquier docente edita, aprueba y elimina aportes | `PUT`, `PATCH /approve`, `DELETE /aportes/:id` | Comparar `curso.docente_id` con el token | Abierto (D-12) |
 | HALLAZGO-5 | Cualquier docente edita, etiqueta y aprueba tarjetas | `PUT /cards/:id`, `PUT /cards/:id/context`, `PATCH /cards/:id/approve` | Comparar `curso.docente_id` con el token | Abierto (D-12) |

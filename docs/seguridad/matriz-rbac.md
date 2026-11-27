@@ -399,7 +399,7 @@ Al ejecutar las pruebas contra el backend (rama `develop`, 2026-11-17) dieron 27
 | Hallazgo | Qué ocurre | Dónde | Corrección sugerida |
 | --- | --- | --- | --- |
 | 1 | El administrador atraviesa rutas que solo exigen sesión | Filas 23, 39 y 41 | Agregar `requireRole` con los roles permitidos |
-| 2 | `GET /enrichment/family/:word` responde 500 a todos los roles | Fila 5 | Agregar `categoria_gramatical` a `wordnet_cache` en `init.sql` (D-05, ya conocido) |
+| 2 | `GET /enrichment/family/:word` responde 500 a todos los roles | Fila 5 | Corregido 2026-11-27: `init.sql` ya trae `categoria_gramatical` y `familia` en `wordnet_cache` (commit 928e5d5); se quitó la marca `it.fails` de la fila 5 |
 | 3 | Aportes: un estudiante lee, lista y crea aportes de otros | IDOR-06, 07, 08 | Filtrar por la inscripción del token y validar `inscripcion_id` |
 | 4 | Aportes: cualquier docente edita, aprueba y elimina | IDOR-28, 29, 30 | Comparar `curso.docente_id` con el token |
 | 5 | Tarjetas: cualquier docente edita, etiqueta y aprueba | IDOR-22, 23, 24 | Comparar `curso.docente_id` con el token |
