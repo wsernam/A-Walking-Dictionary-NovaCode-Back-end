@@ -14,9 +14,11 @@
  * (OWASP H-09) se deja una línea [SEGURIDAD] con método, ruta e IP, sin el contenido de la petición.
  *
  * Pendiente (sin cambios): validar los campos obligatorios de cada Historia de Usuario en este
- * middleware. Hoy esas validaciones viven en los controladores y servicios; las rutas con
- * "TODO: agregar validacionMiddleware" esperan esa parte.
+ * middleware. Hoy esas validaciones viven en los controladores y servicios; las rutas marcadas con
+ * el comentario «agregar validacionMiddleware aquí» esperan esa parte.
  */
+
+import { limpiarParaLog } from '../utils/validacion.js';
 
 /** @brief Profundidad máxima que se recorre en el body (express.json ya limita el tamaño a 100 kB). */
 const PROFUNDIDAD_MAXIMA = 20;
@@ -60,7 +62,7 @@ function rutaConByteNulo(ruta) {
 export function rechazarByteNulo(req, res, next) {
   if (contieneByteNulo(req.body) || contieneByteNulo(req.query) || rutaConByteNulo(req.path)) {
     // Sin req.originalUrl: la query podría traer datos del usuario.
-    console.warn(`[SEGURIDAD] 400 byte nulo en la entrada ${req.method} ${req.path} ip=${req.ip}`);
+    console.warn(limpiarParaLog(`[SEGURIDAD] 400 byte nulo en la entrada ${req.method} ${req.path} ip=${req.ip}`));
     return res.status(400).json({
       error: 'La petición contiene caracteres no permitidos (byte nulo)',
       code: 'BAD_REQUEST',

@@ -74,6 +74,13 @@ describe('rechazarByteNulo — hallazgo de ZAP run #42', () => {
     expect(linea).not.toContain('privado');
   });
 
+  it('el log queda en una sola línea aunque la ruta traiga saltos de línea (log injection)', () => {
+    rechazarByteNulo(peticion({ body: { a: '\u0000' }, path: '/api/v1/x\r\n[SEGURIDAD] falso' }), crearRes(), vi.fn());
+    const linea = warn.mock.calls[0][0];
+    expect(linea).not.toMatch(/[\r\n]/);
+    expect(warn.mock.calls[0]).toHaveLength(1);
+  });
+
   it('deja pasar una petición normal', () => {
     const res = crearRes();
     const next = vi.fn();

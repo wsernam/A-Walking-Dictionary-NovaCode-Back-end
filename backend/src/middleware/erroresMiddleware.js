@@ -12,6 +12,8 @@
  * run #42. Mantiene el formato { error, code } de todas las respuestas de error (docs/codigos-error.md).
  */
 
+import { limpiarParaLog } from '../utils/validacion.js';
+
 /**
  * @brief Responde 404 en JSON para cualquier ruta que ningún router atendió.
  * @param {import('express').Request} _req
@@ -45,7 +47,7 @@ export function manejarErrorPeticion(err, req, res, next) {
   const status = Number.isInteger(err.status) && err.status >= 400 && err.status < 500 ? err.status : 500;
   if (status === 500) {
     // El detalle va solo al log; al cliente nunca se le devuelve (OWASP H-08).
-    console.error(`[ERROR] ${req.method} ${req.path}:`, err.message);
+    console.error(limpiarParaLog(`[ERROR] ${req.method} ${req.path}: ${err.message}`));
     return res.status(500).json({ error: 'Error interno del servidor', code: 'INTERNAL_ERROR' });
   }
   return res.status(status).json({ error: 'Petición inválida', code: 'BAD_REQUEST' });

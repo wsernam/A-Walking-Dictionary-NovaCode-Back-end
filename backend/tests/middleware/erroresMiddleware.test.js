@@ -49,7 +49,7 @@ describe('manejarErrorPeticion', () => {
 
     expect(respuesta(res)).toEqual({ status: 500, body: { error: 'Error interno del servidor', code: 'INTERNAL_ERROR' } });
     expect(JSON.stringify(res.json.mock.calls[0][0])).not.toContain('detalle interno');
-    expect(error).toHaveBeenCalledWith('[ERROR] POST /api/v1/decks:', 'detalle interno');
+    expect(error).toHaveBeenCalledWith('[ERROR] POST /api/v1/decks: detalle interno');
   });
 
   it('si la respuesta ya empezó a enviarse, delega en el manejador de Express', () => {

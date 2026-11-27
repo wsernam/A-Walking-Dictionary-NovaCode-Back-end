@@ -100,6 +100,7 @@ import rutasEnriquecimiento from './routes/enriquecimientoRoutes.js';
 import diccionarioRoutes from './routes/diccionarioRoutes.js';
 import reporteRoutes from './routes/reporteRoutes.js';
 import { codigoPorStatus, esCodigoPropio } from './utils/codigosError.js';
+import { limpiarParaLog } from './utils/validacion.js';
 
 
 /** @brief Instancia principal de la aplicación Express. */
@@ -162,7 +163,7 @@ app.use((req, res, next) => {
   const jsonOriginal = res.json.bind(res);
   res.json = (cuerpo) => {
     if (res.statusCode >= 500 && process.env.NODE_ENV === 'production') {
-      console.error(`[ERROR] ${req.method} ${req.originalUrl}:`, cuerpo);
+      console.error(limpiarParaLog(`[ERROR] ${req.method} ${req.originalUrl}: ${limpiarParaLog(cuerpo)}`));
       return jsonOriginal({ error: 'Error interno del servidor', code: 'INTERNAL_ERROR' });
     }
     if (res.statusCode >= 400 && cuerpo && typeof cuerpo === 'object' && 'error' in cuerpo) {
