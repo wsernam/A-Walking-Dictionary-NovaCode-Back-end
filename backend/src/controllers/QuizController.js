@@ -10,7 +10,7 @@
 import { QuizRepository } from '../repositories/QuizRepository.js';
 import { QuizService } from '../services/QuizService.js';
 import { ExportarPDFService } from '../services/ExportarPDFService.js';
-import { esEnteroEnRango, esFechaValida, esIdValido } from '../utils/validacion.js';
+import { esEnteroEnRango, esFechaValida, esIdValido, leerIdRuta } from '../utils/validacion.js';
 
 /** @brief SQLSTATE de PostgreSQL para una foreign key violada (foreign_key_violation). */
 const PG_FOREIGN_KEY_VIOLATION = '23503';
@@ -120,7 +120,7 @@ export const QuizController = {
    */
   async exportarPdf(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -169,7 +169,7 @@ export const QuizController = {
    */
   async obtenerPorId(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -197,7 +197,7 @@ export const QuizController = {
    */
   async obtenerPreguntas(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -236,7 +236,7 @@ export const QuizController = {
    */
   async obtenerResultado(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -274,7 +274,7 @@ export const QuizController = {
    */
   async actualizar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -304,7 +304,7 @@ export const QuizController = {
    */
   async eliminar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }

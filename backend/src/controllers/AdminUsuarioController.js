@@ -5,12 +5,13 @@
  */
 
 import { AdminUsuarioService } from '../services/AdminUsuarioService.js';
+import { leerIdRuta } from '../utils/validacion.js';
 
 const ID_MAXIMO = 2147483647;
 
 /** @return {number|null} El id de la ruta, o null si no es un entero válido. */
 function leerId(req) {
-  const id = Number(req.params.id);
+  const id = leerIdRuta(req.params.id);
   return Number.isSafeInteger(id) && id >= 1 && id <= ID_MAXIMO ? id : null;
 }
 

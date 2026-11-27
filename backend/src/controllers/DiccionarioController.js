@@ -7,7 +7,7 @@
  */
 
 import { DiccionarioService } from '../services/DiccionarioService.js';
-import { tieneCaracteresDeControl } from '../utils/validacion.js';
+import { leerIdRuta, tieneCaracteresDeControl } from '../utils/validacion.js';
 
 export const DiccionarioController = {
 
@@ -91,7 +91,7 @@ export const DiccionarioController = {
         });
       }
 
-      const id = Number(card_id);
+      const id = leerIdRuta(card_id);
 
       if (!Number.isSafeInteger(id)) {
         return res.status(400).json({

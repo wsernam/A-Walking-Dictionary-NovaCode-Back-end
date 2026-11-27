@@ -24,6 +24,7 @@
 
 import { ReporteProgresoRepository } from '../repositories/ReporteProgresoRepository.js';
 import { errorApi } from '../utils/codigosError.js';
+import { leerIdRuta } from '../utils/validacion.js';
 
 /** @brief Estados de tarjeta que el reporte desglosa (CA-18.1). */
 const ESTADOS_PALABRA = ['pendiente_revision', 'revisado_docente', 'rechazada'];
@@ -35,7 +36,7 @@ const TIPOS_COAUTORIA = ['coautoria', 'acepcion_nueva'];
  * @throws {Error} 400 INVALID_ID si no es un entero positivo.
  */
 function leerIdEstudiante(valor) {
-  const id = Number(valor);
+  const id = leerIdRuta(valor);
   if (valor === undefined || valor === null || valor === '' || !Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
     throw errorApi(400, 'INVALID_ID', 'id de estudiante inválido');
   }

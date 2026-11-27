@@ -22,6 +22,23 @@ export function esIdValido(valor) {
 }
 
 /**
+ * @brief Convierte un id que llega como texto (parámetro de la URL o de la query) en número, solo
+ * si el texto son únicamente dígitos.
+ *
+ * Reemplaza a Number(texto), que también acepta " 4", "\n4", "0x4", "4e0" y "4.0" y los
+ * convierte en 4 (fuzzing Schemathesis run #30, ST201 en GET /decks/%0A4). Se usa dentro del
+ * controlador, después de authenticate y requireRole, para no cambiar el orden 401 → 403 → 400.
+ * El rango (1 a ID_MAXIMO) lo sigue validando quien lo llama.
+ * @param {unknown} valor - Texto recibido. Un número entero se devuelve tal cual (llamadas
+ * internas y pruebas).
+ * @return {number} El número, o NaN si el valor no es un id escrito solo con dígitos.
+ */
+export function leerIdRuta(valor) {
+  if (typeof valor === 'number') return Number.isSafeInteger(valor) ? valor : NaN;
+  return typeof valor === 'string' && /^[0-9]+$/.test(valor) ? Number(valor) : NaN;
+}
+
+/**
  * @brief Indica si un valor es un entero dentro del rango de INT de PostgreSQL y mayor o igual a
  * `minimo`. Sirve para campos numéricos que no son ids (semana, tiempo_limite_min...).
  * @param {unknown} valor - Valor a validar.

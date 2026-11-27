@@ -4,6 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   ID_MAXIMO,
+  leerIdRuta,
   esIdValido,
   esEnteroEnRango,
   esFechaValida,
@@ -28,6 +29,36 @@ describe('esIdValido', () => {
     NaN,
   ])('rechaza %s', (valor) => {
     expect(esIdValido(valor)).toBe(false);
+  });
+});
+
+describe('leerIdRuta', () => {
+  it.each([
+    ['4', 4],
+    ['0', 0],
+    ['2147483648', 2147483648], // el rango lo valida quien la llama
+    [7, 7],
+  ])('convierte %j en %s', (valor, esperado) => {
+    expect(leerIdRuta(valor)).toBe(esperado);
+  });
+
+  it.each([
+    '\n4', // fuzzing run #30: GET /decks/%0A4 devolvía el mazo 4
+    ' 4',
+    '4 ',
+    '0x4',
+    '4e0',
+    '4.0',
+    '-4',
+    '+4',
+    '',
+    'abc',
+    1.5,
+    null,
+    undefined,
+    ['4'],
+  ])('devuelve NaN para %j', (valor) => {
+    expect(leerIdRuta(valor)).toBeNaN();
   });
 });
 

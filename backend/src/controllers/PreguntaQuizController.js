@@ -11,6 +11,7 @@
  */
 
 import { PreguntaQuizRepository } from '../repositories/PreguntaQuizRepository.js';
+import { leerIdRuta } from '../utils/validacion.js';
 
 export const PreguntaQuizController = {
 
@@ -87,7 +88,7 @@ export const PreguntaQuizController = {
    */
   async obtenerPorId(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido' });
       }
@@ -122,7 +123,7 @@ export const PreguntaQuizController = {
    */
   async actualizar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido' });
       }
@@ -143,7 +144,7 @@ export const PreguntaQuizController = {
    */
   async eliminar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido' });
       }

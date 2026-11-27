@@ -11,7 +11,7 @@ import { MazoRepository } from '../repositories/MazoRepository.js';
 import { ContextoService } from '../services/ContextoService.js';
 import { ExportarPDFService } from '../services/ExportarPDFService.js';
 import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
-import { esFechaValida, esIdValido } from '../utils/validacion.js';
+import { esFechaValida, esIdValido, leerIdRuta } from '../utils/validacion.js';
 
 /** @brief SQLSTATE de PostgreSQL para una foreign key violada (foreign_key_violation). */
 const PG_FOREIGN_KEY_VIOLATION = '23503';
@@ -178,7 +178,7 @@ export const MazoController = {
    */
   async obtenerPorId(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -232,7 +232,7 @@ export const MazoController = {
    */
   async actualizar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -312,7 +312,7 @@ export const MazoController = {
    */
   async actualizarEstado(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -350,7 +350,7 @@ export const MazoController = {
    */
   async actualizarVarianteRegional(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -382,7 +382,7 @@ export const MazoController = {
    */
   async exportarPdf(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -407,7 +407,7 @@ export const MazoController = {
    */
   async eliminar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }

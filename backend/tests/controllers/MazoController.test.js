@@ -140,6 +140,17 @@ describe('MazoController.crear — HU-1.1 (crear mazos por semana)', () => {
   });
 });
 
+describe('MazoController.obtenerPorId — id de la URL solo con dígitos (fuzzing run #30)', () => {
+  it.each(['\n4', ' 4', '0x4', '4e0', '4.0'])('rechaza con 400 INVALID_ID el id %j sin consultar', async (id) => {
+    MazoRepository.obtenerPorId.mockClear();
+    const { status, body } = await llamar('obtenerPorId', { id });
+
+    expect(status).toBe(400);
+    expect(body.code).toBe('INVALID_ID');
+    expect(MazoRepository.obtenerPorId).not.toHaveBeenCalled();
+  });
+});
+
 describe('MazoController.listar / obtenerPorId — CA-1.2.1', () => {
   it('CA-1.2.1: un estudiante solo ve los mazos de sus cursos', async () => {
     MazoRepository.listarPorEstudiante.mockResolvedValue([mazoGuardado]);

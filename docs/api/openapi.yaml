@@ -1027,9 +1027,9 @@ paths:
             schema:
               type: object
               properties:
-                nivel_ingles: { type: string, enum: [A1, A2, B1, B2, C1, C2] }
-                codigo_estudiantil: { type: string, maxLength: 20 }
-                avatar: { type: string, maxLength: 500, description: URL o ruta de la imagen; se rechaza un data URI }
+                nivel_ingles: { type: string, nullable: true, enum: [A1, A2, B1, B2, C1, C2, null], description: 'null o ausente = no cambia' }
+                codigo_estudiantil: { type: string, nullable: true, maxLength: 20, description: 'null o ausente = no cambia' }
+                avatar: { type: string, nullable: true, maxLength: 500, description: 'URL o ruta de la imagen; se rechaza un data URI. null o ausente = no cambia' }
                 intereses: { type: array, nullable: true, items: { type: string, minLength: 1 }, description: 'null o ausente = no cambia' }
       responses:
         '200':
@@ -1897,7 +1897,7 @@ components:
         definicion_aportada: { type: string, minLength: 1 }
         ejemplo_aportado: { type: string, maxLength: 150, nullable: true }
         tipo_aporte: { type: string, enum: [creada, coautoria, acepcion_nueva] }
-        fecha_aporte: { type: string, format: date-time, description: 'Opcional; si no llega la pone la base de datos (o se conserva en PUT)' }
+        fecha_aporte: { type: string, format: date-time, nullable: true, description: 'Opcional; null u omitida la pone la base de datos (o se conserva en PUT). "" responde 400' }
     AportePendiente:
       type: object
       description: Coautoría o acepción nueva pendiente, con datos de su tarjeta.

@@ -10,7 +10,7 @@
 
 import { CursoRepository } from '../repositories/CursoRepository.js';
 import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
-import { esFechaValida } from '../utils/validacion.js';
+import { esFechaValida, leerIdRuta } from '../utils/validacion.js';
 
 const ocultarCodigo = (curso, req) => {
   if (req.usuario?.rol === 'docente') {
@@ -109,7 +109,7 @@ export const CursoController = {
 
   async obtenerPorId(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
 
       // Validar que el identificador sea un entero positivo
       // dentro del rango de PostgreSQL INTEGER.
@@ -154,7 +154,7 @@ export const CursoController = {
 
   async actualizar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
@@ -170,7 +170,7 @@ export const CursoController = {
 
   async eliminar(req, res) {
     try {
-      const id = Number(req.params.id);
+      const id = leerIdRuta(req.params.id);
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
