@@ -84,12 +84,16 @@ export const DiccionarioController = {
 
       const id = Number(card_id);
 
-      if (!Number.isSafeInteger(id)) {
-        return res.status(400).json({
-          error: 'El identificador de la tarjeta no es válido',
-          code: 'INVALID_ID',
-        });
-      }
+        if (
+          !Number.isSafeInteger(id) ||
+          id < 1 ||
+          id > 2147483647
+        ) {
+          return res.status(400).json({
+            error: 'El identificador de la tarjeta no es válido',
+            code: 'INVALID_ID',
+          });
+        }
 
       const tarjeta =
         await DiccionarioService.obtenerDetalle(id);
