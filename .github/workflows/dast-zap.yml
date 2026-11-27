@@ -191,11 +191,24 @@ jobs:
         run: |
           echo "## DAST con OWASP ZAP - rol ${ROL}" >> "$GITHUB_STEP_SUMMARY"
           if [ ! -f "zap/reporte-zap-${ROL}.json" ]; then
-
             echo "No se generó el reporte." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          node -e '…': require("./zap/reporte-zap.json") pasa a require("./zap/reporte-zap-" + process.env.ROL + ".json"), y el texto Reporte completo en el artefacto **reporte-zap**. pasa a Rol ${process.env.ROL}. Reporte completo en el artefacto **reporte-zap-${process.env.ROL}**.
+          # Tabla de alertas del reporte de este rol, de mayor a menor riesgo. El reporte completo
+          # (HTML y JSON) queda en el artefacto reporte-zap-<rol>.
+          node -e '
+            const rol = process.env.ROL;
+            const r = require("./zap/reporte-zap-" + rol + ".json");
+            const alertas = (r.site || []).flatMap((s) => s.alerts || []);
+            const nivel = { 3: "Alto", 2: "Medio", 1: "Bajo", 0: "Informativo" };
+            const conteo = [3, 2, 1, 0].map((n) => `${nivel[n]}: ${alertas.filter((a) => Number(a.riskcode) === n).length}`);
+            const filas = alertas
+              .sort((a, b) => Number(b.riskcode) - Number(a.riskcode))
+              .map((a) => `| ${nivel[a.riskcode] ?? a.riskcode} | ${a.name} (${a.pluginid}) | ${a.count} |`);
+            console.log(`Rol **${rol}**: ${alertas.length} tipos de alerta (${conteo.join(", ")}). Reporte completo en el artefacto **reporte-zap-${rol}**.\n`);
+            console.log("| Riesgo | Alerta | Instancias |\n| --- | --- | --- |");
+            console.log(filas.join("\n") || "| — | Sin alertas | 0 |");
+          ' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publicar reporte
         if: always()

@@ -48,13 +48,25 @@ proyecto académico sin presupuesto se decidió **no aplicarla** y cubrir su obj
 
 ### Qué hace el workflow
 
-1. Crea una base PostgreSQL **desechable** con `init.sql` + `seed.sql`.
-2. Enciende el back-end en modo producción (`NODE_ENV=production`).
-3. Firma un token de la docente de `seed.sql` (ana.docente, id 1) para que ZAP pruebe también las rutas
-   protegidas. El token se oculta en el log.
-4. ZAP importa `docs/api/openapi.yaml` y ataca cada endpoint (inyección SQL, XSS, path traversal,
-   cabeceras, divulgación de información, etc.).
-5. Publica el reporte HTML y JSON como artefacto **reporte-zap** y un resumen en el job.
+El escaneo es **activo** y se repite **una vez por rol** (un job de la matriz por cada uno):
+
+| Rol | Token | Comprobación de arranque |
+| --- | --- | --- |
+| invitado | sin token | — |
+| estudiante | juan.estudiante (`seed.sql`) | `GET /cards/pending` debe dar **403** |
+| docente | ana.docente (`seed.sql`) | `GET /cards/pending` debe dar **200** |
+| administrador | admin.pruebas (`.github/ci/admin-pruebas.sql`) | `GET /admin/users` debe dar **200** |
+
+1. Verifica que el objetivo y la base sean locales; si no, corta el job (nunca contra staging ni producción).
+2. Crea una base PostgreSQL **desechable** con `init.sql` + `seed.sql` + el administrador de prueba.
+3. Enciende el back-end en modo producción (`NODE_ENV=production`).
+4. Firma el token del rol (el invitado no lleva) y comprueba con la ruta de arranque que ZAP de verdad
+   escanea como ese rol; si el código no es el esperado, el job falla. El token se oculta en el log.
+5. ZAP importa `docs/api/openapi.yaml` y ataca cada endpoint con intensidad alta
+   (`scanner.strength=HIGH`, `scanner.threshold=LOW`, tope de 60 minutos): inyección SQL, XSS, path
+   traversal, cabeceras, divulgación de información, etc.
+6. Publica el reporte HTML y JSON de cada rol como artefacto **reporte-zap-&lt;rol&gt;** y una tabla de
+   alertas por riesgo en el resumen del job.
 
 Por ahora **solo reporta**: el workflow no falla por las alertas. El límite de intentos de `/auth`
 (OWASP H-07) se sube con `RATE_LIMIT_AUTH_MAX` solo en esa base desechable, para que ZAP no quede
@@ -64,8 +76,12 @@ ZAP **crea y borra datos** (POST, PUT, DELETE). No correrlo contra una base con 
 
 ### Cómo ver el reporte
 
-GitHub → Actions → **DAST - OWASP ZAP** → la ejecución → artefacto **reporte-zap** → abrir
-`reporte-zap.html`.
+GitHub → Actions → **DAST - OWASP ZAP** → la ejecución. El resumen de cada job muestra la tabla de
+alertas de ese rol. El reporte completo está en el artefacto **reporte-zap-&lt;rol&gt;**
+(`reporte-zap-invitado`, `-estudiante`, `-docente`, `-administrador`) → abrir `reporte-zap-<rol>.html`.
+
+Al comparar roles: una alerta que aparece solo en un rol suele venir de un endpoint que solo ese rol
+alcanza (los demás reciben 401/403); una que aparece en todos es transversal (cabeceras, 404, etc.).
 
 ### Correrlo en local
 
@@ -78,6 +94,62 @@ docker run --rm -v "$PWD/zap:/zap/wrk/:rw" -e ZAP_AUTH_HEADER_VALUE="Bearer <tok
   -O http://host.docker.internal:<puerto> -c rules.tsv -r reporte-zap.html -I
 ```
 
+### Escaneo activo por rol (run #42, 2026-11-27, `develop` en `6b95674`)
+
+Primer escaneo activo con intensidad alta y un reporte por rol, después de las correcciones de
+validación de entrada del PR #104. **Ningún rol tiene inyección SQL, XSS explotable, inyección de
+comandos ni divulgación de información.**
+
+Alertas por rol (instancias). La confianza es la que asigna ZAP: baja (1), media (2), alta (3).
+
+| Riesgo | Alerta ZAP | Confianza | Invitado | Estudiante | Docente | Admin | Veredicto |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Alto | Path Traversal (6) | Baja | 0 | 1 | 4 | 0 | Falso positivo |
+| Medio | HTTP Only Site (10106) | Media | 1 | 1 | 1 | 1 | Esperado en CI |
+| Bajo | Server Error response (100000) | Alta | 0 | 1 | 5 | 1 | **Real: byte nulo** |
+| Bajo | Cross Site Scripting Weakness, persistente en JSON (40014) | Baja | 0 | 0 | 8 | 0 | No explotable desde la API |
+| Bajo | Unexpected Content-Type (100001) | — | 444 | 445 | 443 | 487 | **Real: 404 en HTML** |
+| Info | Client Error response (100000) | — | 743 | 742 | 721 | 737 | Normal (400/401/403/404 esperados) |
+| Info | User Agent Fuzzer (10104) | — | 5 | 5 | 5 | 5 | Normal |
+| Info | Non-Storable / Storable and Cacheable Content (10049) | — | 7 | 5 | 5 | 5 | Normal |
+
+Detalle de cada alerta:
+
+- **Server Error, byte nulo (real).** `POST /cards/check-duplicate`, `POST /courses`,
+  `POST /courses/{id}/assign`, `POST /decks` y `POST /quizzes` responden 500 si un texto del body trae
+  `\u0000` (PostgreSQL no lo acepta). Reproducido en local: con datos normales responden 200/201/404 y
+  con el byte nulo, 500. El cuerpo es genérico (`INTERNAL_ERROR`, OWASP H-08): **no se filtran datos**.
+  Pendiente: rechazar el byte nulo en la entrada (PR aparte).
+- **Unexpected Content-Type (real, menor).** Una ruta inexistente responde la página 404 HTML de Express
+  («Cannot GET …») en vez de JSON `{ error, code }`. Es la misma alerta del primer escaneo.
+  Pendiente: manejador 404 en JSON (PR aparte).
+- **Path Traversal (falso positivo).** ZAP manda como «ataque» el último tramo de la URL (`courses`,
+  `profile`, `10`) y lo marca porque la API devuelve ese texto en el JSON. El back-end no abre archivos
+  con datos del usuario: el único uso de `fs` es leer el certificado de la base con una ruta fija al
+  arrancar (`src/config/db.js`). Sin evidencia en ninguna instancia.
+- **XSS persistente en JSON (no explotable desde la API).** El texto se guarda tal cual, pero se
+  devuelve como `application/json` con `X-Content-Type-Options: nosniff` y una CSP estricta (Helmet),
+  así que el navegador no lo ejecuta. ZAP mismo lo marca con confianza baja «porque el Content-Type no
+  es HTML». Solo sería explotable si el front pintara esos textos como HTML (`dangerouslySetInnerHTML`);
+  React los escapa por defecto.
+- **HTTP Only Site (esperado en CI).** El escaneo apunta a `http://localhost` dentro del job. En
+  producción Render sirve por HTTPS y la CSP trae `upgrade-insecure-requests`.
+
+Lectura por rol:
+
+- **Invitado:** solo alertas transversales (HTTP, 404 en HTML). No alcanza ninguna ruta protegida,
+  como debe ser.
+- **Estudiante:** un 500 por byte nulo en `POST /cards/check-duplicate` y un falso positivo en
+  `PATCH /users/profile`. No llega a rutas de docente.
+- **Docente:** el que más alertas tiene, porque es el que alcanza casi todos los endpoints de
+  escritura: 5 de los 500, las 8 de XSS en JSON y los 4 falsos positivos de Path Traversal.
+- **Administrador:** un 500 por byte nulo en `POST /cards/check-duplicate`. Que el administrador
+  llegue a esa ruta académica **confirma con ZAP el HALLAZGO-1 / D-12** (debería recibir 403); queda
+  para la decisión del equipo.
+
+Respecto del primer escaneo (2026-11-08): desaparecen los 500 por validación de entrada (corregidos
+en el PR #104) y la alerta Application Error Disclosure (90022), que venía de esos mismos 500.
+
 ### Resultado del primer escaneo (2026-11-08, local, rama `feature/dast-zap`)
 
 67 URLs importadas del OpenAPI, 178 URLs probadas. **0 fallos y 118 reglas superadas**, entre ellas
@@ -87,10 +159,10 @@ Alertas (todas de riesgo bajo o falso positivo):
 
 | Alerta ZAP | Riesgo | Qué pasa | Decisión |
 | --- | --- | --- | --- |
-| Server Error response (100000), 20 casos | Bajo | Entradas inválidas que la API no valida llegan a PostgreSQL y la respuesta es **500** en vez de **400**: ids fuera del rango `integer` (`GET /cards/5026139382315441753`), fechas y textos inválidos o demasiado largos, campos obligatorios vacíos (`POST /decks` sin `curso_id`, `POST /aportes`, `POST /quizzes`, `PUT /quizzes/:id`). El mensaje es genérico (`INTERNAL_ERROR`, OWASP H-08): **no se filtran datos** | Pendiente: agregar validación de entrada en los controladores (tarea aparte) |
+| Server Error response (100000), 20 casos | Bajo | Entradas inválidas que la API no valida llegan a PostgreSQL y la respuesta es **500** en vez de **400**: ids fuera del rango `integer` (`GET /cards/5026139382315441753`), fechas y textos inválidos o demasiado largos, campos obligatorios vacíos (`POST /decks` sin `curso_id`, `POST /aportes`, `POST /quizzes`, `PUT /quizzes/:id`). El mensaje es genérico (`INTERNAL_ERROR`, OWASP H-08): **no se filtran datos** | Corregido en el PR #104 (validación de entrada; Schemathesis sin fallos en el run #32). En el run #42 de ZAP solo quedan los 500 por byte nulo |
 | Server Error en `GET /enrichment/family/{word}` | Bajo | La columna `wordnet_cache.categoria_gramatical` no está en `init.sql` (ya conocido, D-05) | Corregido 2026-11-27: la columna se agregó a `init.sql` (commit 928e5d5) |
-| Application Error Disclosure (90022), 5 casos | Bajo | Son las mismas respuestas 500; el cuerpo no muestra trazas ni SQL | Se resuelve con la validación de entrada |
-| Unexpected Content-Type (100001), 78 casos | Bajo | Una ruta inexistente responde el 404 HTML por defecto de Express («Cannot GET …») en vez de JSON `{ error, code }` | Pendiente: manejador 404 en JSON (tarea aparte) |
+| Application Error Disclosure (90022), 5 casos | Bajo | Son las mismas respuestas 500; el cuerpo no muestra trazas ni SQL | Resuelto: ya no aparece en el run #42 |
+| Unexpected Content-Type (100001), 78 casos | Bajo | Una ruta inexistente responde el 404 HTML por defecto de Express («Cannot GET …») en vez de JSON `{ error, code }` | Pendiente: manejador 404 en JSON (sigue en el run #42, ~450 instancias por rol) |
 | Format String Error (30002), 1 caso | — | **Falso positivo**: Node.js no interpreta `%n`/`%s`; ZAP lo marca por el 500 de `PUT /quizzes/:id` con un `estado` inválido | Ignorado en `.zap/rules.tsv`, con justificación |
 
 ### Mantenimiento
@@ -118,7 +190,7 @@ Las celdas con un hueco confirmado corren con `it.fails`: la integración contin
 
 | Hallazgo | Qué ocurre | Dónde | Corrección sugerida | Estado |
 | --- | --- | --- | --- | --- |
-| HALLAZGO-1 | El administrador atraviesa rutas que solo exigen sesión | `POST /cards/check-duplicate`, `GET /quizzes`, `GET /quizzes/:id` | Agregar `requireRole` con los roles permitidos | Abierto (D-13) |
+| HALLAZGO-1 | El administrador atraviesa rutas que solo exigen sesión | `POST /cards/check-duplicate`, `GET /quizzes`, `GET /quizzes/:id` | Agregar `requireRole` con los roles permitidos | Abierto (D-13). ZAP lo confirma en el run #42: el administrador llega a `POST /cards/check-duplicate` |
 | HALLAZGO-2 | `GET /enrichment/family/:word` responde 500 a todos los roles | Falta `wordnet_cache.categoria_gramatical` en `init.sql` | Agregar la columna (D-05) | Corregido 2026-11-27 (commit 928e5d5) |
 | HALLAZGO-3 | Un estudiante lee, lista y crea aportes de otros | `GET /aportes`, `GET /aportes/:id`, `POST /aportes` | Filtrar por la inscripción del token y validar `inscripcion_id` | Abierto |
 | HALLAZGO-4 | Cualquier docente edita, aprueba y elimina aportes | `PUT`, `PATCH /approve`, `DELETE /aportes/:id` | Comparar `curso.docente_id` con el token | Abierto (D-12) |
