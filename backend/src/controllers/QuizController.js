@@ -10,6 +10,82 @@
 import { QuizRepository } from '../repositories/QuizRepository.js';
 import { QuizService } from '../services/QuizService.js';
 import { ExportarPDFService } from '../services/ExportarPDFService.js';
+import { esEnteroEnRango, esFechaValida, esIdValido } from '../utils/validacion.js';
+
+/** @brief SQLSTATE de PostgreSQL para una foreign key violada (foreign_key_violation). */
+const PG_FOREIGN_KEY_VIOLATION = '23503';
+
+/**
+ * @brief Valida el body de POST y PUT /quizzes (CRUD genérico) contra las columnas de "quiz" del
+ * DER, para que un dato inválido responda 400 en vez de llegar a PostgreSQL y salir como 500.
+ *
+ * Obligatorios (NOT NULL): curso_id, titulo (varchar 200), semana_corte, estado (varchar 30).
+ * Opcionales (nullable): fecha_apertura, fecha_cierre (fecha ISO 8601) y tiempo_limite_min
+ * (entero positivo).
+ * @param {Object} body - req.body.
+ * @return {{ status: number, error: string, code: string } | null} El error a responder, o null
+ * si el body es válido.
+ */
+function validarDatosQuiz(body) {
+  const { curso_id, titulo, semana_corte, estado, fecha_apertura, fecha_cierre, tiempo_limite_min } = body;
+  const vacio = (valor) => valor === undefined || valor === null || valor === '';
+
+  const camposFaltantes = ['curso_id', 'titulo', 'semana_corte', 'estado'].filter((campo) => vacio(body[campo]));
+  if (camposFaltantes.length > 0) {
+    return {
+      status: 400,
+      error: `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`,
+      code: 'REQUIRED_FIELDS_MISSING',
+    };
+  }
+  if (typeof titulo !== 'string' || typeof estado !== 'string') {
+    return { status: 400, error: 'titulo y estado deben ser cadenas de texto', code: 'INVALID_FIELD_TYPE' };
+  }
+
+  // Longitud máxima según el DER: titulo varchar(200), estado varchar(30).
+  const erroresLongitud = [];
+  if (titulo.length > 200) {
+    erroresLongitud.push(`El campo titulo no puede superar 200 caracteres (tiene ${titulo.length} caracteres).`);
+  }
+  if (estado.length > 30) {
+    erroresLongitud.push(`El campo estado no puede superar 30 caracteres (tiene ${estado.length} caracteres).`);
+  }
+  if (erroresLongitud.length > 0) {
+    return { status: 400, error: erroresLongitud.join(' '), code: 'FIELD_TOO_LONG' };
+  }
+
+  if (!esIdValido(curso_id)) {
+    return { status: 400, error: 'curso_id debe ser un entero positivo valido', code: 'INVALID_ID' };
+  }
+  if (!esEnteroEnRango(semana_corte)) {
+    return { status: 400, error: 'semana_corte debe ser un entero positivo valido', code: 'INVALID_FIELD_TYPE' };
+  }
+  if (!vacio(tiempo_limite_min) && !esEnteroEnRango(tiempo_limite_min)) {
+    return { status: 400, error: 'tiempo_limite_min debe ser un entero positivo valido', code: 'INVALID_FIELD_TYPE' };
+  }
+  if ((!vacio(fecha_apertura) && !esFechaValida(fecha_apertura)) || (!vacio(fecha_cierre) && !esFechaValida(fecha_cierre))) {
+    return {
+      status: 400,
+      error: 'fecha_apertura y fecha_cierre deben ser fechas ISO 8601 validas',
+      code: 'INVALID_FIELD_TYPE',
+    };
+  }
+  return null;
+}
+
+/**
+ * @brief Arma los datos que se guardan: descarta fecha_creacion del cliente (la asigna la base de
+ * datos) y deja en null las fechas y el tiempo límite vacíos.
+ * @param {Object} body - req.body ya validado.
+ * @return {Object}
+ */
+function datosQuizParaGuardar(body) {
+  const { fecha_creacion, ...datos } = body;
+  for (const campo of ['fecha_apertura', 'fecha_cierre', 'tiempo_limite_min']) {
+    if (datos[campo] === '' || datos[campo] === undefined) datos[campo] = null;
+  }
+  return datos;
+}
 
 export const QuizController = {
   /**
@@ -60,46 +136,23 @@ export const QuizController = {
   /**
    * @brief Crea un quiz nuevo (CRUD genérico, sin la lógica de negocio de HU-3.1 — para eso
    * ver `generar`). POST /api/v1/quizzes
-   * @param {import('express').Request} req - req.body con las columnas de "quiz"; requiere al
-   * menos `titulo` y `estado`.
-   * @param {import('express').Response} res - 201 con el quiz creado, 400 si faltan
-   * titulo/estado o exceden su longitud máxima (varchar 200 / varchar 30 del DER), 500 ante
-   * error inesperado.
+   * @param {import('express').Request} req - req.body con las columnas de "quiz" (ver
+   * validarDatosQuiz).
+   * @param {import('express').Response} res - 201 con el quiz creado, 400 si falta un campo NOT
+   * NULL o alguno es inválido, 404 si el curso no existe, 500 ante error inesperado.
    */
   async crear(req, res) {
     try {
-      const { titulo, estado } = req.body;
-
-      // titulo y estado son varchar NOT NULL en el DER.
-      const camposFaltantes = [];
-      if (!titulo) camposFaltantes.push('titulo');
-      if (!estado) camposFaltantes.push('estado');
-      if (camposFaltantes.length > 0) {
-        return res.status(400).json({
-          error: `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`,
-          code: 'REQUIRED_FIELDS_MISSING',
-        });
+      const invalido = validarDatosQuiz(req.body);
+      if (invalido) {
+        return res.status(invalido.status).json({ error: invalido.error, code: invalido.code });
       }
-
-      // Longitud máxima según el DER: titulo varchar(200), estado varchar(30).
-      const erroresLongitud = [];
-      if (titulo.length > 200) {
-        erroresLongitud.push(
-          `El campo titulo no puede superar 200 caracteres (tiene ${titulo.length} caracteres).`
-        );
-      }
-      if (estado.length > 30) {
-        erroresLongitud.push(
-          `El campo estado no puede superar 30 caracteres (tiene ${estado.length} caracteres).`
-        );
-      }
-      if (erroresLongitud.length > 0) {
-        return res.status(400).json({ error: erroresLongitud.join(' '), code: 'FIELD_TOO_LONG' });
-      }
-
-      const quiz = await QuizRepository.crear(req.body);
+      const quiz = await QuizRepository.crear(datosQuizParaGuardar(req.body));
       res.status(201).json(quiz);
     } catch (error) {
+      if (error.code === PG_FOREIGN_KEY_VIOLATION) {
+        return res.status(404).json({ error: `El curso ${req.body.curso_id} no existe`, code: 'COURSE_NOT_FOUND' });
+      }
       res.status(500).json({ error: error.message });
     }
   },
@@ -213,7 +266,8 @@ export const QuizController = {
    * @param {import('express').Request} req - req.params.id es el id_quiz; req.body trae las
    * columnas nuevas de "quiz".
    * @param {import('express').Response} res - 200 con el quiz actualizado, 400 si el id no es
-   * numérico, 404 si no existe, 500 ante error inesperado.
+   * numérico o el body es inválido (ver validarDatosQuiz), 404 si el quiz o el curso no existen,
+   * 500 ante error inesperado.
    */
   async actualizar(req, res) {
     try {
@@ -221,12 +275,19 @@ export const QuizController = {
       if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
         return res.status(400).json({ error: 'id inválido', code: 'INVALID_ID' });
       }
-      const quiz = await QuizRepository.actualizar(id, req.body);
+      const invalido = validarDatosQuiz(req.body);
+      if (invalido) {
+        return res.status(invalido.status).json({ error: invalido.error, code: invalido.code });
+      }
+      const quiz = await QuizRepository.actualizar(id, datosQuizParaGuardar(req.body));
       if (!quiz) {
         return res.status(404).json({ error: 'Quiz no encontrado', code: 'QUIZ_NOT_FOUND' });
       }
       res.status(200).json(quiz);
     } catch (error) {
+      if (error.code === PG_FOREIGN_KEY_VIOLATION) {
+        return res.status(404).json({ error: `El curso ${req.body.curso_id} no existe`, code: 'COURSE_NOT_FOUND' });
+      }
       res.status(500).json({ error: error.message });
     }
   },

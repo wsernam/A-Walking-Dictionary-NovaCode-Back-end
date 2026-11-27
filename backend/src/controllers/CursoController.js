@@ -10,6 +10,7 @@
 
 import { CursoRepository } from '../repositories/CursoRepository.js';
 import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
+import { esFechaValida } from '../utils/validacion.js';
 
 const ocultarCodigo = (curso, req) => {
   if (req.usuario?.rol === 'docente') {
@@ -53,6 +54,21 @@ export const CursoController = {
         return res.status(400).json({
           error: `Los siguientes campos son obligatorios: ${camposFaltantes.join(', ')}`,
           code: 'REQUIRED_FIELDS_MISSING',
+        });
+      }
+
+      // Sin esta validación un arreglo u objeto pasaba el control de longitud (.length) y
+      // PostgreSQL respondía 500 al convertirlo a texto (fuzzing Schemathesis, rol docente).
+      if (typeof nombre !== 'string' || typeof periodo !== 'string' || typeof estado !== 'string') {
+        return res.status(400).json({
+          error: 'nombre, periodo y estado deben ser cadenas de texto',
+          code: 'INVALID_FIELD_TYPE',
+        });
+      }
+      if (!esFechaValida(fecha_inicio) || !esFechaValida(fecha_fin)) {
+        return res.status(400).json({
+          error: 'fecha_inicio y fecha_fin deben ser fechas validas (AAAA-MM-DD)',
+          code: 'INVALID_FIELD_TYPE',
         });
       }
 

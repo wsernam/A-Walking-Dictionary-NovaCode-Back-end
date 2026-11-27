@@ -33,9 +33,9 @@ export const QuizRepository = {
     } = datos;
     const { rows } = await db.query(
       `INSERT INTO quiz (curso_id, titulo, semana_corte, fecha_creacion, fecha_apertura, fecha_cierre, tiempo_limite_min, estado)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       VALUES ($1, $2, $3, COALESCE($4, NOW()), $5, $6, $7, $8)
        RETURNING *`,
-      [curso_id, titulo, semana_corte, fecha_creacion, fecha_apertura, fecha_cierre, tiempo_limite_min, estado]
+      [curso_id, titulo, semana_corte, fecha_creacion ?? null, fecha_apertura, fecha_cierre, tiempo_limite_min, estado]
     );
     return new Quiz(rows[0]);
   },
@@ -140,7 +140,7 @@ export const QuizRepository = {
     } = datos;
     const { rows } = await pool.query(
       `UPDATE quiz
-       SET curso_id = $2, titulo = $3, semana_corte = $4, fecha_creacion = $5,
+       SET curso_id = $2, titulo = $3, semana_corte = $4, fecha_creacion = COALESCE($5, fecha_creacion),
            fecha_apertura = $6, fecha_cierre = $7, tiempo_limite_min = $8, estado = $9
        WHERE id_quiz = $1
        RETURNING *`,

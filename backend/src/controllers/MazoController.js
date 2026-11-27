@@ -11,6 +11,10 @@ import { MazoRepository } from '../repositories/MazoRepository.js';
 import { ContextoService } from '../services/ContextoService.js';
 import { ExportarPDFService } from '../services/ExportarPDFService.js';
 import { authDeshabilitado } from '../middleware/autenticacionMiddleware.js';
+import { esFechaValida, esIdValido } from '../utils/validacion.js';
+
+/** @brief SQLSTATE de PostgreSQL para una foreign key violada (foreign_key_violation). */
+const PG_FOREIGN_KEY_VIOLATION = '23503';
 
 const ESTADOS_VALIDOS = ['abierto', 'cerrado'];
 
@@ -57,6 +61,7 @@ export const MazoController = {
   async crear(req, res) {
     try {
       const {
+        curso_id,
         nombre_lectura,
         semana,
         autor,
@@ -70,6 +75,8 @@ export const MazoController = {
       // autor, docente_id, fecha_apertura y fecha_cierre también son NOT NULL en el DER
       // (init.sql) y el cliente debe enviarlos, si no el INSERT fallaría con 500.
       const camposFaltantes = [];
+      // curso_id también es NOT NULL en el DER (D-09); sin esta validación el INSERT respondía 500.
+      if (curso_id === undefined || curso_id === null || curso_id === '') camposFaltantes.push('curso_id');
       if (!nombre_lectura) camposFaltantes.push('nombre_lectura');
       if (semana === undefined || semana === null || semana === '') camposFaltantes.push('semana');
       if (!autor) camposFaltantes.push('autor');
@@ -101,6 +108,25 @@ export const MazoController = {
       ) {
         return res.status(400).json({
           error: 'semana debe ser un entero positivo valido',
+          code: 'INVALID_FIELD_TYPE',
+        });
+      }
+      if (!esIdValido(curso_id)) {
+        return res.status(400).json({ error: 'curso_id debe ser un entero positivo valido', code: 'INVALID_ID' });
+      }
+      if (!esFechaValida(fecha_apertura) || !esFechaValida(fecha_cierre)) {
+        return res.status(400).json({
+          error: 'fecha_apertura y fecha_cierre deben ser fechas validas (AAAA-MM-DD)',
+          code: 'INVALID_FIELD_TYPE',
+        });
+      }
+      if (
+        variante_regional_predeterminada !== undefined &&
+        variante_regional_predeterminada !== null &&
+        typeof variante_regional_predeterminada !== 'string'
+      ) {
+        return res.status(400).json({
+          error: 'variante_regional_predeterminada debe ser una cadena de texto',
           code: 'INVALID_FIELD_TYPE',
         });
       }
@@ -136,6 +162,10 @@ export const MazoController = {
       const mazo = await MazoRepository.crear({ ...datosMazo, estado: 'abierto', docente_id });
       res.status(201).json(mazo);
     } catch (error) {
+      // docente_id sale del token, así que la única foreign key que puede fallar es curso_id.
+      if (error.code === PG_FOREIGN_KEY_VIOLATION) {
+        return res.status(404).json({ error: `El curso ${req.body.curso_id} no existe`, code: 'COURSE_NOT_FOUND' });
+      }
       res.status(500).json({ error: error.message });
     }
   },
@@ -372,8 +402,8 @@ export const MazoController = {
    * @brief Elimina un mazo por su id_mazo. Solo el docente dueño del mazo.
    * @param {import('express').Request} req - req.params.id es el id_mazo a eliminar.
    * @param {import('express').Response} res - 200 con { eliminado: true }, 400 si el id no es
-   * numérico, 403 si no es el dueño, 404 si no existía, 500 ante error inesperado (ej. si el
-   * mazo todavía tiene tarjetas asociadas, por la foreign key).
+   * numérico, 403 si no es el dueño, 404 si no existía, 409 si el mazo tiene tarjetas
+   * (DECK_HAS_CARDS) o está en un quiz (CONFLICT), 500 ante error inesperado.
    */
   async eliminar(req, res) {
     try {
@@ -391,6 +421,20 @@ export const MazoController = {
       await MazoRepository.eliminar(id);
       res.status(200).json({ eliminado: true });
     } catch (error) {
+      // Las foreign key de tarjeta y quiz_mazo no tienen ON DELETE: el mazo no se borra y nada
+      // se pierde. Se responde 409 en vez de 500 (decisión del equipo: no borrar en cascada).
+      if (error.code === PG_FOREIGN_KEY_VIOLATION) {
+        if (error.constraint === 'fk_quizmazo_mazo') {
+          return res.status(409).json({
+            error: 'El mazo está incluido en uno o más quices y no se puede eliminar',
+            code: 'CONFLICT',
+          });
+        }
+        return res.status(409).json({
+          error: 'El mazo tiene tarjetas asociadas y no se puede eliminar; ciérrelo para dejar de recibir aportes',
+          code: 'DECK_HAS_CARDS',
+        });
+      }
       res.status(500).json({ error: error.message });
     }
   },

@@ -26,7 +26,13 @@ beforeEach(() => {
 });
 
 describe('AporteController.crear', () => {
-  const valido = { traduccion_aportada: 'cocinar', tipo_aporte: 'coautoria' };
+  const valido = {
+    tarjeta_id: 7,
+    inscripcion_id: 3,
+    traduccion_aportada: 'cocinar',
+    definicion_aportada: 'preparar alimentos',
+    tipo_aporte: 'coautoria',
+  };
 
   it('responde 201 con el aporte creado', async () => {
     AporteRepository.crear.mockResolvedValue({ id_aporte: 30, ...valido });
@@ -36,7 +42,50 @@ describe('AporteController.crear', () => {
   it('indica los campos obligatorios que faltan (400)', async () => {
     const { status, body } = await llamar(AporteController, 'crear', { body: {} });
     expect(status).toBe(400);
-    expect(body.error).toContain('traduccion_aportada, tipo_aporte');
+    expect(body.error).toContain('tarjeta_id, inscripcion_id, traduccion_aportada, definicion_aportada, tipo_aporte');
+    expect(body.code).toBe('REQUIRED_FIELDS_MISSING');
+  });
+
+  // Fuzzing Schemathesis (docente y estudiante): sin tarjeta_id el INSERT violaba el NOT NULL y respondía 500.
+  it('rechaza con 400 un aporte sin tarjeta_id, sin llegar a la base de datos', async () => {
+    const { tarjeta_id, ...sinTarjeta } = valido;
+    const { status, body } = await llamar(AporteController, 'crear', { body: sinTarjeta });
+    expect(status).toBe(400);
+    expect(body.code).toBe('REQUIRED_FIELDS_MISSING');
+    expect(AporteRepository.crear).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['tarjeta_id', 0],
+    ['tarjeta_id', 1.5],
+    ['inscripcion_id', -12740959744381226],
+    ['inscripcion_id', 2147483648],
+    ['inscripcion_id', '3'],
+  ])('rechaza con 400 INVALID_ID un %s = %s', async (campo, valor) => {
+    const { status, body } = await llamar(AporteController, 'crear', { body: { ...valido, [campo]: valor } });
+    expect(status).toBe(400);
+    expect(body.code).toBe('INVALID_ID');
+  });
+
+  it.each([
+    ['tipo_aporte', 'otro'],
+    ['definicion_aportada', 42],
+    ['ejemplo_aportado', ['x']],
+    ['fecha_aporte', '2026-02-30'],
+  ])('rechaza con 400 INVALID_FIELD_TYPE un %s inválido', async (campo, valor) => {
+    const { status, body } = await llamar(AporteController, 'crear', { body: { ...valido, [campo]: valor } });
+    expect(status).toBe(400);
+    expect(body.code).toBe('INVALID_FIELD_TYPE');
+  });
+
+  it.each([
+    ['fk_aporte_tarjeta', 'CARD_NOT_FOUND'],
+    ['fk_aporte_inscripcion', 'ENROLLMENT_NOT_FOUND'],
+  ])('responde 404 si la foreign key %s no existe', async (constraint, code) => {
+    AporteRepository.crear.mockRejectedValue(Object.assign(new Error('fk'), { code: '23503', constraint }));
+    const { status, body } = await llamar(AporteController, 'crear', { body: valido });
+    expect(status).toBe(404);
+    expect(body.code).toBe(code);
   });
 
   it.each([
@@ -110,6 +159,14 @@ describe('AporteController — lectura, edición y borrado', () => {
     expect((await llamar(AporteController, 'listar')).status).toBe(500);
   });
 
+  const cuerpoCompleto = {
+    tarjeta_id: 7,
+    inscripcion_id: 3,
+    traduccion_aportada: 'cocinar',
+    definicion_aportada: 'preparar alimentos',
+    tipo_aporte: 'coautoria',
+  };
+
   it.each([
     ['obtenerPorId', coautoria, null],
     ['actualizar', coautoria, null],
@@ -117,10 +174,23 @@ describe('AporteController — lectura, edición y borrado', () => {
   ])('%s: 200 si existe, 404 si no, 400 con id inválido, 500 si falla', async (metodo, valor, vacio) => {
     AporteRepository[metodo].mockReset();
     AporteRepository[metodo].mockResolvedValueOnce(valor).mockResolvedValueOnce(vacio).mockRejectedValueOnce(new Error('x'));
+    const peticion = (id) => ({ params: { id }, body: cuerpoCompleto });
 
-    expect((await llamar(AporteController, metodo, { params: { id: '30' } })).status).toBe(200);
-    expect((await llamar(AporteController, metodo, { params: { id: '30' } })).status).toBe(404);
-    expect((await llamar(AporteController, metodo, { params: { id: '30' } })).status).toBe(500);
-    expect((await llamar(AporteController, metodo, { params: { id: 'abc' } })).status).toBe(400);
+    expect((await llamar(AporteController, metodo, peticion('30'))).status).toBe(200);
+    expect((await llamar(AporteController, metodo, peticion('30'))).status).toBe(404);
+    expect((await llamar(AporteController, metodo, peticion('30'))).status).toBe(500);
+    expect((await llamar(AporteController, metodo, peticion('abc'))).status).toBe(400);
+  });
+
+  // Fuzzing Schemathesis (docente): un PUT sin tarjeta_id la dejaba en NULL y respondía 500.
+  it('actualizar rechaza con 400 un body sin las columnas NOT NULL', async () => {
+    AporteRepository.actualizar.mockReset();
+    const { status, body } = await llamar(AporteController, 'actualizar', {
+      params: { id: '1' },
+      body: { id_aporte: 1, fecha_aporte: '2026-08-08T00:00:00.000Z', estado: 'pendiente_revision' },
+    });
+    expect(status).toBe(400);
+    expect(body.code).toBe('REQUIRED_FIELDS_MISSING');
+    expect(AporteRepository.actualizar).not.toHaveBeenCalled();
   });
 });

@@ -129,25 +129,84 @@ describe('QuizController.exportarPdf — CA-3.3.2', () => {
 });
 
 describe('QuizController — CRUD directo (solo docente)', () => {
-  it('crear exige título y estado, con sus longitudes máximas', async () => {
+  const valido = { curso_id: 1, titulo: 'Quiz', semana_corte: 3, estado: 'programado' };
+
+  it('crear exige curso_id, titulo, semana_corte y estado, con sus longitudes máximas', async () => {
     QuizRepository.crear.mockResolvedValue(quiz);
 
-    expect((await llamar(QuizController, 'crear', { body: {} })).body.error).toContain('titulo, estado');
-    expect((await llamar(QuizController, 'crear', { body: { titulo: 'x'.repeat(201), estado: 'programado' } })).status).toBe(400);
-    expect((await llamar(QuizController, 'crear', { body: { titulo: 'Quiz', estado: 'x'.repeat(31) } })).status).toBe(400);
-    expect((await llamar(QuizController, 'crear', { body: { titulo: 'Quiz', estado: 'programado' } })).status).toBe(201);
+    const faltantes = await llamar(QuizController, 'crear', { body: {} });
+    expect(faltantes.body.error).toContain('curso_id, titulo, semana_corte, estado');
+    expect(faltantes.body.code).toBe('REQUIRED_FIELDS_MISSING');
+    expect((await llamar(QuizController, 'crear', { body: { ...valido, titulo: 'x'.repeat(201) } })).status).toBe(400);
+    expect((await llamar(QuizController, 'crear', { body: { ...valido, estado: 'x'.repeat(31) } })).status).toBe(400);
+    expect((await llamar(QuizController, 'crear', { body: valido })).status).toBe(201);
     QuizRepository.crear.mockRejectedValueOnce(new Error('x'));
-    expect((await llamar(QuizController, 'crear', { body: { titulo: 'Quiz', estado: 'programado' } })).status).toBe(500);
+    expect((await llamar(QuizController, 'crear', { body: valido })).status).toBe(500);
+  });
+
+  // Fuzzing Schemathesis (docente): sin curso_id el INSERT violaba el NOT NULL y respondía 500.
+  it('crear rechaza con 400 un quiz sin curso_id, sin llegar a la base de datos', async () => {
+    QuizRepository.crear.mockReset();
+    const { status, body } = await llamar(QuizController, 'crear', {
+      body: { titulo: 'x', estado: 'programado', semana_corte: 1 },
+    });
+    expect(status).toBe(400);
+    expect(body.code).toBe('REQUIRED_FIELDS_MISSING');
+    expect(QuizRepository.crear).not.toHaveBeenCalled();
+  });
+
+  it('crear descarta la fecha_creacion del cliente y deja en null las fechas vacías', async () => {
+    QuizRepository.crear.mockReset();
+    QuizRepository.crear.mockResolvedValue(quiz);
+    await llamar(QuizController, 'crear', { body: { ...valido, fecha_creacion: '1999-01-01', fecha_apertura: '' } });
+    const guardado = QuizRepository.crear.mock.calls[0][0];
+    expect(guardado).not.toHaveProperty('fecha_creacion');
+    expect(guardado.fecha_apertura).toBeNull();
+    expect(guardado.tiempo_limite_min).toBeNull();
+  });
+
+  it.each([
+    ['curso_id', 0, 'INVALID_ID'],
+    ['curso_id', 2147483648, 'INVALID_ID'],
+    ['semana_corte', 1.5, 'INVALID_FIELD_TYPE'],
+    ['tiempo_limite_min', -5, 'INVALID_FIELD_TYPE'],
+    ['titulo', 42, 'INVALID_FIELD_TYPE'],
+    // Fuzzing Schemathesis (docente): PostgreSQL rechaza "+22:38" con 500 (time zone displacement out of range).
+    ['fecha_cierre', '0204-01-14T07:53:17+22:38', 'INVALID_FIELD_TYPE'],
+    ['fecha_apertura', 'mañana', 'INVALID_FIELD_TYPE'],
+  ])('crear y actualizar rechazan con 400 un %s = %s (%s)', async (campo, valor, code) => {
+    for (const metodo of ['crear', 'actualizar']) {
+      const { status, body } = await llamar(QuizController, metodo, { params: { id: '1' }, body: { ...valido, [campo]: valor } });
+      expect(status).toBe(400);
+      expect(body.code).toBe(code);
+    }
+  });
+
+  it('crear y actualizar aceptan fechas ISO 8601 con zona horaria válida', async () => {
+    QuizRepository.crear.mockResolvedValue(quiz);
+    QuizRepository.actualizar.mockResolvedValue(quiz);
+    const body = { ...valido, fecha_apertura: '2026-12-01T08:00:00-05:00', fecha_cierre: '2026-12-01T10:00:00Z', tiempo_limite_min: 30 };
+    expect((await llamar(QuizController, 'crear', { body })).status).toBe(201);
+    expect((await llamar(QuizController, 'actualizar', { params: { id: '1' }, body })).status).toBe(200);
+  });
+
+  it.each(['crear', 'actualizar'])('%s responde 404 COURSE_NOT_FOUND si el curso no existe', async (metodo) => {
+    QuizRepository[metodo].mockRejectedValueOnce(Object.assign(new Error('fk'), { code: '23503' }));
+    const { status, body } = await llamar(QuizController, metodo, { params: { id: '1' }, body: valido });
+    expect(status).toBe(404);
+    expect(body.code).toBe('COURSE_NOT_FOUND');
   });
 
   it.each([
     ['actualizar', quiz, null],
     ['eliminar', true, false],
   ])('%s: 200 si existe, 404 si no, 500 si falla', async (metodo, valor, vacio) => {
+    QuizRepository[metodo].mockReset();
     QuizRepository[metodo].mockResolvedValueOnce(valor).mockResolvedValueOnce(vacio).mockRejectedValueOnce(new Error('x'));
+    const peticion = { params: { id: '1' }, body: valido };
 
-    expect((await llamar(QuizController, metodo, { params: { id: '1' } })).status).toBe(200);
-    expect((await llamar(QuizController, metodo, { params: { id: '1' } })).status).toBe(404);
-    expect((await llamar(QuizController, metodo, { params: { id: '1' } })).status).toBe(500);
+    expect((await llamar(QuizController, metodo, peticion)).status).toBe(200);
+    expect((await llamar(QuizController, metodo, peticion)).status).toBe(404);
+    expect((await llamar(QuizController, metodo, peticion)).status).toBe(500);
   });
 });
