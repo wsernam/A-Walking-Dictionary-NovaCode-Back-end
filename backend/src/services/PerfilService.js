@@ -27,6 +27,16 @@ const MAX_CODIGO_ESTUDIANTIL = 20;
 const MAX_AVATAR = 500;
 
 /**
+ * @brief Indica si un campo opcional del perfil llegó sin valor: undefined, null o "" significan
+ * "no cambia". Cualquier otro valor (incluidos false y 0) se valida.
+ * @param {unknown} valor - Valor recibido.
+ * @returns {boolean}
+ */
+function sinValor(valor) {
+  return valor === undefined || valor === null || valor === '';
+}
+
+/**
  * @brief Crea un Error de validación con status HTTP 400.
  * @param {string} mensaje - Mensaje que llegará al cliente.
  * @returns {Error} Error con la propiedad `status = 400`.
@@ -44,7 +54,7 @@ function errorValidacion(mensaje) {
  * @throws {Error} status 400 si supera MAX_CODIGO_ESTUDIANTIL caracteres.
  */
 function validarCodigoEstudiantil(codigo_estudiantil) {
-  if (!codigo_estudiantil) return;
+  if (sinValor(codigo_estudiantil)) return;
   if (typeof codigo_estudiantil !== 'string' || tieneCaracteresDeControl(codigo_estudiantil)) {
     throw errorValidacion('codigo_estudiantil debe ser un texto sin caracteres de control');
   }
@@ -64,7 +74,8 @@ function validarCodigoEstudiantil(codigo_estudiantil) {
  * MAX_AVATAR caracteres.
  */
 function validarAvatar(avatar) {
-  if (!avatar) return;
+  // Con `!avatar` se saltaban la validación false y 0, y se guardaba "false" (fuzzing run #31, ST201).
+  if (sinValor(avatar)) return;
   // Un objeto pasaba como String(avatar) = "[object Object]" o "{}" y se guardaba (fuzzing
   // Schemathesis, ST201); el byte nulo llegaba a PostgreSQL y respondía 500.
   if (typeof avatar !== 'string' || tieneCaracteresDeControl(avatar)) {
@@ -99,7 +110,9 @@ function validarIntereses(intereses) {
  * @throws {Error} status 400 si no está en NIVELES_MCER.
  */
 function validarNivelIngles(nivel_ingles) {
-  if (nivel_ingles && !NIVELES_MCER.includes(nivel_ingles.toUpperCase())) {
+  if (sinValor(nivel_ingles)) return;
+  // Un número o booleano llegaba a .toUpperCase() y lanzaba TypeError (500).
+  if (typeof nivel_ingles !== 'string' || !NIVELES_MCER.includes(nivel_ingles.toUpperCase())) {
     const error = new Error(`nivel_ingles inválido. Valores permitidos: ${NIVELES_MCER.join(', ')}`);
     error.status = 400;
     error.code = 'PROFILE_INVALID_LEVEL';
