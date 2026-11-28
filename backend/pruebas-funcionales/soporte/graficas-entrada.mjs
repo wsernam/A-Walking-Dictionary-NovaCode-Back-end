@@ -28,7 +28,14 @@ const ANCHO = 780;
 const ALTO = 400;
 const M = { izq: 64, der: 24, arr: 92, aba: 56 };
 
-const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+// Escapa también las comillas: el texto se usa dentro de atributos (aria-label) además de en
+// nodos de texto (CodeQL js/incomplete-html-attribute-sanitization).
+const esc = (t) => String(t)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
 
 function estilo() {
   const vars = (fondo, t1, t2, muted, grid, eje, series) =>
