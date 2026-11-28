@@ -42,7 +42,7 @@ grep -cE '^    (get|post|put|patch|delete):' docs/api/openapi.yaml
 Otras reglas:
 
 - **Se documenta lo que hace el código, no lo que dice el backlog.** Si no coinciden, gana el código y se marca con `x-pendiente`.
-- **Solo rutas montadas en `app.js`.** Los routers que existen pero no están montados (`inscripcionRoutes`, `etiquetaContextoRoutes`, `preguntaQuizRoutes`, `progresoEstudioRoutes`, `quizMazoRoutes`, `respuestaQuizRoutes`, `resultadoQuizRoutes`) no aparecen.
+- **Solo rutas montadas en `app.js`.** Los routers que existen pero no están montados (`inscripcionRoutes`, `resultadoQuizRoutes`) no aparecen. Los de etiqueta de contexto, pregunta de quiz, progreso de estudio, quiz-mazo y respuesta de quiz se eliminaron el 2026-11-27.
 - Los nombres de schemas y campos son los del DER (`init.sql`, en singular).
 - Las columnas `DECIMAL` (puntajes, calificación, factor de facilidad) llegan como texto desde PostgreSQL y así están documentadas.
 

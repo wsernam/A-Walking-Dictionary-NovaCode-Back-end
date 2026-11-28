@@ -449,8 +449,9 @@ paths:
         registra un `aporte` sobre la existente con `tipo_aporte` `coautoria` (misma definición y ejemplo,
         CA-1.3.1) o `acepcion_nueva` (CA-1.3.2). La comparación de la palabra ignora mayúsculas (CA-1.3.3).
 
-        Requiere sesión (cualquier rol). El usuario del token debe tener inscripción activa en el curso del
-        mazo (403 DECK_NOT_ENROLLED) y el mazo debe estar `abierto` (409 DECK_CLOSED, CA-1.2.3). La tarjeta
+        Requiere sesión con rol `estudiante`; el docente y el administrador reciben 403 AUTH_FORBIDDEN
+        (separación de funciones R1, D-13: quien aporta una tarjeta no la aprueba). El estudiante debe tener
+        inscripción activa en el curso del mazo (403 DECK_NOT_ENROLLED) y el mazo debe estar `abierto` (409 DECK_CLOSED, CA-1.2.3). La tarjeta
         nueva queda en `pendiente_revision` con un aporte tipo `creada` (CA-1.2.1).
 
         Si el mismo estudiante ya tiene un aporte sobre esa palabra en el mazo, no se guarda otro: responde

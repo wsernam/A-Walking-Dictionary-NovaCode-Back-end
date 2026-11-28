@@ -72,10 +72,11 @@ router.patch(
  *
  * Cubre CA-1.2.1, CA-1.2.2, CA-1.2.3 y la detección de duplicados de HU-1.3
  * (CA-1.3.1 a CA-1.3.4). El :id de la URL es el id_mazo (deck) al que pertenece la tarjeta.
- * Requiere sesión y rol docente o estudiante.
+ * Requiere sesión y rol estudiante. El docente recibe 403 por separación de funciones (R1,
+ * D-13, 2026-11-27): quien aporta una tarjeta no la aprueba (PATCH /cards/:id/approve es del docente).
  * TarjetaController verifica la inscripción activa en el curso del mazo.
  */
-router.post('/:id/cards', limiteAcademico, authenticate, requireRole('docente', 'estudiante'), TarjetaController.crear);
+router.post('/:id/cards', limiteAcademico, authenticate, requireRole('estudiante'), TarjetaController.crear);
 
 /**
  * @brief HU-3.3 (CA-3.3.1, CA-3.3.3): exporta el mazo a PDF. GET /api/v1/decks/:id/export-pdf
