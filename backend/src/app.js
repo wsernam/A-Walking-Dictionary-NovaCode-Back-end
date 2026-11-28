@@ -91,6 +91,8 @@ import aporteRoutes from './routes/aporteRoutes.js';
 import quizRoutes from './routes/quizRoutes.js';
 import adminUsuarioRoutes from './routes/adminUsuarioRoutes.js';
 import { registroSeguridad } from './middleware/registroSeguridadMiddleware.js';
+import { rechazarByteNulo } from './middleware/validacionMiddleware.js';
+import { rutaNoEncontrada, manejarErrorPeticion } from './middleware/erroresMiddleware.js';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { crearLimiteGlobal } from './middleware/limiteGlobalMiddleware.js';
@@ -98,6 +100,7 @@ import rutasEnriquecimiento from './routes/enriquecimientoRoutes.js';
 import diccionarioRoutes from './routes/diccionarioRoutes.js';
 import reporteRoutes from './routes/reporteRoutes.js';
 import { codigoPorStatus, esCodigoPropio } from './utils/codigosError.js';
+import { limpiarParaLog } from './utils/validacion.js';
 
 
 /** @brief Instancia principal de la aplicación Express. */
@@ -160,7 +163,7 @@ app.use((req, res, next) => {
   const jsonOriginal = res.json.bind(res);
   res.json = (cuerpo) => {
     if (res.statusCode >= 500 && process.env.NODE_ENV === 'production') {
-      console.error(`[ERROR] ${req.method} ${req.originalUrl}:`, cuerpo);
+      console.error(limpiarParaLog(`[ERROR] ${req.method} ${req.originalUrl}: ${limpiarParaLog(cuerpo)}`));
       return jsonOriginal({ error: 'Error interno del servidor', code: 'INTERNAL_ERROR' });
     }
     if (res.statusCode >= 400 && cuerpo && typeof cuerpo === 'object' && 'error' in cuerpo) {
@@ -171,6 +174,10 @@ app.use((req, res, next) => {
   };
   next();
 });
+
+// Hallazgo de OWASP ZAP (run #42): un byte nulo en el body, la query o la ruta llegaba a PostgreSQL
+// y respondía 500. Se rechaza con 400 antes de las rutas (ver validacionMiddleware.js).
+app.use(rechazarByteNulo);
 
 app.use('/api/v1/auth', autenticacionRoutes);
 app.use('/api/v1/decks', mazoRoutes);
@@ -186,6 +193,11 @@ app.use('/api/v1/enrichment', rutasEnriquecimiento);
 app.use('/api/v1/dictionary', diccionarioRoutes);
 app.use('/api/v1/reports', reporteRoutes);
 app.use('/api/v1/admin', adminUsuarioRoutes);
+
+// Hallazgo de OWASP ZAP (run #42, «Unexpected Content-Type»): rutas inexistentes, JSON mal formado y
+// errores no atrapados respondían la página HTML de Express. Van al final, después de todas las rutas.
+app.use(rutaNoEncontrada);
+app.use(manejarErrorPeticion);
 
 
 export default app;

@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest';
 import {
   ID_MAXIMO,
   leerIdRuta,
+  limpiarParaLog,
   esIdValido,
   esEnteroEnRango,
   esFechaValida,
@@ -59,6 +60,27 @@ describe('leerIdRuta', () => {
     ['4'],
   ])('devuelve NaN para %j', (valor) => {
     expect(leerIdRuta(valor)).toBeNaN();
+  });
+});
+
+describe('limpiarParaLog — CWE-117 (Sonar S5145, CodeQL js/tainted-format-string)', () => {
+  it('quita saltos de línea y tabulaciones para que no se pueda falsificar una línea del log', () => {
+    expect(limpiarParaLog('GET /x\r\n[SEGURIDAD] 200 falso\tok')).toBe('GET /x  [SEGURIDAD] 200 falso ok');
+  });
+
+  it('pasa los objetos a JSON en una sola línea (JSON ya escapa el salto como el texto \\n)', () => {
+    const linea = limpiarParaLog({ error: 'a\nb', code: 'X' });
+    expect(linea).toBe('{"error":"a\\nb","code":"X"}');
+    expect(linea).not.toMatch(/[\r\n]/);
+  });
+
+  it('acepta números, null, undefined y objetos circulares sin lanzar', () => {
+    const circular = {};
+    circular.yo = circular;
+    expect(limpiarParaLog(5)).toBe('5');
+    expect(limpiarParaLog(null)).toBe('null');
+    expect(limpiarParaLog(undefined)).toBe('undefined');
+    expect(limpiarParaLog(circular)).toBe('[object Object]');
   });
 });
 

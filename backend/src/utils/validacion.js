@@ -89,6 +89,30 @@ export function esFechaValida(valor) {
 }
 
 /**
+ * @brief Convierte un valor en una sola línea segura para el log: los objetos se pasan a JSON y se
+ * quitan saltos de línea y tabulaciones, para que un dato del usuario (ruta, query, mensaje) no
+ * pueda falsificar líneas del log (CWE-117, Log Injection; mismo criterio que AdminUsuarioService).
+ *
+ * Se usa pasando a console.* un único argumento ya limpio: así tampoco hay format string con datos
+ * del usuario (CodeQL js/tainted-format-string).
+ * @param {unknown} valor - Texto u objeto a registrar.
+ * @return {string}
+ */
+export function limpiarParaLog(valor) {
+  let texto;
+  if (valor !== null && typeof valor === 'object') {
+    try {
+      texto = JSON.stringify(valor);
+    } catch {
+      texto = String(valor);
+    }
+  } else {
+    texto = String(valor);
+  }
+  return texto.replace(/[\r\n\t]/g, ' ');
+}
+
+/**
  * @brief Indica si un texto trae caracteres de control (U+0000 a U+001F y U+007F). PostgreSQL no
  * guarda el byte nulo en columnas de texto ("invalid byte sequence for encoding UTF8: 0x00").
  * @param {string} texto - Texto a revisar.
