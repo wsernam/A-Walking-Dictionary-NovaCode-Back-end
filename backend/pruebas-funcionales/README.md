@@ -58,6 +58,7 @@ Cada ejecución genera `reportes-funcionales/index.html` (abrir con `npx vite pr
 | `rbac-idor.test.js` | IDOR: estudiante A contra B, no inscrita y docente ajena (37 casos) |
 | `rbac-cobertura.test.js` | Toda ruta de `app.js` está en la matriz |
 | `seguridad-sesion.test.js` | Seguridad de sesión: token manipulado, `alg:none`, vencido, reutilizado tras logout y cuenta desactivada (21 casos, 2 `[RIESGO CONOCIDO]`) |
+| `entrada-sobredimensionada.test.js` | Entrada enorme o rara (textos > 150, body ≥ 1 MB, JSON anidado, ReDoS): siempre 400/413/431, nunca 5xx, y `/health` vivo tras cada caso. Levanta su propia instancia; no arranca si `DB_HOST` apunta a Supabase. Gráficas: `node pruebas-funcionales/soporte/graficas-entrada.mjs` → [`docs/seguridad/entrada-sobredimensionada/`](../../docs/seguridad/entrada-sobredimensionada/README.md) |
 
 Las pruebas `todo` aparecen en el reporte como pendientes:
 
