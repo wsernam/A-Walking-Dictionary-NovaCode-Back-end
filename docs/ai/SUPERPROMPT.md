@@ -6,7 +6,7 @@
 ## 0. Cabecera
 - Plantilla: 3.0 (facdbd59)
 - Sprint en curso: 4 · Reportes en PDF (HE-07) · líder del sprint (aprueba contratos): **Karen Sandoval**
-- Fuentes al construirlo: backend@b24bc3f, frontend@b5c5044 · backlog: 21 HU · bitácora: 86 sesiones
+- Fuentes al construirlo: backend@873a2f6, frontend@f327993 · backlog: 21 HU · bitácora: 92 sesiones
 - Se reconstruye con: `python tools/hitl/hitl.py build` (o lo hace el flujo de GitHub Actions y abre un PR para revisión humana)
 
 ## 1. Cómo usar este documento
@@ -353,14 +353,14 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 **Antes de proponer nada, lee los markdowns que apliquen a la tarea** (README y carpeta `docs/` o `doc/` de cada repo). Los marcados como CONTRATO son vinculantes: si tu cambio los contradice, aplica la puerta P2.
 
 - `backend:.github/pull_request_template.md` — (sin título) (497 caracteres; último cambio: 3c9f121 2026-10-22)
-- `backend:CHANGELOG.md` — Changelog (6.819 caracteres; último cambio: 37cdc9a 2026-11-23)
-- `backend:CLAUDE.md` — CLAUDE.md — Contexto del proyecto (48.867 caracteres; último cambio: 37cdc9a 2026-11-23)
+- `backend:CHANGELOG.md` — Changelog (7.353 caracteres; último cambio: 61683fd 2026-11-27)
+- `backend:CLAUDE.md` — CLAUDE.md — Contexto del proyecto (54.115 caracteres; último cambio: 61683fd 2026-11-27)
 - `backend:CONTRIBUTING.md` — Guía de contribución — A Walking Dictionary (Back-end) (5.073 caracteres; último cambio: bfe993e 2026-11-06)
 - `backend:README.md` — A Walking Dictionary (7.617 caracteres; último cambio: 352bfe6 2026-11-07)
 - `backend:SECURITY.md` — Política de seguridad (1.571 caracteres; último cambio: bfe993e 2026-11-06)
 - `backend:backend/Auditoria_OWASP_Top10_2025.md` — Auditoría de seguridad — OWASP Top 10:2025 (22.729 caracteres; último cambio: 6dcb4bc 2026-10-08)
 - `backend:backend/jsdoc/INICIO.md` — A Walking Dictionary — Documentación del código (Back-end) (525 caracteres; último cambio: 352bfe6 2026-11-07)
-- `backend:backend/pruebas-funcionales/README.md` — Pruebas funcionales de la API (4.520 caracteres; último cambio: f5b514c 2026-11-25)
+- `backend:backend/pruebas-funcionales/README.md` — Pruebas funcionales de la API (4.943 caracteres; último cambio: 31ce9b2 2026-11-27)
 - `backend:backend/security-suite/README.md` — NovaCode — Suite OWASP v2 (2.101 caracteres; último cambio: ad52a8c 2026-10-18)
 - `backend:docs/CAMBIO_APORTE_ESTADO.md` — Cambio: columna `aporte.estado` y ajustes a la PR #5 (coautorías) (6.606 caracteres; último cambio: c2c2503 2026-09-23)
 - `backend:docs/CAMBIO_REPASO_SM2.md` — Cambio: el repaso SM-2 ya no se queda sin tarjetas (HU-4.1) (7.128 caracteres; último cambio: 4364fa2 2026-09-30)
@@ -376,26 +376,28 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 - `backend:docs/FLUJO_REVISION_TARJETAS.md` — Flujo de Revisión de Tarjetas — Individual vs. Coautoría (5.697 caracteres; último cambio: 5d3877e 2026-09-29)
 - `backend:docs/INFORME_PRUEBAS_FUNCIONALES.md` — Informe de pruebas funcionales (10.748 caracteres; último cambio: 4bb640b 2026-10-18)
 - `backend:docs/README.md` — Documentación — A Walking Dictionary (Back-end) (5.123 caracteres; último cambio: 571fe03 2026-11-09)
-- **[CONTRATO]** `backend:docs/api/README.md` — Especificación de la API (OpenAPI) (2.743 caracteres; último cambio: c3dd496 2026-11-14)
+- **[CONTRATO]** `backend:docs/api/README.md` — Especificación de la API (OpenAPI) (2.756 caracteres; último cambio: 61683fd 2026-11-27)
 - `backend:docs/arquitectura/arc42/01-introduccion-y-metas.md` — 1. Introducción y metas (3.913 caracteres; último cambio: 8290960 2026-11-07)
 - `backend:docs/arquitectura/arc42/02-restricciones.md` — 2. Restricciones de la arquitectura (2.344 caracteres; último cambio: 8290960 2026-11-07)
 - `backend:docs/arquitectura/arc42/03-contexto-y-alcance.md` — 3. Contexto y alcance del sistema (2.904 caracteres; último cambio: 8db00ff 2026-11-07)
 - `backend:docs/arquitectura/arc42/04-estrategia-de-solucion.md` — 4. Estrategia de solución (2.870 caracteres; último cambio: 84897f2 2026-11-07)
-- `backend:docs/arquitectura/arc42/05-vista-de-bloques.md` — 5. Vista de bloques de construcción (7.278 caracteres; último cambio: 84897f2 2026-11-07)
+- `backend:docs/arquitectura/arc42/05-vista-de-bloques.md` — 5. Vista de bloques de construcción (7.339 caracteres; último cambio: 61683fd 2026-11-27)
 - `backend:docs/arquitectura/arc42/06-vista-de-ejecucion.md` — 6. Vista de ejecución (4.575 caracteres; último cambio: 84897f2 2026-11-07)
 - `backend:docs/arquitectura/arc42/07-vista-de-despliegue.md` — 7. Vista de despliegue (4.238 caracteres; último cambio: 84897f2 2026-11-07)
 - `backend:docs/arquitectura/arc42/08-conceptos-transversales.md` — 8. Conceptos transversales (4.766 caracteres; último cambio: 84897f2 2026-11-07)
 - `backend:docs/arquitectura/arc42/09-decisiones.md` — 9. Decisiones de arquitectura (4.792 caracteres; último cambio: 8db00ff 2026-11-07)
 - `backend:docs/arquitectura/arc42/10-requisitos-de-calidad.md` — 10. Requisitos de calidad (3.531 caracteres; último cambio: 8db00ff 2026-11-07)
-- `backend:docs/arquitectura/arc42/11-riesgos-y-deuda-tecnica.md` — 11. Riesgos y deuda técnica (3.883 caracteres; último cambio: 8db00ff 2026-11-07)
+- `backend:docs/arquitectura/arc42/11-riesgos-y-deuda-tecnica.md` — 11. Riesgos y deuda técnica (4.023 caracteres; último cambio: 61683fd 2026-11-27)
 - `backend:docs/arquitectura/arc42/12-glosario.md` — 12. Glosario (2.965 caracteres; último cambio: 8db00ff 2026-11-07)
 - `backend:docs/arquitectura/arc42/README.md` — Documentación de arquitectura (Arc42) — A Walking Dictionary (1.520 caracteres; último cambio: 8db00ff 2026-11-07)
 - `backend:docs/codigo/README.md` — Documentación del código (generada con JSDoc) (1.927 caracteres; último cambio: 352bfe6 2026-11-07)
-- **[CONTRATO]** `backend:docs/codigos-error.md` — Códigos de error de la API (9.913 caracteres; último cambio: c3dd496 2026-11-14)
+- **[CONTRATO]** `backend:docs/codigos-error.md` — Códigos de error de la API (10.129 caracteres; último cambio: 6ec1ddd 2026-11-27)
 - `backend:docs/cumplimiento-guia-seguridad-documentacion.md` — Cumplimiento de la guía «Ingeniería de Software: Seguridad y Documentación» (14.297 caracteres; último cambio: 251cb85 2026-11-08)
 - `backend:docs/procedimiento-primer-administrador.md` — Procedimiento seguro para asignar el primer administrador (HU-023) (2.876 caracteres; último cambio: 4e3b6bf 2026-11-14)
-- `backend:docs/seguridad/README.md` — Pruebas de seguridad del código y de la API (12.031 caracteres; último cambio: e2c6614 2026-11-23)
-- `backend:docs/seguridad/matriz-rbac.md` — Matriz RBAC — A Walking Dictionary (31.095 caracteres; último cambio: ededb4c 2026-11-18)
+- `backend:docs/seguridad/README.md` — Pruebas de seguridad del código y de la API (17.733 caracteres; último cambio: 61683fd 2026-11-27)
+- `backend:docs/seguridad/entrada-sobredimensionada/README.md` — Entrada sobredimensionada (3.424 caracteres; último cambio: 31ce9b2 2026-11-27)
+- `backend:docs/seguridad/entrada-sobredimensionada/resultados.md` — Resultados por caso — entrada sobredimensionada (6.198 caracteres; último cambio: 31ce9b2 2026-11-27)
+- `backend:docs/seguridad/matriz-rbac.md` — Matriz RBAC — A Walking Dictionary (31.226 caracteres; último cambio: 61683fd 2026-11-27)
 - `frontend:.github/pull_request_template.md` — (sin título) (495 caracteres; último cambio: ca73e2e 2026-10-23)
 - `frontend:CHANGELOG.md` — Changelog (2.719 caracteres; último cambio: e678d54 2026-11-07)
 - `frontend:CONTRIBUTING.md` — Guía de contribución — A Walking Dictionary (Front-end) (4.746 caracteres; último cambio: 7624586 2026-11-06)
@@ -412,7 +414,7 @@ Cada HU tiene dos nombres en uso: el del Excel (HU-009) y el de CLAUDE.md del ba
 - **[CONTRATO]** `frontend:docs/contrato-quiz.md` — Contrato de datos — Quiz acumulativo (HU-3.1) (13.957 caracteres; último cambio: 8611b65 2026-10-16)
 - **[CONTRATO]** `frontend:docs/contrato-reporte-curso.md` — Contrato de datos — Reporte de estudiantes del curso en PDF (HU-020) (9.219 caracteres; último cambio: b61aaf6 2026-11-13)
 - **[CONTRATO]** `frontend:docs/contrato-reporte-resultados-quiz.md` — Contrato de datos — Reporte de resultados por quiz en PDF (HU-021) (10.375 caracteres; último cambio: dd6f6b3 2026-10-31)
-- `frontend:e2e/README.md` — Pruebas E2E (Playwright) (6.047 caracteres; último cambio: b5c5044 2026-11-20)
+- `frontend:e2e/README.md` — Pruebas E2E (Playwright) (6.467 caracteres; último cambio: 440cf19 2026-11-25)
 - `frontend:jsdoc/INICIO.md` — A Walking Dictionary — Documentación del código (Front-end) (640 caracteres; último cambio: e678d54 2026-11-07)
 
 ### Texto de los contratos
@@ -484,7 +486,6 @@ Claude NO debe resolver estas discrepancias por su cuenta. Si una tarea depende 
 - **D-10 — Endpoint de filtrado de pendientes (CA-2.1.1):** Este archivo menciona dos rutas distintas: `GET /decks/:id/cards?estado=pendiente_revision` y `GET /api/v1/cards/pending`. Definir cuál es la oficial.
 - **D-11 — Correo institucional (CA-5.1.1):** El título habla de "correo institucional", pero no se especifica el dominio permitido ni si se valida.
 - **D-12  — Administrador en rutas que solo exigen sesión (HALLAZGO-1):** `POST /cards/check-duplicate`, `GET /quizzes` y `GET /quizzes/:id` solo usan `authenticate`, así que el administrador pasa aunque CA-23.3 le niega las funciones académicas. Supuesto pendiente de validar: debe recibir 403.
-- **D-13 — Separación de funciones R1 (`card.create` + `card.approve`):** el docente puede registrar una palabra (`POST /decks/:id/cards` acepta `docente` y `estudiante`) y también aprobarla. ¿Se quita `docente` de ese endpoint o se acepta la excepción?
 
 ###### Convenciones generales
 - Roles: Docente, Estudiante, Administrador (HU-023) e Invitado (no se guarda en la BD).
@@ -538,6 +539,11 @@ Registro de decisiones humanas que Claude debe respetar en todas las sesiones. F
 - 2026-11-19 — Límite global de peticiones (OWASP H-07, ampliación): `app.use(crearLimiteGlobal())` en `app.js`, después de `cors` y antes de `express.json`; 1000 peticiones por IP cada 15 minutos, ajustable con `RATE_LIMIT_GLOBAL_MAX`; `/health` no cuenta; contador en memoria (se reinicia con el servicio); responde 429 `RATE_LIMITED` y deja una línea `[SEGURIDAD]` por IP y ventana. Se mantienen los límites de `/auth`, reportes, admin y rutas académicas. El valor por defecto es un supuesto pendiente de validar, porque varios estudiantes pueden compartir IP (NAT) — Karen Sandoval [IA-ASSISTED: Claude Code; modelo exacto: Sonnet 5.5] — seguridad transversal
 
 - 2026-11-19 — Pruebas de seguridad de sesión (PR #93): `backend/pruebas-funcionales/seguridad-sesion.test.js` (token manipulado, `alg:none`, vencido, reutilizado tras cerrar sesión y cuenta desactivada; 21 pruebas, corre en `funcionales.yml`). Dos casos declaran el resultado seguro (401) y corren con `it.fails` marcados `[RIESGO CONOCIDO]`: SES-13b (el backend no revoca tokens; no existe `POST /auth/logout`) y SES-14b (`authenticate` no consulta `usuario.activo`; el token de una cuenta desactivada vale hasta 8 h). No se corrigió `src/`: ambos se registran como RIESGO-SES-1 y RIESGO-SES-2 en `docs/seguridad/README.md` y se corrigen en PR aparte cuando el equipo lo decida; al corregirlos se cambia `it.fails` por `it` — Manuela Meneses [IA-ASSISTED: Claude (chat); modelo: Sonnet 5.5] — HU-5.4, HU-023 (seguridad de sesión)
+
+- 2026-11-27 — Fuzzing Schemathesis por rol (run #28, 12 fallos: 11 ST101 y 1 ST201): se validan en el backend las entradas que llegaban a PostgreSQL y respondían 500. Borrar un mazo con tarjetas responde **409 `DECK_HAS_CARDS`** (código nuevo, aprobado; en `docs/codigos-error.md`) y si el mazo está en un quiz, 409 `CONFLICT`; NO hay borrado en cascada (se descartó porque perdería tarjetas, aportes, progreso SM-2 y preguntas de quiz); para dejar de recibir aportes se cierra el mazo (CA-1.1.3). `POST /decks` exige `curso_id` y fechas válidas (curso inexistente → 404 `COURSE_NOT_FOUND`; relacionado con D-09, que sigue abierta). `POST/PUT /quizzes` y `POST/PUT /aportes` (CRUD genérico) exigen todas las columnas NOT NULL, validan ids (1 a 2147483647), fechas ISO 8601 (zona hasta ±14:00) y `tipo_aporte` ∈ {creada, coautoria, acepcion_nueva}; una foreign key inexistente responde 404 (`COURSE_NOT_FOUND`, `CARD_NOT_FOUND`, `ENROLLMENT_NOT_FOUND`); `fecha_creacion`/`fecha_aporte` las pone la base de datos con `COALESCE(..., NOW())` y en PUT se conservan (antes se insertaba NULL y respondía 500 aunque el body fuera válido). `POST /courses` exige texto en `nombre`, `periodo` y `estado` y fechas válidas. Estudio (`/study/review-session` y `/review`) exige ids enteros en rango (400 `INVALID_ID`). `GET /admin/users` rechaza caracteres de control en `search` (400 `ADMIN_INVALID_QUERY`). `PATCH /users/profile` con `intereses: null` se deja como está (significa «no cambia», `PerfilService.js:75`) y se corrige el contrato: `nullable: true` en `openapi.yaml`. Validaciones compartidas en `src/utils/validacion.js`; esquemas nuevos `AporteEntrada` y `QuizEntrada` en `openapi.yaml`. Sin cambios de esquema ni migraciones. Segunda ronda (run #29, 8 fallos nuevos al llegar el fuzzer más adentro; el administrador quedó sin fallos): en los campos opcionales de `POST/PUT /quizzes` y `/aportes` solo `null` u omitido significa «sin valor» y `""` responde 400; `QuizService.generar` pone tope de INT a `curso_id`, `mazo_ids`, `tiempo_limite_min` y `cantidad_preguntas`; se rechazan caracteres de control en `GET /dictionary?q` (400 `INVALID_QUERY`), en `avatar`, `codigo_estudiantil` e `intereses` del perfil (400 `PROFILE_INVALID_DATA`; `avatar` y `codigo_estudiantil` deben ser texto) y en `codigo_acceso` de `POST /courses/enroll` (404 `ENROLL_INVALID_CODE`). Sin códigos nuevos. Tercera ronda (run #30: ningún 500, solo 4 ST201): los ids de la URL (y `student_id` de la query del reporte de estudio) se leen con `leerIdRuta` de `src/utils/validacion.js`, que solo acepta dígitos (antes `Number()` aceptaba " 4", "%0A4", "0x4", "4e0", "4.0"); se eligió hacerlo dentro de los controladores y no con `router.param` para mantener el orden 401 → 403 → 400 y el registro de seguridad de 401/403 (H-09); 66 reemplazos en 18 controladores y 3 servicios de reportes. En `openapi.yaml`, `fecha_aporte` y los cuatro campos de `PATCH /users/profile` quedan `nullable` (null = sin valor / no cambia), como ya hacía el código. Cuarta ronda (run #31: docente y administrador sin fallos; 1 ST201 en estudiante): en `PerfilService` solo `undefined`, `null` o `""` significan «no cambia» en `avatar`, `codigo_estudiantil` y `nivel_ingles` (antes `false` y `0` se saltaban la validación y se guardaba "false"); un `nivel_ingles` que no es texto responde 400 `PROFILE_INVALID_LEVEL` (antes lanzaba TypeError y 500). Pendiente en el front (lo hace Thalía): agregar `DECK_HAS_CARDS` a `en.json`, mostrar el 409 al borrar un mazo con tarjetas, confirmar que no se usan `POST/PUT /quizzes` ni `/aportes` con bodies parciales ni con fechas `""`, y que el perfil envía `avatar` y `codigo_estudiantil` como texto. Rama `fix/fuzzing-validaciones` — Thalía Bernal [IA-ASSISTED: Claude Code; modelo exacto: Opus 5.5] — HU-1.1 (CA-1.1.3), HU-1.3, HU-3.1, HU-4.1, HU-5.2, HU-5.3, HU-023 (validación de entrada, transversal)
+
+- 2026-11-27 — D-13 (separación de funciones R1, `card.create` + `card.approve`): se quita `docente` de `POST /api/v1/decks/:id/cards`, que queda con `requireRole('estudiante')`; el docente recibe 403 `AUTH_FORBIDDEN` y solo aprueba (`PATCH /cards/:id/approve`). Se ajustan `matriz-rbac.json` (#22), `he01-mazos-vocabulario.test.js` (caso nuevo), `docs/seguridad/matriz-rbac.md` (Docente 49 permisos, cumple R1; v1.3), `docs/seguridad/README.md` y `openapi.yaml`. Pendiente en el front: ocultar a la docente el formulario de registrar palabra si lo muestra. Rama `fix/d13-controladores-sin-ruta` — Thalía Bernal [IA-ASSISTED: Claude Code; modelo exacto: Opus 5.5] — HU-1.2 (CA-1.2.1), CA-5.4.2
+- 2026-11-27 — Se eliminan los 5 controladores sin ruta montada (`PreguntaQuizController`, `EtiquetaContextoController`, `RespuestaQuizController`, `ProgresoEstudioController`, `QuizMazoController`) y sus routers (`preguntaQuizRoutes`, `etiquetaContextoRoutes`, `respuestaQuizRoutes`, `progresoEstudioRoutes`, `quizMazoRoutes`): no los usaba ninguna ruta montada, servicio ni prueba, y eran CRUD sin `authenticate`. Se quitan de `routes/index.js` y de las exclusiones de cobertura de `vitest.config.js` y `sonar-project.properties` (reemplaza esa parte de la decisión del 2026-10-11). Los repositorios y modelos se mantienen porque los usan los servicios. Siguen sin montar `inscripcionRoutes` y `resultadoQuizRoutes` (riesgo T4 de Arc42, a decidir aparte). Rama `fix/d13-controladores-sin-ruta` — Thalía Bernal [IA-ASSISTED: Claude Code; modelo exacto: Opus 5.5] — sin HU (limpieza y seguridad transversal)
 
 #### Bitácora de trabajo con IA del frontend — `frontend:docs/bitacora.md`
 
@@ -703,11 +709,36 @@ detallados faltaban datos del PDF, así que se ajustó:
 
 
 ## 9. Estado e historial de los repositorios
-- `backend`: rama `develop`, HEAD `b24bc3f`
-- `frontend`: rama `develop`, HEAD `b5c5044`
+- `backend`: rama `develop`, HEAD `873a2f6`
+- `frontend`: rama `develop`, HEAD `f327993`
 
 ### Historial de commits
-**backend** — últimos 60 de 351 commits (incluye merges de PR):
+**backend** — últimos 60 de 376 commits (incluye merges de PR):
+  - 873a2f6 2026-11-28 wsernam: Merge pull request #108 from wsernam/fix/d13-controladores-sin-ruta
+  - 61683fd 2026-11-27 thaliabernalepe: fix(seguridad): quitar controladores sin ruta y aplicar D-13 (R1)
+  - 8182c8a 2026-11-27 Manuela Erazo: Merge pull request #107 from wsernam/test/entrada-sobredimensionada
+  - b0beb89 2026-11-27 thaliabernalepe: fix: escapar comillas en el SVG de las graficas (CodeQL)
+  - 31ce9b2 2026-11-27 thaliabernalepe: test(seguridad): pruebas de entrada sobredimensionada con graficas de latencia
+  - 8869f0a 2026-11-27 Manuela Erazo: Merge pull request #105 from wsernam/fix/zap-resumen-por-rol
+  - 3a91542 2026-11-27 Manuela Erazo: Merge pull request #106 from wsernam/fix/validacion-entrada-zap
+  - 0ac8b66 2026-11-27 thaliabernalepe: fix: limpiar datos de la petición en los logs (CodeQL y Sonar)
+  - b34140d 2026-11-27 thaliabernalepe: fix: rechazar byte nulo y responder errores en JSON (hallazgos ZAP)
+  - c326392 2026-11-27 thaliabernalepe: fix(ci): corregir resumen de ZAP y documentar escaneo por rol
+  - 6b95674 2026-11-27 Manuela Erazo: Merge pull request #104 from wsernam/fix/fuzzing-validaciones
+  - 18fd169 2026-11-27 thaliabernalepe: fix: rechazar false y 0 en campos del perfil (fuzzing run #31)
+  - 86af6a6 2026-11-27 thaliabernalepe: fix: aceptar solo dígitos en ids de la URL (fuzzing run #30)
+  - 8425f09 2026-11-27 thaliabernalepe: fix: validar entradas que el fuzzing (run #29) hacía fallar
+  - 6bb9ed6 2026-11-27 thaliabernalepe: docs(claude): registrar decisión del fix de fuzzing por rol
+  - 6ec1ddd 2026-11-27 thaliabernalepe: fix: validar entradas que Schemathesis hacía fallar con  codigo 500
+  - 17c402b 2026-11-27 Manuela Erazo: Merge pull request #103 from wsernam/test/seguridad-por-rol-
+  - 8e5cd12 2026-11-27 thaliabernalepe: test(rbac): quitar it.fails de HALLAZGO-2 en enrichment.family
+  - 928e5d5 2026-11-27 thaliabernalepe: fix(db): agregar categoria_gramatical y familia a wordnet_cache
+  - 27b8429 2026-11-26 thaliabernalepe: fix: validar rango de IDs de tarjetas
+  - 8d48b39 2026-11-25 Manuela Erazo: Merge pull request #101 from wsernam/test/seguridad-por-rol-
+  - a6c08e0 2026-11-25 thaliabernalepe: fix:  corregir salida funcional y cobertura de enriquecimiento
+  - 0525e85 2026-11-25 thaliabernalepe: fix: corregir validaciones detectadas por Schemathesis en rol administrador
+  - de12ca4 2026-11-25 Karen Sandoval: Merge pull request #97 from wsernam/bot/superprompt
+  - 3e915d0 2026-11-26 knnsand: docs(ai): reconstruir SUPERPROMPT y registrar PR con IA
   - b24bc3f 2026-11-25 Karen Sandoval: Merge pull request #98 from wsernam/docs/seguridad-sesion
   - 8e57dfb 2026-11-25 Manuela Erazo: Merge pull request #100 from wsernam/docs/corregir-guia-local
   - 0b816aa 2026-11-25 Karen Sandoval: Merge pull request #99 from wsernam/test/seguridad-por-rol-
@@ -743,32 +774,12 @@ detallados faltaban datos del PDF, así que se ajustó:
   - 310eb48 2026-11-18 Manuela Erazo: Merge pull request #88 from wsernam/docs/decisiones-control-acceso
   - 8454331 2026-11-18 Manuela Erazo: Merge pull request #87 from wsernam/docs/hallazgos-control-acceso
   - 548021a 2026-11-18 Manuela Erazo: Merge pull request #85 from wsernam/docs/pruebas-funcionales-rbac
-  - 454c48a 2026-11-18 Manuela Erazo: Merge pull request #84 from wsernam/test/idor-propiedad-recursos
-  - ff95b7c 2026-11-18 Manuela Erazo: Merge pull request #83 from wsernam/test/matriz-rbac-cobertura
-  - 68cc54d 2026-11-18 Manuela Erazo: Merge pull request #82 from wsernam/test/matriz-rbac-endpoint-rol
-  - 52bb9da 2026-11-18 Manuela Erazo: Merge pull request #81 from wsernam/docs/matriz-rbac
-  - be122c6 2026-11-18 Manuela Erazo: Merge pull request #80 from wsernam/ci/limites-solicitudes-funcionales
-  - f8e92e4 2026-11-18 Karen Sandoval: docs(changelog): pruebas de control de acceso
-  - 11efcd7 2026-11-18 Karen Sandoval: docs(claude): discrepancias D-12 a D-14 y decisión de las pruebas de control de acceso
-  - fb50159 2026-11-18 Karen Sandoval: docs(seguridad): hallazgos de las pruebas de control de acceso (HALLAZGO-1 a 9)
-  - eaba6c3 2026-11-18 Karen Sandoval: docs(pruebas): documentar las pruebas RBAC y las variables de límite
-  - f7b9328 2026-11-18 Karen Sandoval: test(seguridad): 37 casos IDOR (estudiante A contra B, no inscrita, docente ajena)
-  - 8b47fe6 2026-11-18 Karen Sandoval: test(seguridad): cobertura de rutas de la matriz RBAC
-  - 1d84e41 2026-11-18 Karen Sandoval: test(seguridad): matriz RBAC endpoint × rol de los 61 endpoints
-  - ededb4c 2026-11-18 Karen Sandoval: docs(seguridad): matriz RBAC de los 61 endpoints
-  - 19460a6 2026-11-17 Karen Sandoval: ci(funcionales): subir límites de solicitudes para repetir la suite sin 429
-  - 7d46fda 2026-11-16 Karen Sandoval: Merge pull request #79 from wsernam/bot/superprompt
-  - 0f7016d 2026-11-15 knnsand: docs(ai): reconstruir SUPERPROMPT y registrar PR con IA
-  - d0411ee 2026-11-15 Karen Sandoval: Merge pull request #78 from wsernam/feature/backend/hu-023-ci-documentacion
-  - d73c611 2026-11-15 Manuela Erazo: ci(backend): automatizar integracion HU-023 y actualizar documentacion
-  - fda6070 2026-11-14 Karen Sandoval: Merge pull request #74 from wsernam/bot/superprompt
-  - 7f9f652 2026-11-14 knnsand: docs(ai): reconstruir SUPERPROMPT y registrar PR con IA
-  - a6e2135 2026-11-14 Karen Sandoval: Merge pull request #76 from wsernam/feature/backend/hu-023-acceso-salvaguardas
-  - 1e71430 2026-11-14 Karen Sandoval: Merge pull request #77 from wsernam/docs/hitl-alcance-23-hu
-  - f9f5004 2026-11-14 Manuela Erazo: docs(hitl): registrar ampliación del alcance a 23 HU
-  - ea4e4f5 2026-11-14 Manuela Erazo: fix(backend): limitar solicitudes de actualizacion de perfil
-  - 9ddae2a 2026-11-14 Manuela Erazo: fix(backend): completar limites y adaptar verificaciones OWASP
-**frontend** — últimos 60 de 313 commits (incluye merges de PR):
+**frontend** — últimos 60 de 318 commits (incluye merges de PR):
+  - f327993 2026-11-25 thaliabernalepe: Merge pull request #88 from knnsand/docs/politica-privacidad
+  - 9ee0cd7 2026-11-25 wsernam: Agregar correo de contacto en la política de privacidad
+  - 533feec 2026-11-25 wsernam: Merge pull request #87 from knnsand/docs/corregir-guia-e2e
+  - 85d289f 2026-11-25 wsernam: Create privacidad.html
+  - 440cf19 2026-11-25 Karen Sandoval: docs: corregir guia de ejecucion E2E (disposicion de carpetas y compose del back)
   - b5c5044 2026-11-20 thaliabernalepe: Merge pull request #86 from knnsand/test/e2e-hu022-resultados
   - f0a7dd9 2026-11-20 thaliabernalepe: Merge pull request #85 from knnsand/test/e2e-he07-reportes
   - 708212d 2026-11-20 thaliabernalepe: Merge branch 'develop' into test/e2e-he07-reportes
@@ -824,14 +835,9 @@ detallados faltaban datos del PDF, así que se ajustó:
   - c66b809 2026-11-11 Manuela Erazo: test: ajustar pruebas de registro de palabras duplicadas
   - ec42e78 2026-11-09 wsernam: Merge pull request #73 from knnsand/feature/about-video-tutorials
   - d397be3 2026-11-09 thaliabernalepe:  fix(about): corregir visibilidad de tutoriales segun el rol"
-  - 4a1b2b6 2026-11-09 thaliabernalepe: feat: agregar pagina About video tutorials"
-  - 01ed515 2026-11-08 thaliabernalepe: Merge pull request #72 from knnsand/docs/generar-doc-codigo
-  - bfb9510 2026-11-08 thaliabernalepe: Merge pull request #71 from knnsand/feature/frontend/sca-dependencias
-  - e678d54 2026-11-07 wsernam: docs: generar la documentación del código con JSDoc (npm run docs:code)
-  - d06bc5f 2026-11-07 Manuela Erazo: chore: agregar workflow SCA con npm audit y configuracion de Dependabot
 
 ## 10. Historial de prompts y validaciones (bitácora)
-86 sesiones registradas (una sesión copiada en varias hojas cuenta una vez), en orden cronológico (2026-08-18 a 2026-11-26). Estados: ADAPTADO 11, CORREGIDO 1, VALIDACIÓN 1, VALIDADO 73.
+92 sesiones registradas (una sesión copiada en varias hojas cuenta una vez), en orden cronológico (2026-08-18 a 2026-11-28). Estados: ADAPTADO 11, CORREGIDO 1, VALIDACIÓN 1, VALIDADO 79.
 Úsalo para no repetir trabajo, respetar lo ya adaptado o corregido y copiar el estilo de registro.
 
 - 2026-08-18 · Presentaciones - Documentos · ChatGPT · Karen Sandoval: «Compara tecnologías de frontend, para un proyecto de diccionario colaborativo de vocabulario (mazos semanales, aportes de estudiantes, validación docente, repetición espaciada). Evalúa React, Vue y Angular.» → Tres tablas comparativas (Tabla 1A, 1B, 1C) con cifras de adopción citadas a una encuesta de Stack Overflow proporcionada por integrante del proyecto | VALIDADO: Se contrastaron las características y cifras presentadas con fuentes externas y se verificó que la comparación fuera coherente con las necesidades del proyecto. Los resultados sirvieron como recurso para seleccionar la tecnología frontend.
@@ -918,8 +924,14 @@ detallados faltaban datos del PDF, así que se ajustó:
 - 2026-11-21 · Frontend · Claude Code (Claude Opus 5.5) · Thalia Bernal: «test(e2e): HE-06 diccionario global y consulta de mazos (estudiante e…» → - Nuevo `e2e/he06-diccionario.e2e.js`. Las pruebas corren una vez con Juan (estudiante) y otra como invitado: - **CA-16.1:** el diccionario muestra solo las palabras aprobadas. El conteo coincide con… | VALIDADO: suite E2E completa en local (69 pasan, 3 pendientes que ya existían); el archivo nuevo también se corrió dos veces sin reiniciar la base, para simular el reintento de CI; `npm test` 504/504; ESLint sin errores. (Revisión: Thalia bernal — 20/11/26)
 - 2026-11-21 · Frontend · Claude Code (Claude Opus 5.5) · Thalia Bernal: «test(e2e): HE-07 descarga y contenido de los reportes PDF» → - Nuevo `e2e/he07-reportes.e2e.js`: - **HU-018:** Juan descarga su progreso, que trae su código, su nivel MCER, sus aportes, el quiz y el repaso. La docente descarga el de Carlos, que dice "Sin activ… | VALIDADO: suite E2E completa en local (82 pasan, 3 pendientes que ya existían); el archivo nuevo también se corrió dos veces sin reiniciar la base, para simular el reintento de CI; `npm test` 509/509; ESLint sin errores. (Revisión: Thalia Bernal — 20/11/26)
 - 2026-11-21 · Frontend · Claude Code (Claude Opus 5.5) · Thalia Bernal: «test(e2e): HU-022 panel docente de revisión de resultados de quices» → - Nuevo `e2e/he03-resultados-quiz.e2e.js`. Es un archivo aparte para no tocar `he03-evaluacion`. - **CA-22.1:** la docente abre el panel desde "View results" en la lista de quices y vuelve con "Back … | VALIDADO: suite E2E completa en local (77 pasan, 3 pendientes que ya existían); el archivo nuevo también se corrió dos veces sin reiniciar la base, para simular el reintento de CI; `npm test` 509/509; ESLint sin errores. (Revisión: Thalia Bernal — 20/11/26)
+- 2026-11-26 · Frontend · Claude Code; Haiku 5.5 · William Serna: «[AI ASSISTED] docs: corregir guia de ejecucion E2E (disposicion de carpetas)» → - `e2e/README.md`: sección "Ejecutar en local" reescrita. Los repos se clonan con sus nombres originales en la misma carpeta (el E2E busca el back en `../A-Walking-Dictionary-NovaCode-Back-end`, o en… | VALIDADO: se contrastó el texto contra `e2e/soporte/entorno.js` (ubicación de `BACK_REPO` y del `.env`), `e2e/soporte/base-datos.js` (contenedor `walking_dictionary_db`) y el `docker-compose.yml` del repo del back. (Revisión: Karen Nathalia Sandoval 25-11-202…
+- 2026-11-26 · Frontend · Claude Code, Claude Opus 5.5 · Thalia Bernal: «Página de política de privacidad para Google OAuth» → - `public/privacidad.html`: qué datos se recogen (nombre y correo de Google, perfil académico, aportes, quices y progreso), para qué se usan, con quién se comparten (proveedores Vercel, Render y Supa… | VALIDADO: revisión del contenido frente a los datos reales del DER (tabla usuario y tablas académicas) (Revisión: William Serna, 25-nov-2026)
 - 2026-11-26 · Backend · Claude (Anthropic), Claude Sonnet 5.5 · Karen Sandoval: «Test/seguridad por rol» → - `.github/workflows/dast-zap.yml`: matriz de cuatro roles, escaneo activo (`scanner.strength=HIGH`, `scanner.threshold=LOW`, tope de 60 minutos), paso que verifica que el objetivo y la base son loca… | VALIDADO: sintaxis YAML comprobada con Python; ejecución de los workflows en GitHub Actions (Revisión: Thalia Bernal- 25/nov/2026)
 - 2026-11-26 · Backend · Claude Code Haiku 5.5 · Manuela Meneses: «[AI ASSISTED ]docs: corregir guia de ejecucion local (seed.sql y README de pruebas» → - `seed.sql`: el comentario inicial ahora dice que con Docker Compose se ejecuta solo (se monta como `2-seed.sql` en `/docker-entrypoint-initdb.d/`, solo al crear el volumen) y que nunca debe corrers… | VALIDADO: se contrastó el texto contra `docker-compose.yml` (volúmenes `1-init.sql` y `2-seed.sql`, servicio `postgres`) y contra `pruebas-funcionales/soporte/entorno.js`. (Revisión: Karen Nathalia Sandoval 25-11-2026)
+- 2026-11-27 · Backend · Claude Code, Opus 5.5 · Manuela Meneses: «fix: validación de entradas por rol según fuzzing Schemathesis» → - `src/utils/validacion.js` (nuevo): validaciones compartidas de ids, enteros, fechas ISO 8601 y caracteres de control. - `MazoController`: `curso_id` y fechas obligatorios en `crear`; 409 `DECK_HAS_… | VALIDADO: 802 pruebas unitarias en verde, suite funcional completa en verde (Postgres 16 local), los 12 casos del run #28 repetidos contra la API local. (Revisión: Manuela Meneses- 27/11/2026)
+- 2026-11-28 · Backend · Claude Code, Opus 5.5 · Manuela Meneses: «fix: rechazar byte nulo y responder errores en JSON (hallazgos ZAP)» → - `backend/src/middleware/validacionMiddleware.js`: el archivo estaba reservado para sanitizar la entrada; ahora implementa `rechazarByteNulo`, que responde **400 `BAD_REQUEST`** si el body, la query… | VALIDADO: 882 pruebas unitarias en verde (24 nuevas); suite funcional en verde (429 pasan, 26 fallos esperados); `npm run test:security` con 28 PASS y 0 FAIL (el único WARN, JWT en localStorage, ya existía); 16 casos contra la API local en modo producción sin…
+- 2026-11-28 · Backend · Claude Code, Opus 5.5 · Manuela Meneses: «fix(ci): corregir resumen de ZAP e interpretar escaneo activo por rol» → - `.github/workflows/dast-zap.yml`: el paso "Resumen en el job" vuelve a tener el script `node -e`, ahora leyendo `reporte-zap-<rol>.json`, con conteo por nivel de riesgo y la tabla de alertas ordena… | VALIDADO: hashes de los 4 artefactos del run #42 verificados contra GitHub; YAML del workflow parseado; script del resumen ejecutado en bash con un reporte de ejemplo y sin reporte; los 500 por byte nulo reproducidos contra la API local (200/201/404 con datos…
+- 2026-11-28 · Backend · Claude Code, Opus 5.5 · Manuela Meneses: «test(seguridad): entrada sobredimensionada (texto, body, JSON anidado, ReDoS) con gráficas» → - `backend/pruebas-funcionales/entrada-sobredimensionada.test.js` (nuevo): levanta su propia instancia del backend en un puerto libre, con los límites de peticiones altos (no gasta el contador de la … | VALIDADO: 886 pruebas unitarias en verde; lint sin errores; prueba funcional nueva con 64 pruebas en verde contra PostgreSQL local (63 casos medidos, 0 respuestas 5xx, `/health` vivo después de cada caso); gráficas revisadas en el navegador. (Revisión: Manuel…
 
 ## 11. Trazabilidad registrada
 | Fecha | Prompt-ID | Sprint | Autor (rol) | Repo | HU | Rama | Commits | PR | Estado | Hoja · fila bitácora | Plantilla |
@@ -978,6 +990,12 @@ detallados faltaban datos del PDF, así que se ajustó:
 | 2026-11-21 | P-20261121-0221-HU-022 | 4 | William Serna (Frontend) | frontend | HU-022 | test/e2e-hu022-resultados | `e070507`. Pruebas E2E de HU-022 y la actualización del README de `e2e/`. | frontend#86 | VALIDADO | Frontend · fila 34 | automático (PR) |
 | 2026-11-26 | P-20261126-0305-HU-023 | 4 | Thalia Bernal (DevOps / QA-Seguridad) | backend | HU-023 | test/seguridad-por-rol- | modificaciones de los dos workflows, el SQL del administrador de prueba ; incluye el commit que corrige las variables duplicadas en el paso del token. | backend#99 | VALIDADO | Backend · fila 44 | automático (PR) |
 | 2026-11-26 | P-20261126-0305 | 4 | Karen Sandoval (PO / SM) | backend | — | docs/corregir-guia-local | redacción de los textos nuevos de `seed.sql` y del README de pruebas funcionales. | backend#100 | VALIDADO | Backend · fila 45 | automático (PR) |
+| 2026-11-26 | P-20261126-0306 | 4 | Karen Sandoval (PO / SM) | frontend | — | docs/corregir-guia-e2e | redacción del texto nuevo de `e2e/README.md` y del comentario de `e2e.yml`. | frontend#87 | VALIDADO | Frontend · fila 35 | automático (PR) |
+| 2026-11-26 | P-20261126-0344 | 4 | William Serna (Frontend) | frontend | — | docs/politica-privacidad | 9ee0cd7 (correo de contacto); el texto de la política de 85d289f fue redactado con IA | frontend#88 | VALIDADO | Frontend · fila 36 | automático (PR) |
+| 2026-11-27 | P-20261127-2145-HU-001 | 4 | Thalia Bernal (DevOps / QA-Seguridad) | backend | HU-001 | fix/fuzzing-validaciones | `fix: validar entradas que Schemathesis hacía fallar con codigo 500` y `[IA-ASSISTED] docs(claude): registrar decisión del fix de fuzzing por rol` | backend#104 | VALIDADO | Backend · fila 46 | automático (PR) |
+| 2026-11-28 | P-20261128-0132 | 4 | Thalia Bernal (DevOps / QA-Seguridad) | backend | — | fix/validacion-entrada-zap | `fix: rechazar byte nulo y responder errores en JSON (hallazgos ZAP)` | backend#106 | VALIDADO | Backend · fila 47 | automático (PR) |
+| 2026-11-28 | P-20261128-0155 | 4 | Thalia Bernal (DevOps / QA-Seguridad) | backend | — | fix/zap-resumen-por-rol | `[IA-ASSISTED] fix(ci): corregir resumen de ZAP y documentar escaneo por rol` | backend#105 | VALIDADO | Backend · fila 48 | automático (PR) |
+| 2026-11-28 | P-20261128-0244 | 4 | Thalia Bernal (DevOps / QA-Seguridad) | backend | — | test/entrada-sobredimensionada | `test(seguridad): pruebas de entrada sobredimensionada con graficas de latencia` | backend#107 | VALIDADO | Backend · fila 49 | automático (PR) |
 
 ## 12. Protocolo HITL (puertas obligatorias)
 Te detienes en cada puerta y esperas la frase indicada de la persona responsable de la sesión (o del líder del sprint, **Karen Sandoval**, en P2). Sin esa frase no avanzas.
