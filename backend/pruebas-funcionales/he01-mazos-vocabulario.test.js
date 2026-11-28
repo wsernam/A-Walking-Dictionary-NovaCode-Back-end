@@ -104,12 +104,6 @@ describe('HU-1.2 — Registrar palabra en mazo compartido', () => {
     expect(status).toBe(403);
   });
 
-  it('CA-5.4.2 Separación de funciones R1 (D-13): la docente no registra palabras, solo las aprueba (403)', async () => {
-    const { status, body } = await registrarPalabra('ana', mazo.id_mazo);
-    expect(status).toBe(403);
-    expect(body.code).toBe('AUTH_FORBIDDEN');
-  });
-
   it.each(['palabra', 'traduccion', 'definicion'])('CA-1.2.2 Campo obligatorio: sin "%s" se rechaza e indica el campo (400)', async (campo) => {
     const { status, body } = await registrarPalabra('juan', mazo.id_mazo, { [campo]: '' });
     expect(status).toBe(400);

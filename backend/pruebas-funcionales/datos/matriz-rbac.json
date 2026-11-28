@@ -23,7 +23,7 @@
     {"id": 19, "permiso": "deck.export", "metodo": "GET", "ruta": "/decks/{id}/export-pdf", "permitido": ["docente"]},
     {"id": 20, "permiso": "deck.delete_own", "metodo": "DELETE", "ruta": "/decks/{id}", "permitido": ["docente"]},
     {"id": 21, "permiso": "deck.analytics", "metodo": "GET", "ruta": "/teacher/analytics/deck/{id}", "permitido": ["docente"]},
-    {"id": 22, "permiso": "card.create", "metodo": "POST", "ruta": "/decks/{id}/cards", "permitido": ["estudiante"], "body": {}},
+    {"id": 22, "permiso": "card.create", "metodo": "POST", "ruta": "/decks/{id}/cards", "permitido": ["estudiante", "docente"], "body": {}},
     {"id": 23, "permiso": "card.check_duplicate", "metodo": "POST", "ruta": "/cards/check-duplicate", "permitido": ["estudiante", "docente"], "body": {}, "hallazgos": {"administrador": "HALLAZGO-1: la ruta solo exige sesion, el administrador pasa"}},
     {"id": 24, "permiso": "card.read", "metodo": "GET", "ruta": "/cards/{id}", "permitido": ["invitado", "estudiante", "docente", "administrador"]},
     {"id": 25, "permiso": "card.list_pending", "metodo": "GET", "ruta": "/cards/pending", "permitido": ["docente"]},

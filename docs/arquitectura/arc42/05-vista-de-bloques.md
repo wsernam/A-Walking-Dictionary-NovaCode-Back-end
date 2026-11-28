@@ -81,7 +81,7 @@ La dependencia va en un solo sentido: `routes` → `controllers` → `services` 
 
 - **Servicios reservados, sin código:** `EnriquecimientoLexicoService` (la lógica real vive en `WordnetService`), `LimiteSemanalService` y `ModeracionService`. Ningún archivo los importa.
 - **`validacionMiddleware`:** reservado; hoy las validaciones viven en controladores y servicios.
-- **Routers CRUD no montados en `app.js`:** inscripción y resultado de quiz (los de etiqueta de contexto, pregunta de quiz, progreso de estudio, quiz-mazo y respuesta de quiz, con sus controladores, se eliminaron el 2026-11-27). No llevan `authenticate`, por lo que **no deben montarse sin protegerlos antes**.
+- **Routers CRUD no montados en `app.js`:** inscripción, etiqueta de contexto, pregunta de quiz, progreso de estudio, quiz-mazo, respuesta de quiz y resultado de quiz. No llevan `authenticate`, por lo que **no deben montarse sin protegerlos antes**.
 
 ## 5.3 Nivel 2: frontend
 

@@ -21,6 +21,11 @@ export default defineConfig({
         'src/models/**',
         'src/config/**',
         'src/repositories/**',
+        'src/controllers/PreguntaQuizController.js',
+        'src/controllers/EtiquetaContextoController.js',
+        'src/controllers/RespuestaQuizController.js',
+        'src/controllers/ProgresoEstudioController.js',
+        'src/controllers/QuizMazoController.js',
       ],
       // lcov: lo lee SonarQube (sonar.javascript.lcov.reportPaths en sonar-project.properties).
       // projectRoot '..' escribe las rutas desde la raíz del repo (backend/src/...), que es desde

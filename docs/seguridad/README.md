@@ -200,8 +200,6 @@ Las celdas con un hueco confirmado corren con `it.fails`: la integración contin
 | HALLAZGO-8 | Los quices se leen sin estar inscrito; cualquier docente los lee, edita, elimina, exporta y ve sus resultados | `GET`, `PUT`, `DELETE /quizzes/:id`, `export-pdf`, `teacher-results` | Validar inscripción o docente dueño del curso | Abierto (D-12) |
 | HALLAZGO-9 | El reporte de curso de otra docente responde 200 | `GET /reports/students/export-pdf` | Comparar `curso.docente_id` con el token (el comentario de `ReporteCursoService` ya lo promete) | Abierto (D-12) |
 
-**Separación de funciones R1** (`card.create` + `card.approve`, [matriz RBAC, sección 4](matriz-rbac.md)): el docente podía registrar palabras en `POST /decks/:id/cards` y también aprobarlas. Corregido el 2026-11-27 (D-13): el endpoint solo acepta el rol `estudiante` y el docente recibe 403 `AUTH_FORBIDDEN`; lo verifican `rbac-matriz.test.js` y `he01-mazos-vocabulario.test.js`.
-
 ## Pruebas de seguridad de sesión
 
 Construyen tokens "malos" y verifican que la API los rechace con 401. Corren con la suite funcional (`npm run test:funcional`) contra el backend de pruebas, nunca contra producción, y forman parte de `funcionales.yml`. Viven en `backend/pruebas-funcionales/seguridad-sesion.test.js` (21 pruebas).

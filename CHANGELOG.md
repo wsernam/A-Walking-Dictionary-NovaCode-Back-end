@@ -38,12 +38,8 @@ Notas:
 - 2026-09-13 a 2026-09-30 · Base del proyecto: quiz y exportación a PDF (09-13), login con Google/OAuth y control de roles (09-18), perfil académico (09-18), coautorías con columna `aporte.estado` (09-23) y registro de estudiantes (09-24).
 
 ### Cambiado
-- 2026-11-27 · D-13 (separación de funciones R1): `POST /decks/:id/cards` solo acepta el rol estudiante; el docente recibe 403 `AUTH_FORBIDDEN`, porque quien aporta una tarjeta no la aprueba.
 - 2026-10-11 · `POST`, `PUT` y `DELETE /quizzes` exigen rol docente; `GET /quizzes` y `GET /quizzes/:id` exigen token.
 - 2026-10-08 · HU-3.1 alineada con el contrato del front: mínimo 4 traducciones distintas, ventana de apertura-cierre, validación de curso y mazos, título de máximo 200 caracteres.
-
-### Eliminado
-- 2026-11-27 · Los controladores `PreguntaQuiz`, `EtiquetaContexto`, `RespuestaQuiz`, `ProgresoEstudio` y `QuizMazo` y sus routers CRUD: ninguna ruta montada los usaba y no tenían autenticación. Se quitan también de las exclusiones de cobertura (`vitest.config.js` y `sonar-project.properties`). Los repositorios se mantienen.
 
 ### Corregido
 - 2026-11-15 · HU-023: errores administrativos `ADMIN_INVALID_ID` y `ADMIN_USER_NOT_FOUND`; catálogo de criterios y reconocimiento de los CA en los grupos de pruebas del resumen funcional. La asociación con HU utiliza el catálogo, incluyendo `HU-023`. (#76)

@@ -97,7 +97,7 @@ Cada columna es un rol y cada fila un permiso. Un denegado responde 401 a Invita
 
 | # | Permiso | Endpoint | Inv | Est | Doc | Adm | Propiedad |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 22 | `card.create` | POST /decks/:id/cards | · | ● | · | · | Estudiante inscrito en el curso del mazo |
+| 22 | `card.create` | POST /decks/:id/cards | · | ● | ● | · | Estudiante inscrito en el curso del mazo |
 | 23 | `card.check_duplicate` | POST /cards/check-duplicate | · | ● | ● | · † ⚑ | Hoy solo exige sesión |
 | 24 | `card.read` | GET /cards/:id | ● | ● | ● | ● | Público, intencional (decisión del equipo) |
 | 25 | `card.list_pending` | GET /cards/pending | · | · | ● | · |  |
@@ -172,13 +172,13 @@ Cada columna es un rol y cada fila un permiso. Un denegado responde 401 a Invita
 
 |  | Invitado | Estudiante | Docente | Administrador |
 | --- | --- | --- | --- | --- |
-| **Permisos efectivos (de 61)** | 10 | 29 | 49 | 13 |
+| **Permisos efectivos (de 61)** | 10 | 29 | 50 | 13 |
 
 La unión de roles no aplica: cada usuario tiene un solo rol. Los permisos terminados en `_own` o con propiedad conceden la capacidad solo sobre recursos propios, así que el servidor también debe comprobar que el recurso pertenezca al usuario (secciones 6 y 7).
 
 ## 4. Separación de funciones (SoD)
 
-Una regla de separación de funciones (SoD, *separation of duties*) es un par de permisos que una misma persona no debe reunir. Como cada usuario tiene un solo rol, basta revisar cada rol de la matriz: los cuatro roles cumplen las tres reglas.
+Una regla de separación de funciones (SoD, *separation of duties*) es un par de permisos que una misma persona no debe reunir. Como cada usuario tiene un solo rol, basta revisar cada rol de la matriz: Estudiante, Administrador e Invitado cumplen las tres reglas; Docente incumple la R1.
 
 | Regla | Par de permisos | Motivo | Control |
 | --- | --- | --- | --- |
@@ -192,10 +192,10 @@ Una regla de separación de funciones (SoD, *separation of duties*) es un par de
 | --- | --- | --- | --- | --- | --- |
 | Invitado | 10 | Cumple | Cumple | Cumple | Cumple |
 | Estudiante | 29 | Cumple | Cumple | Cumple | Cumple |
-| Docente | 49 | Cumple | Cumple | Cumple | Cumple |
+| Docente | 50 | **Viola** | Cumple | Cumple | **Viola R1** ⚑ |
 | Administrador | 13 | Cumple | Cumple | Cumple | Cumple |
 
-Hasta el 2026-11-27 el Docente reunía `card.create` y `card.approve`, porque `POST /decks/:id/cards` aceptaba los roles `docente` y `estudiante` y `PATCH /cards/:id/approve` es del docente. El equipo decidió quitar `docente` de ese endpoint (D-13): ahora solo lo usa el estudiante, y el docente recibe 403 `AUTH_FORBIDDEN`.
+El Docente reune `card.create` y `card.approve` porque `POST /decks/:id/cards` acepta los roles `docente` y `estudiante`, y `PATCH /cards/:id/approve` es del docente. Opciones: (a) quitar `docente` de ese endpoint, o (b) aceptar la excepción y dejarla escrita aquí. Es una decisión del equipo (⚑); la matriz de la sección 3 refleja el comportamiento actual.
 
 El endpoint `PATCH /admin/users/:id/role` reemplaza el valor de `usuario.rol`, así que un usuario no acumula roles y no puede reunir permisos de dos roles.
 
@@ -456,6 +456,5 @@ npm run test:funcional
 | --- | --- | --- |
 | v1.1 | 2026-11-03 | Borrador: objetivo, roles y matriz de permisos (parcial, hasta el permiso 21) |
 | v1.2 | 2026-11-17 | Matriz de los 61 endpoints, separación de funciones, modelo de datos, verificación en el servidor, reglas y casos IDOR, pruebas automáticas, buenas prácticas y referencias |
-| v1.3 | 2026-11-27 | D-13: `card.create` (POST /decks/:id/cards) pasa a ser solo del estudiante; el Docente queda con 49 permisos y cumple la R1 |
 
 Los nombres y datos de usuarios de prueba son los de `seed.sql` y sirven solo como ejemplo de aprendizaje.
